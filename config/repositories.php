@@ -23,6 +23,8 @@ use Sports\League\Repository as LeagueRepository;
 use Sports\League;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Competition;
+use Sports\Team\Repository as TeamRepository;
+use Sports\Team;
 use Sports\Competitor\Team\Repository as TeamCompetitorRepository;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Repository as GameRepository;
@@ -40,6 +42,8 @@ use SportsImport\Attacher\League\Repository as LeagueAttacherRepository;
 use SportsImport\Attacher\League as LeagueAttacher;
 use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
 use SportsImport\Attacher\Competition as CompetitionAttacher;
+use SportsImport\Attacher\Team\Repository as TeamAttacherRepository;
+use SportsImport\Attacher\Team as TeamAttacher;
 use SportsImport\Attacher\Competitor\Team\Repository as TeamCompetitorAttacherRepository;
 use SportsImport\Attacher\Competitor\Team as TeamCompetitorAttacher;
 use SportsImport\Attacher\Game\Repository as GameAttacherRepository;
@@ -89,6 +93,14 @@ return [
     CompetitionAttacherRepository::class => function (ContainerInterface $container): CompetitionAttacherRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new CompetitionAttacherRepository($entityManager, $entityManager->getClassMetaData(CompetitionAttacher::class));
+    },
+    TeamRepository::class => function (ContainerInterface $container): TeamRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new TeamRepository($entityManager, $entityManager->getClassMetaData(Team::class));
+    },
+    TeamAttacherRepository::class => function (ContainerInterface $container): TeamAttacherRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new TeamAttacherRepository($entityManager, $entityManager->getClassMetaData(TeamAttacher::class));
     },
     TeamCompetitorRepository::class => function (ContainerInterface $container): TeamCompetitorRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use SportsImport\ExternalSource\ApiHelper;
+use SportsImport\ExternalSource\CacheInfo;
 use SuperElf\LayBack\Output;
 use Sports\Game;
 use Sports\NameService;
@@ -104,9 +106,15 @@ class GetExternal extends Command
 //        if ($input->getOption("games")) {
 //            $this->importGames(SofaScore::NAME);
 //        }
-//        if ($input->getOption("laybacks")) {
-//            $this->importLayBacks([Betfair::NAME]);
-//        }
+
+
+        if( $externalSourcImpl instanceof CacheInfo ) {
+            $this->logger->info( $externalSourcImpl->getCacheInfo( ExternalSource::DATA_SPORTS ) );
+        }
+        if( $externalSourcImpl instanceof ApiHelper ) {
+            $this->logger->info( "endpoint: " . $externalSourcImpl->getEndPoint( ExternalSource::DATA_SPORTS ) );
+        }
+
         return 0;
     }
 
