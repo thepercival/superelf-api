@@ -1,0 +1,10 @@
+SuperElf\Pool:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    id:
+      read_only: true
+    name:
+      type: string
