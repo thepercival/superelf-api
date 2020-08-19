@@ -70,4 +70,10 @@ return [
     ],
     'images' => [
     ],
+    'proxy' => [
+        'host' => getenv('EXTERNAL_PROXY_HOST'),
+        'port' => getenv('EXTERNAL_PROXY_PORT'),
+        'username' => getenv('EXTERNAL_PROXY_USERNAME'),
+        'password' => getenv('EXTERNAL_PROXY_PASSWORD'),
+    ],
 ];

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb0214d54b16d2d05a69f8fc120f9c2e",
+    "content-hash": "0fd3549d5d56ee0bbd15023a53c07a51",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -4132,16 +4132,16 @@
         },
         {
             "name": "thepercival/php-sports",
-            "version": "v1.0.2",
+            "version": "v1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports.git",
-                "reference": "aebdc4131ce1257f3aff9f99f771bcc3215bdea3"
+                "reference": "3e688e7311c317967c174db1db018a216ed55f50"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports/zipball/aebdc4131ce1257f3aff9f99f771bcc3215bdea3",
-                "reference": "aebdc4131ce1257f3aff9f99f771bcc3215bdea3",
+                "url": "https://api.github.com/repos/thepercival/php-sports/zipball/3e688e7311c317967c174db1db018a216ed55f50",
+                "reference": "3e688e7311c317967c174db1db018a216ed55f50",
                 "shasum": ""
             },
             "require": {
@@ -4193,23 +4193,23 @@
             "description": "library  for sports competitions and more",
             "homepage": "https://github.com/thepercival/php-sports",
             "keywords": [
-                "Voetbal",
-                "football"
+                "football",
+                "sports"
             ],
-            "time": "2020-08-13T10:42:11+00:00"
+            "time": "2020-08-18T17:30:17+00:00"
         },
         {
             "name": "thepercival/php-sports-helpers",
-            "version": "v1.0.5",
+            "version": "v1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports-helpers.git",
-                "reference": "caae02f0064104afde7b63c303c6c978553ea32d"
+                "reference": "ad79f0a8f504612413e12e32faaaae872344538b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports-helpers/zipball/caae02f0064104afde7b63c303c6c978553ea32d",
-                "reference": "caae02f0064104afde7b63c303c6c978553ea32d",
+                "url": "https://api.github.com/repos/thepercival/php-sports-helpers/zipball/ad79f0a8f504612413e12e32faaaae872344538b",
+                "reference": "ad79f0a8f504612413e12e32faaaae872344538b",
                 "shasum": ""
             },
             "require": {
@@ -4255,7 +4255,7 @@
                 "helpers",
                 "sport"
             ],
-            "time": "2020-08-12T09:45:16+00:00"
+            "time": "2020-08-13T10:27:38+00:00"
         },
         {
             "name": "thepercival/php-sports-import",
@@ -4325,16 +4325,16 @@
         },
         {
             "name": "thepercival/php-sports-planning",
-            "version": "v1.0.2",
+            "version": "v1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports-planning.git",
-                "reference": "f8860bdd28dd9335e2c10c996926cf0480c28659"
+                "reference": "1d45e252e86aa1c4814aa1133ba40c67892f172a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports-planning/zipball/f8860bdd28dd9335e2c10c996926cf0480c28659",
-                "reference": "f8860bdd28dd9335e2c10c996926cf0480c28659",
+                "url": "https://api.github.com/repos/thepercival/php-sports-planning/zipball/1d45e252e86aa1c4814aa1133ba40c67892f172a",
+                "reference": "1d45e252e86aa1c4814aa1133ba40c67892f172a",
                 "shasum": ""
             },
             "require": {
@@ -4382,7 +4382,7 @@
                 "planning",
                 "sport"
             ],
-            "time": "2020-08-12T09:46:25+00:00"
+            "time": "2020-08-18T17:27:29+00:00"
         },
         {
             "name": "tuupola/base62",
@@ -5289,16 +5289,16 @@
         },
         {
             "name": "phpdocumentor/reflection-docblock",
-            "version": "5.2.0",
+            "version": "5.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "3170448f5769fe19f456173d833734e0ff1b84df"
+                "reference": "d870572532cd70bc3fab58f2e23ad423c8404c44"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/3170448f5769fe19f456173d833734e0ff1b84df",
-                "reference": "3170448f5769fe19f456173d833734e0ff1b84df",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/d870572532cd70bc3fab58f2e23ad423c8404c44",
+                "reference": "d870572532cd70bc3fab58f2e23ad423c8404c44",
                 "shasum": ""
             },
             "require": {
@@ -5337,7 +5337,7 @@
                 }
             ],
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "time": "2020-07-20T20:05:34+00:00"
+            "time": "2020-08-15T11:14:08+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
@@ -7296,7 +7296,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.4"
+        "php": "^7.4",
+        "ext-json": "*"
     },
     "platform-dev": []
 }

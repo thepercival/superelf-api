@@ -7,6 +7,7 @@ use Psr\Container\ContainerInterface;
 use App\Commands\Listing as ListingCommand;
 use App\Commands\Import as ImportCommand;
 use App\Commands\GetExternal as GetExternalCommand;
+use App\Commands\Get as GetCommand;
 
 $commands = [
     "app:import" => function (ContainerInterface $container): ImportCommand {
@@ -14,6 +15,9 @@ $commands = [
     },
     "app:getexternal" => function (ContainerInterface $container): GetExternalCommand {
         return new GetExternalCommand($container);
+    },
+    "app:get" => function (ContainerInterface $container): GetCommand {
+        return new GetCommand($container);
     }
 ];
 

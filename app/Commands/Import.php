@@ -6,8 +6,14 @@ use Psr\Container\ContainerInterface;
 use App\Command;
 use Selective\Config\Configuration;
 
+use Sports\League;
+use Sports\League\Repository as LeagueRepository;
+use Sports\Season;
+use Sports\Season\Repository as SeasonRepository;
+use SportsImport\ExternalSource\Implementation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
@@ -16,25 +22,14 @@ use SportsImport\Service as ImportService;
 
 class Import extends Command
 {
-    /**
-     * @var ExternalSourceFactory
-     */
-    protected $externalSourceFactory;
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-    /**
-     * @var ImportService
-     */
-    protected $importService;
+    protected ExternalSourceFactory $externalSourceFactory;
+    protected ImportService $importService;
 
     public function __construct(ContainerInterface $container)
     {
         $this->externalSourceFactory = $container->get(ExternalSourceFactory::class);
         $this->importService = $container->get(ImportService::class);
-        $this->container = $container;
-        parent::__construct($container->get(Configuration::class));
+        parent::__construct($container);
     }
 
     protected function configure()
@@ -48,15 +43,8 @@ class Import extends Command
             // the "--help" option
             ->setHelp('import the objects');
 
-        $this->addOption('sports', null, InputOption::VALUE_NONE, 'sports');
-        $this->addOption('associations', null, InputOption::VALUE_NONE, 'associations');
-        $this->addOption('seasons', null, InputOption::VALUE_NONE, 'seasons');
-        $this->addOption('leagues', null, InputOption::VALUE_NONE, 'leagues');
-        $this->addOption('competitions', null, InputOption::VALUE_NONE, 'competitions');
-        $this->addOption('teams', null, InputOption::VALUE_NONE, 'teams');
-        $this->addOption('teamcompetitors', null, InputOption::VALUE_NONE, 'teamcompetitors');
-        $this->addOption('structures', null, InputOption::VALUE_NONE, 'structure');
-        $this->addOption('games', null, InputOption::VALUE_NONE, 'games');
+        $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');
+        $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
 
         parent::configure();
     }
@@ -70,87 +58,87 @@ class Import extends Command
     {
         $this->init($input, 'cron-import');
 
-        if ($input->getOption("sports")) {
-            $this->importSports(SofaScore::NAME);
+        $externalSourceName = $input->getArgument('externalSource');
+        $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
+        if( $externalSourceImpl === null ) {
+            echo "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden" . PHP_EOL;
+            return -1;
         }
-        if ($input->getOption("associations")) {
-            $this->importAssociations(SofaScore::NAME);
+
+        $objectType = $input->getArgument('objectType');
+
+        try {
+            if ( $objectType === "sports" ) {
+                $this->importSports($externalSourceImpl);
+            } elseif ( $objectType === "associations" ) {
+                $this->importAssociations($externalSourceImpl);
+            } elseif ( $objectType === "seasons" ) {
+                $this->importSeasons($externalSourceImpl);
+            } elseif ( $objectType === "leagues" ) {
+                $this->importLeagues($externalSourceImpl);
+            } else {
+                $league = $this->getLeagueFromInput($input);
+                $season = $this->getSeasonFromInput($input);
+                if ( $objectType === "competition" ) {
+                    $this->importCompetition($externalSourceImpl, $league, $season);
+                } elseif ( $objectType === "teams" ) {
+                    $this->importTeams($externalSourceImpl, $league, $season);
+                } elseif ( $objectType === "teamcompetitors" ) {
+                    $this->importTeamCompetitors($externalSourceImpl, $league, $season);
+                } else {
+                    echo "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen" . PHP_EOL;
+                }
+            }
+        } catch( \Exception $e ) {
+            echo $e->getMessage() . PHP_EOL;
         }
-        if ($input->getOption("seasons")) { // input manual
-            $this->importSeasons(SofaScore::NAME);
-        }
-        if ($input->getOption("leagues")) {
-            $this->importLeagues(SofaScore::NAME);
-        }
-        if ($input->getOption("competitions")) {
-            $this->importCompetitions(SofaScore::NAME);
-        }
-        if ($input->getOption("teams")) {
-            $this->importTeams(SofaScore::NAME);
-        }
-        if ($input->getOption("teamcompetitors")) {
-            $this->importTeamCompetitors(SofaScore::NAME);
-        }
-        if ($input->getOption("structures")) {
-            $this->importStructures(SofaScore::NAME);
-        }
-        if ($input->getOption("games")) {
-            $this->importGames(SofaScore::NAME);
-        }
+
+
         return 0;
     }
 
-    protected function importSports(string $externalSourceName)
+    protected function importSports(Implementation $externalSourceImpl)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importSports($externalSourcImpl);
+        $this->importService->importSports($externalSourceImpl);
     }
 
-    protected function importAssociations(string $externalSourceName)
+    protected function importAssociations(Implementation $externalSourceImpl)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importAssociations($externalSourcImpl);
+        $this->importService->importAssociations($externalSourceImpl);
     }
 
-    protected function importSeasons(string $externalSourceName)
+    protected function importSeasons(Implementation $externalSourceImpl)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importSeasons($externalSourcImpl);
+        $this->importService->importSeasons($externalSourceImpl);
     }
 
-    protected function importLeagues(string $externalSourceName)
+    protected function importLeagues(Implementation $externalSourceImpl)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importLeagues($externalSourcImpl);
+        $this->importService->importLeagues($externalSourceImpl);
     }
 
-    protected function importCompetitions(string $externalSourceName)
+    protected function importCompetition(Implementation $externalSourceImpl, League $league, Season $season)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importCompetitions($externalSourcImpl);
+        $this->importService->importCompetition($externalSourceImpl, $league, $season );
     }
 
-    protected function importTeams(string $externalSourceName)
+    protected function importTeams(Implementation $externalSourceImpl, League $league, Season $season)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importTeams($externalSourcImpl);
+        $this->importService->importTeams($externalSourceImpl, $league, $season);
     }
 
-    protected function importTeamCompetitors(string $externalSourceName)
+    protected function importTeamCompetitors(Implementation $externalSourceImpl, League $league, Season $season)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importTeamCompetitors($externalSourcImpl);
+        $this->importService->importTeamCompetitors($externalSourceImpl, $league, $season);
     }
 
-    protected function importStructures(string $externalSourceName)
+    protected function importStructure(Implementation $externalSourceImpl, League $league, Season $season)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importStructures($externalSourcImpl);
+        $this->importService->importStructure($externalSourceImpl, $league, $season);
     }
 
-    protected function importGames(string $externalSourceName)
+    protected function importGames(Implementation $externalSourceImpl, League $league, Season $season)
     {
-        $externalSourcImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        $this->importService->importGames($externalSourcImpl);
+        $this->importService->importGames($externalSourceImpl, $league, $season);
     }
 }

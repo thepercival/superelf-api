@@ -134,11 +134,14 @@ return [
         );
     },
     ExternalSourceFactory::class => function (ContainerInterface $container): ExternalSourceFactory {
-        return new ExternalSourceFactory(
+        $externalSourceFactory = new ExternalSourceFactory(
             $container->get(ExternalSourceRepository::class),
             $container->get(CacheItemDbRepository::class),
             $container->get(LoggerInterface::class)
         );
+        $config = $container->get(Configuration::class);
+        $externalSourceFactory->setProxy( $config->getArray('proxy') );
+        return $externalSourceFactory;
     }
 
 ];

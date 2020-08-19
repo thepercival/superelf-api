@@ -1,3 +1,5 @@
 parameters:
     inferPrivatePropertyTypeFromConstructor:
         true
+    doctrine:
+        repositoryClass: Sports\Repository
