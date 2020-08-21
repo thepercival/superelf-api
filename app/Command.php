@@ -39,6 +39,7 @@ class Command extends SymCommand
 
         $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
+        $this->addOption('batchNr', null, InputOption::VALUE_OPTIONAL, 'the batchnr of the games');
     }
 
     protected function initLogger(InputInterface $input, string $name)
@@ -90,4 +91,12 @@ class Command extends SymCommand
         }
         return $season;
     }
+
+    protected function getStartBatchNrFromInput(InputInterface $input): int {
+        if( strlen( $input->getOption("batchNr") ) === 0 ) {
+            return 1;
+        }
+        return (int) $input->getOption("batchNr");
+    }
+
 }

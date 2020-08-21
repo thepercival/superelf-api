@@ -85,6 +85,10 @@ class Import extends Command
                     $this->importTeams($externalSourceImpl, $league, $season);
                 } elseif ( $objectType === "teamcompetitors" ) {
                     $this->importTeamCompetitors($externalSourceImpl, $league, $season);
+                } elseif ( $objectType === "structure" ) {
+                    $this->importStructure($externalSourceImpl, $league, $season);
+                } elseif ( $objectType === "games" ) {
+                    $this->importGames($externalSourceImpl, $league, $season);
                 } else {
                     echo "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen" . PHP_EOL;
                 }
