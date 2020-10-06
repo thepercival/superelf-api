@@ -28,15 +28,6 @@ use Sports\Competition;
 class Get extends Command
 {
     /**
-     * @var SportRepository
-     */
-    protected $sportRepos;
-    /**
-     * @var AssociationRepository
-     */
-    protected $associationRepos;
-
-    /**
      * @var CompetitionRepository
      */
     protected $competitionRepos;
@@ -47,8 +38,6 @@ class Get extends Command
 
     public function __construct(ContainerInterface $container)
     {
-        $this->sportRepos = $container->get(SportRepository::class);
-        $this->associationRepos = $container->get(AssociationRepository::class);
         $this->competitionRepos = $container->get(CompetitionRepository::class);
         $this->structureRepos = $container->get(StructureRepository::class);
         parent::__construct($container);
