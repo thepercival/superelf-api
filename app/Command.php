@@ -48,6 +48,8 @@ class Command extends SymCommand
     {
         $this->addOption('logtofile', null, InputArgument::OPTIONAL, 'logtofile?');
 
+        $this->addOption('sport', null, InputOption::VALUE_OPTIONAL, 'the name of the sport');
+        $this->addOption('association', null, InputOption::VALUE_OPTIONAL, 'the name of the association');
         $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
         $this->addOption('batchNrRange', null, InputOption::VALUE_OPTIONAL, '1-4');

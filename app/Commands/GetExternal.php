@@ -90,7 +90,7 @@ class GetExternal extends Command
                     } else {
                         $league = $this->getLeagueFromInput($input);
                         if ($objectType === "competitions") {
-                            $this->getCompetitions($externalSourceImpl, $sport, $league);
+                            $this->getCompetitions($externalSourceImpl, $sport, $association, $league);
                         } else {
                             $season = $this->getSeasonFromInput($input);
                             if ($objectType === "teams") {
@@ -206,7 +206,7 @@ class GetExternal extends Command
         $this->showMetadata($externalSourceImpl, ExternalSource::DATA_LEAGUES);
     }
 
-    protected function getCompetitions(ExternalSource\Implementation $externalSourceImpl, Sport $sport, League $league)
+    protected function getCompetitions(ExternalSource\Implementation $externalSourceImpl, Sport $sport, Association  $association, League $league)
     {
         if (!($externalSourceImpl instanceof ExternalSource\Competition)) {
             throw new \Exception(
@@ -214,8 +214,11 @@ class GetExternal extends Command
                 ) . "\" kan geen competities opvragen", E_ERROR
             );
         }
+        $externalLeague = $this->importService->getExternalLeague(
+            $externalSourceImpl, $sport, $association, $league
+        );
         $table = new ConsoleTable\Competitions();
-        $table->display($externalSourceImpl->getCompetitions($sport, $league));
+        $table->display($externalSourceImpl->getCompetitions($sport, $externalLeague));
         $this->showMetadata($externalSourceImpl, ExternalSource::DATA_COMPETITIONS);
     }
 
