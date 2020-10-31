@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Commands;
 
+use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use App\Command;
 use Selective\Config\Configuration;
@@ -93,8 +96,10 @@ class Import extends Command
                             $this->importTeamCompetitors($externalSourceImpl, $sport, $association, $league, $season);
                         } elseif ( $objectType === "structure" ) {
                             $this->importStructure($externalSourceImpl, $sport, $association, $league, $season);
-                        } elseif ( $objectType === "games" ) {
-                            $this->importGames($externalSourceImpl, $sport, $association, $league, $season);
+                        } elseif ( $objectType === "schedule" ) {
+                            $this->importSchedule($externalSourceImpl, $sport, $association, $league, $season);
+                        } elseif ( $objectType === "gamedetails" ) {
+                            $this->importGameDetails($externalSourceImpl, $sport, $association, $league, $season);
                         } else {
                             echo "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen" . PHP_EOL;
                         }
@@ -153,9 +158,18 @@ class Import extends Command
         $this->importService->importStructure($externalSourceImpl, $sport, $association, $league, $season);
     }
 
-    protected function importGames(Implementation $externalSourceImpl,
+    protected function importSchedule(Implementation $externalSourceImpl,
         Sport $sport, Association $association, League $league, Season $season)
     {
-        $this->importService->importGames($externalSourceImpl, $sport, $association, $league, $season);
+        $this->importService->importSchedule($externalSourceImpl, $sport, $association, $league, $season);
+    }
+
+    protected function importGameDetails(Implementation $externalSourceImpl,
+        Sport $sport, Association $association, League $league, Season $season)
+    {
+        $period = new Period(
+            new \DateTimeImmutable('2020-09-12 18:00'),
+            new \DateTimeImmutable('2020-09-12 18:00') );
+        $this->importService->importGameDetails($externalSourceImpl, $sport, $association, $league, $season, $period );
     }
 }

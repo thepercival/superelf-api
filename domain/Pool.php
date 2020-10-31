@@ -1,39 +1,83 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: coen
- * Date: 28-1-17
- * Time: 20:44
- */
+
+declare(strict_types=1);
 
 namespace SuperElf;
 
-use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Sports\Season;
+use Sports\Competition;
+use SuperElf\Competitor as PoolCompetitor;
 
 class Pool
 {
     /**
      * @var string | int
      */
-    public $id;
-    public string $name;
+    protected $id;
+    protected PoolCollection $collection;
+    protected Season $season;
+    /**
+     * @var ArrayCollection|PoolCompetitor[]
+     */
+    protected $competitors;
+    /**
+     * @var ArrayCollection|Competition[]
+     */
+    protected $competitions;
 
-    const MIN_LENGTH_NAME = 3;
-    const MAX_LENGTH_NAME = 60;
-
-    public function __construct( string $name )
+    public function __construct( PoolCollection $collection, Season $season )
     {
-        $this->name = $name;
+        $this->collection = $collection;
+        $this->season = $season;
     }
 
-    public function getName():string {
-        return $this->name;
+    /**
+     * @return string | int
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
-    public function setName(string $name ) {
-        if (strlen($name) < static::MIN_LENGTH_NAME or strlen($name) > static::MAX_LENGTH_NAME) {
-            throw new \InvalidArgumentException("de naam moet minimaal ".static::MIN_LENGTH_NAME." karakters bevatten en mag maximaal ".static::MAX_LENGTH_NAME." karakters bevatten", E_ERROR);
-        }
-        $this->name = $name;
+    /**
+     * @param string | int $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    public function getCollection(): PoolCollection {
+        return $this->collection;
+    }
+
+    public function getSeason(): Season {
+        return $this->season;
+    }
+
+    /**
+     * @return ArrayCollection|PoolCompetitor[]
+     */
+    public function getCompetitors() {
+        return $this->competitors;
+    }
+
+    public function getCompetitor( User $user ): ?PoolCompetitor {
+        return $this->getCompetitors()->filter( function( PoolCompetitor $competitor ) use ($user) : bool {
+            return $competitor->getUser() === $user;
+        })->first();
+    }
+
+    /**
+     * @return ArrayCollection|Competition[]
+     */
+    public function getCompetitions() {
+        return $this->competitions;
+    }
+
+    public function getName()
+    {
+        $this->getCollection()->getName();
     }
 }

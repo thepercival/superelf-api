@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: coen
- * Date: 30-1-17
- * Time: 12:48
- */
+
+declare(strict_types=1);
 
 namespace App\Actions;
 
 use App\Exceptions\DomainRecordNotFoundException;
 use App\Response\ErrorResponse;
 use Psr\Log\LoggerInterface;
+use SuperElf\User\Repository as UserRepository;
+use SuperElf\Auth\Service as AuthService;
 use DateTimeImmutable;
 use JMS\Serializer\SerializerInterface;
 use \Firebase\JWT\JWT;
@@ -27,7 +25,12 @@ final class AuthAction extends Action
      */
     protected $config;
 
-    public function __construct(LoggerInterface $logger, SerializerInterface $serializer,Configuration $config) {
+    public function __construct(
+        AuthService $authService,
+        UserRepository $userRepository,
+        LoggerInterface $logger,
+        SerializerInterface $serializer,
+        Configuration $config) {
         parent::__construct($logger, $serializer);
         $this->config = $config;
     }
@@ -35,6 +38,32 @@ final class AuthAction extends Action
     public function validateToken(Request $request, Response $response, $args): Response
     {
         return $response->withStatus(200);
+    }
+
+    public function register(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var stdClass $registerData */
+            $registerData = $this->getFormData($request);
+            if (property_exists($registerData, "emailaddress") === false) {
+                throw new \Exception("geen emailadres ingevoerd");
+            }
+            if (property_exists($registerData, "password") === false) {
+                throw new \Exception("geen wachtwoord ingevoerd");
+            }
+            $emailAddress = strtolower(trim($registerData->emailaddress));
+            $password = $registerData->password;
+
+            $user = $this->authService->register($emailAddress, $password);
+            if ($user === null) {
+                throw new \Exception("de nieuwe gebruiker kan niet worden geretourneerd");
+            }
+
+            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
     }
 
     public function login(Request $request, Response $response, $args): Response

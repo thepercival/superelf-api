@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
@@ -55,11 +57,13 @@ return [
         ),
     ],
     'auth' => [
-        'password' => getenv('AUTH_PASSWORD')
+        'jwtsecret' => getenv('JWT_SECRET'),
+        'jwtalgorithm' => getenv('JWT_ALGORITHM'),
+        'activationsecret' => getenv('ACTIVATION_SECRET'),
     ],
     'www' => [
         'wwwurl' => getenv('WWW_URL'),
-        'wwwurl-localpath' => realpath(__DIR__ . "/../../") . "/superelfv2/dist/",
+        'wwwurl-localpath' => realpath(__DIR__ . "/../../") . "/superelf/dist/",
         'apiurl' => getenv('API_URL'),
         "apiurl-localpath" => realpath(__DIR__ . '/../public/') . '/',
     ],

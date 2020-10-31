@@ -2,42 +2,49 @@
 
 declare(strict_types=1);
 
-use App\Actions\BetLineAction;
-use App\Actions\LayBackAction;
+
 use App\Actions\AuthAction;
-use App\Actions\BookmakerAction;
-use App\Actions\PoolAction;
+use App\Actions\Pool\ShellAction;
+use App\Middleware\VersionMiddleware;
+use App\Middleware\UserMiddleware;
+use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
-use App\Actions\Sports\SportAction;
-use App\Actions\Sports\AssociationAction;
-use App\Actions\Sports\LeagueAction;
-use App\Actions\Sports\SeasonAction;
-use App\Actions\Sports\CompetitionAction;
-use App\Actions\Sports\CompetitorAction;
-use App\Actions\Sports\StructureAction;
-use App\Actions\ExternalSourceAction;
-use App\Actions\AttacherAction;
 
 return function (App $app): void {
     $app->group('/public', function (Group $group): void {
         $group->group('/auth', function (Group $group): void {
+            $group->options('/register', AuthAction::class . ':options');
+            $group->post('/register', AuthAction::class . ':register');
             $group->options('/login', AuthAction::class . ':options');
             $group->post('/login', AuthAction::class . ':login');
+            $group->options('/passwordreset', AuthAction::class . ':options');
+            $group->post('/passwordreset', AuthAction::class . ':passwordreset');
+            $group->options('/passwordchange', AuthAction::class . ':options');
+            $group->post('/passwordchange', AuthAction::class . ':passwordchange');
         });
+        $group->options('/shells', ShellAction::class . ':options');
+        $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
     });
 
-    $app->group('/auth', function (Group $group): void {
-        $group->options('/validatetoken', AuthAction::class . ':options');
-        $group->post('/validatetoken', AuthAction::class . ':validateToken');
-    });
+    $app->group(
+        '/auth',
+        function (Group $group): void {
+            $group->options('/extendtoken', AuthAction::class . ':options');
+            $group->post('/extendtoken', AuthAction::class . ':extendToken');
+            $group->options('/profile/{userId}', AuthAction::class . ':options');
+            $group->put('/profile/{userId}', AuthAction::class . ':profile');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
-//    $app->options('/betgames', BetGameAction::class . ':options');
-//    $app->post('/betgames', BetGameAction::class . ':fetch');
-
-
-
-//    $app->get('/laybacks', LayBackAction::class . ':fetch');
-
+    $app->group(
+        '',
+        function (Group $group): void {
+            $group->options('/shellswithrole', ShellAction::class . ':options');
+            $group->get('/shellswithrole', ShellAction::class . ':fetchWithRole');
+            $group->options('/shells', ShellAction::class . ':options');
+            $group->get('/shells', ShellAction::class . ':fetchPublic');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
 };

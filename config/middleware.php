@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Middleware\AuthenticationMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -27,16 +26,14 @@ return function (App $app) {
         function (Request $request, RequestHandler $handler): Response {
             $response = $handler->handle($request);
             header_remove("X-Powered-By");
-            return $response; // ->withoutHeader('X-Powered-By');
+            return $response; // ->withoutHeader("X-Powered-By");
         }
     );
-
-    $app->add(AuthenticationMiddleware::class);
 
     $app->add(
         new JwtAuthentication(
             [
-                "secret" => $config->getString('auth.password'),
+                "secret" => $config->getString('auth.jwtsecret'),
                 "logger" => $container->get(LoggerInterface::class),
                 "rules" => [
                     new JwtAuthentication\RequestPathRule(

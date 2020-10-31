@@ -1,20 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Commands;
 
-use DateTime;
 use Sports\Game;
-use Sports\NameService;
 use Sports\Season;
 use Sports\Team;
 use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Association;
 use Sports\League;
 use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Sport\Repository as SportRepository;
-use Sports\Association\Repository as AssociationRepository;
+use Sports\Game\Repository as GameRepository;
 use Sports\Structure\Repository as StructureRepository;
-use Sports\Place\Location\Map as PlaceLocationMap;
 use Psr\Container\ContainerInterface;
 use App\Command;
 use Sports\Output\ConsoleTable;
@@ -23,23 +20,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
-use Sports\Competition;
 
 class Get extends Command
 {
-    /**
-     * @var CompetitionRepository
-     */
-    protected $competitionRepos;
-    /**
-     * @var StructureRepository
-     */
-    protected $structureRepos;
+
+    protected CompetitionRepository $competitionRepos;
+    protected StructureRepository $structureRepos;
+    protected GameRepository $gameRepos;
 
     public function __construct(ContainerInterface $container)
     {
         $this->competitionRepos = $container->get(CompetitionRepository::class);
         $this->structureRepos = $container->get(StructureRepository::class);
+        $this->gameRepos = $container->get(GameRepository::class);
         parent::__construct($container);
     }
 
@@ -94,6 +87,8 @@ class Get extends Command
                     $this->showStructure($league, $season);
                 } elseif ( $objectType === "games" ) {
                     $this->showGames($league, $season);
+                } elseif ( $objectType === "game" ) {
+                    $this->showGame($league, $season, $this->getIdFromInput($input) );
                 } else {
                     echo "objectType \"" . $objectType . "\" kan niet worden opgehaald uit bronnen" . PHP_EOL;
                 }
@@ -269,5 +264,25 @@ class Get extends Command
         $teamCompetitors = $competition->getTeamCompetitors()->toArray();
         $table = new ConsoleTable\Games();
         $table->display( $competition, $games, $teamCompetitors );
+    }
+
+    protected function showGame(League $league, Season $season, $id )
+    {
+        $competition = $this->competitionRepos->findExt( $league, $season );
+        if( $competition === null ) {
+            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+        }
+        $structure = $this->structureRepos->getStructure( $competition );
+        if( $structure === null ) {
+            throw new \Exception("no structure found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+        }
+        $game = $this->gameRepos->find( $id );
+        if( $game === null ) {
+            throw new \Exception("no game found for league '".$league->getName()."' and season '".$season->getName()."' and id " . $id , E_ERROR);
+        }
+
+        $teamCompetitors = $competition->getTeamCompetitors()->toArray();
+        $table = new ConsoleTable\Game();
+        $table->display( $competition, $game, $teamCompetitors );
     }
 }

@@ -31,6 +31,8 @@ use Sports\Game\Repository as GameRepository;
 use Sports\Game;
 use Sports\Game\Score\Repository as GameScoreRepository;
 use Sports\Game\Score as GameScore;
+use Sports\Person\Repository as PersonRepository;
+use Sports\Person;
 
 use SportsImport\Attacher\Sport\Repository as SportAttacherRepository;
 use SportsImport\Attacher\Sport as SportAttacher;
@@ -48,6 +50,8 @@ use SportsImport\Attacher\Competitor\Team\Repository as TeamCompetitorAttacherRe
 use SportsImport\Attacher\Competitor\Team as TeamCompetitorAttacher;
 use SportsImport\Attacher\Game\Repository as GameAttacherRepository;
 use SportsImport\Attacher\Game as GameAttacher;
+use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
+use SportsImport\Attacher\Person as PersonAttacher;
 
 return [
     PoolRepository::class => function (ContainerInterface $container): PoolRepository {
@@ -130,5 +134,13 @@ return [
     GameScoreRepository::class => function (ContainerInterface $container): GameScoreRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new GameScoreRepository($entityManager, $entityManager->getClassMetaData(GameScore::class));
-    }
+    },
+    PersonRepository::class => function (ContainerInterface $container): PersonRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PersonRepository($entityManager, $entityManager->getClassMetaData(Person::class));
+    },
+    PersonAttacherRepository::class => function (ContainerInterface $container): PersonAttacherRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PersonAttacherRepository($entityManager, $entityManager->getClassMetaData(PersonAttacher::class));
+    },
 ];

@@ -64,6 +64,7 @@ abstract class Action
     }
 
     /**
+     * @param Request $request
      * @return array|object
      * @throws HttpBadRequestException
      */
@@ -87,6 +88,8 @@ abstract class Action
     }
 
     /**
+     * @param  Request $request
+     * @param  mixed $args
      * @param  string $name
      * @return mixed
      * @throws HttpBadRequestException
