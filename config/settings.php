@@ -59,7 +59,7 @@ return [
     'auth' => [
         'jwtsecret' => getenv('JWT_SECRET'),
         'jwtalgorithm' => getenv('JWT_ALGORITHM'),
-        'activationsecret' => getenv('ACTIVATION_SECRET'),
+        'validatesecret' => getenv('VALIDATE_SECRET'),
     ],
     'www' => [
         'wwwurl' => getenv('WWW_URL'),
@@ -70,7 +70,13 @@ return [
     'email' => [
         'from' => "info@superelf-eredivisie.nl",
         'fromname' => "SuperElf",
-        'admin' => "coendunnink@gmail.com"
+        'admin' => "coendunnink@gmail.com",
+        'mailtrap' => [
+            'smtp_host' => 'smtp.mailtrap.io',
+            'smtp_port' => 2525,
+            'smtp_user' => getenv('MAILTRAP_USER'),
+            'smtp_pass' => getenv('MAILTRAP_PASSWORD')
+        ]
     ],
     'images' => [
     ],

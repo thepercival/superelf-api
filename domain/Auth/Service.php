@@ -6,6 +6,7 @@ namespace SuperElf\Auth;
 
 use Exception;
 use SuperElf\Auth\SyncService as AuthSyncService;
+use SuperElf\Competitor;
 use SuperElf\Role;
 use SuperElf\Pool;
 use SuperElf\User;
@@ -19,48 +20,21 @@ use App\Mailer;
 
 class Service
 {
-    /**
-     * @var UserRepository
-     */
-    protected $userRepos;
-    /**
-     * @var TournamentUserRepository
-     */
-    protected $tournamentUserRepos;
-    /**
-     * @var TournamentRepository
-     */
-    protected $tournamentRepos;
-    /**
-     * @var TournamentInvitationRepository
-     */
-    protected $tournamentInvitationRepos;
-    /**
-     * @var AuthSyncService
-     */
-    protected $syncService;
-    /**
-     * @var Configuration
-     */
-    protected $config;
-    /**
-     * @var Mailer
-     */
-    protected $mailer;
+    protected UserRepository $userRepos;
+    protected PoolRepository $poolRepos;
+    protected AuthSyncService $syncService;
+    protected Configuration $config;
+    protected Mailer $mailer;
 
     public function __construct(
         UserRepository $userRepos,
-        TournamentUserRepository $tournamentUserRepos,
-        TournamentRepository $tournamentRepos,
-        TournamentInvitationRepository $tournamentInvitationRepos,
+        PoolRepository $poolRepos,
         AuthSyncService $syncService,
         Configuration $config,
         Mailer $mailer
     ) {
         $this->userRepos = $userRepos;
-        $this->tournamentUserRepos = $tournamentUserRepos;
-        $this->tournamentRepos = $tournamentRepos;
-        $this->tournamentInvitationRepos = $tournamentInvitationRepos;
+        $this->poolRepos = $poolRepos;
         $this->syncService = $syncService;
         $this->config = $config;
         $this->mailer = $mailer;
@@ -68,12 +42,12 @@ class Service
 
     /**
      * @param string $emailaddress
+     * @param string $name
      * @param string $password
-     * @param string|null $name
      * @return User|null
      * @throws Exception
      */
-    public function register(string $emailaddress, string $password, string $name = null): ?User
+    public function register(string $emailaddress, string $name, string $password): ?User
     {
         if (strlen($password) < User::MIN_LENGTH_PASSWORD or strlen($password) > User::MAX_LENGTH_PASSWORD) {
             throw new \InvalidArgumentException(
@@ -85,64 +59,57 @@ class Service
         if ($userTmp) {
             throw new Exception("het emailadres is al in gebruik", E_ERROR);
         }
-        if ($name !== null) {
-            $userTmp = $this->userRepos->findOneBy(array('name' => $name));
-            if ($userTmp) {
-                throw new Exception("de gebruikersnaam is al in gebruik", E_ERROR);
-            }
+        $userTmp = $this->userRepos->findOneBy(array('name' => $name));
+        if ($userTmp) {
+            throw new Exception("de naam is al in gebruik", E_ERROR);
         }
 
         $user = new User($emailaddress);
+        $user->setName($name);
         $user->setSalt(bin2hex(random_bytes(15)));
         $user->setPassword(password_hash($user->getSalt() . $password, PASSWORD_DEFAULT));
 
         $savedUser = $this->userRepos->save($user);
-        $invitations = $this->tournamentInvitationRepos->findBy(["emailaddress" => $user->getEmailaddress()]);
-        $tournamentUsers = $this->syncService->processInvitations($savedUser, $invitations);
-        $this->sendRegisterEmail($emailaddress, $tournamentUsers);
-
+        $this->sendRegisterEmail($emailaddress);
         return $savedUser;
     }
 
     /**
-     * @param string $emailAddress
-     * @param array|TournamentUser[] $tournamentUsers
+     * @param string $emailaddress
      */
-    protected function sendRegisterEmail(string $emailAddress, array $tournamentUsers)
+    protected function sendRegisterEmail(string $emailaddress)
     {
-        $subject = 'welkom bij FCToernooi';
+        $subject = 'welkom bij SuperElf';
+        $baseUrl = $this->config->getString("www.wwwurl");
         $bodyBegin = <<<EOT
 <p>Hallo,</p>
-<p>Welkom bij FCToernooi! Wij wensen je veel plezier met het gebruik van de FCToernooi. Mocht je vragen hebben dan kun je <a href="https://drive.google.com/open?id=1HLwhbH4YXEbV7osGmFUt24gk_zxGjnVilTG0MpkkPUI">de handleiding</a> lezen, bellen of deze mail beantwoorden.</p>
+<p>Welkom bij de SuperElf! Wij wensen je veel plezier met het gebruik van de SuperElf. Om je account te gebruiken dien je je emailadres te valideren.
+Dat kan met onderstaande link:</p>
 EOT;
-        $bodyMiddle = '';
-        foreach ($tournamentUsers as $tournamentUser) {
-            if ($tournamentUser->getRoles() === 0) {
-                continue;
-            }
-            if (strlen($bodyMiddle) === 0) {
-                $bodyMiddle = '<p>Je hebt voor de volgende toernooien rollen gekregen:</p>';
-                $bodyMiddle .= '<table cellpadding="2" cellspacing="2" border="1"';
-                $bodyMiddle .= "<thead><tr><th>toernooinaam</th><th>rolnaam</th><th>rolomschrijving</th></tr></thead>";
-                $bodyMiddle .= "<tbody>";
-            }
-            $roleDefinitions = Role::getDefinitions($tournamentUser->getRoles());
-            foreach ($roleDefinitions as $roleDefinition) {
-                $bodyMiddle .= "<tr>";
-                $bodyMiddle .= '<td>' . $tournamentUser->getTournament()->getCompetition()->getLeague()->getName(
-                    ) . '</td>';
-                $bodyMiddle .= '<td>' . $roleDefinition["name"] . '</td>';
-                $bodyMiddle .= '<td>' . $roleDefinition["description"] . '</td>';
-                $bodyMiddle .= "</tr>";
-            }
+        $bodyMiddle = '<p>';
+        $validateUrl = $baseUrl . 'public/auth/validate?emailaddress=' . urlencode($emailaddress) . '&key=' . $this->getValidateKey($emailaddress);
+        $bodyMiddle .= '<a href="'.$validateUrl.'">' . $validateUrl . '</a>';
+        $bodyMiddle .= '</p>';
+
+        $bodyEnd = '<p>met vriendelijke groet,<br/><br/>Coen Dunnink<br/><a href="' . $baseUrl . '">SuperElf</a></p>';
+        $this->mailer->send($subject, $bodyBegin . $bodyMiddle . $bodyEnd, $emailaddress);
+    }
+
+    protected function getValidateKey(string $emailaddress): string {
+        return hash( "sha1", $this->config->getString("auth.validatesecret") . $emailaddress );
+    }
+
+    public function validate(string $emailaddress, string $key)
+    {
+        $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
+        if ($user === null || $user->getValidated() ) {
+            throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
-        if (strlen($bodyMiddle) > 0) {
-            $bodyMiddle .= '</tbody></table><br/>';
+        if( $key !== $this->getValidateKey($emailaddress) ) {
+            throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
-        $bodyEnd = '<p>met vriendelijke groet,<br/><br/>Coen Dunnink<br/>06-14363514<br/><a href="' . $this->config->getString(
-                "www.wwwurl"
-            ) . '">FCToernooi</a></p>';
-        $this->mailer->send($subject, $bodyBegin . $bodyMiddle . $bodyEnd, $emailAddress);
+        $user->setValidated(true);
+        $this->userRepos->save($user);
     }
 
     public function sendPasswordCode($emailAddress)

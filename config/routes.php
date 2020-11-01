@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 use App\Actions\AuthAction;
 use App\Actions\Pool\ShellAction;
 use App\Middleware\VersionMiddleware;
@@ -12,23 +11,25 @@ use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app): void {
-    $app->group('/public', function (Group $group): void {
-        $group->group('/auth', function (Group $group): void {
-            $group->options('/register', AuthAction::class . ':options');
-            $group->post('/register', AuthAction::class . ':register');
-            $group->options('/login', AuthAction::class . ':options');
-            $group->post('/login', AuthAction::class . ':login');
-            $group->options('/passwordreset', AuthAction::class . ':options');
-            $group->post('/passwordreset', AuthAction::class . ':passwordreset');
-            $group->options('/passwordchange', AuthAction::class . ':options');
-            $group->post('/passwordchange', AuthAction::class . ':passwordchange');
-        });
-        $group->options('/shells', ShellAction::class . ':options');
-        $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
+    $app->group('/public',
+        function (Group $group): void {
+            $group->group('/auth', function (Group $group): void {
+                $group->options('/register', AuthAction::class . ':options');
+                $group->post('/register', AuthAction::class . ':register');
+                $group->options('/validate', AuthAction::class . ':options');
+                $group->post('/validate', AuthAction::class . ':validate');
+                $group->options('/login', AuthAction::class . ':options');
+                $group->post('/login', AuthAction::class . ':login');
+                $group->options('/passwordreset', AuthAction::class . ':options');
+                $group->post('/passwordreset', AuthAction::class . ':passwordreset');
+                $group->options('/passwordchange', AuthAction::class . ':options');
+                $group->post('/passwordchange', AuthAction::class . ':passwordchange');
+            });
+            $group->options('/shells', ShellAction::class . ':options');
+            $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
     });
 
-    $app->group(
-        '/auth',
+    $app->group('/auth',
         function (Group $group): void {
             $group->options('/extendtoken', AuthAction::class . ':options');
             $group->post('/extendtoken', AuthAction::class . ':extendToken');

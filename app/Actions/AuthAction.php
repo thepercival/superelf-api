@@ -7,8 +7,10 @@ namespace App\Actions;
 use App\Exceptions\DomainRecordNotFoundException;
 use App\Response\ErrorResponse;
 use Psr\Log\LoggerInterface;
+use SuperElf\User;
 use SuperElf\User\Repository as UserRepository;
 use SuperElf\Auth\Service as AuthService;
+use SuperElf\Auth\Item as AuthItem;
 use DateTimeImmutable;
 use JMS\Serializer\SerializerInterface;
 use \Firebase\JWT\JWT;
@@ -20,10 +22,9 @@ use Tuupola\Base62;
 
 final class AuthAction extends Action
 {
-    /**
-     * @var Configuration
-     */
-    protected $config;
+    protected AuthService $authService;
+    protected UserRepository $userRepos;
+    protected Configuration $config;
 
     public function __construct(
         AuthService $authService,
@@ -32,6 +33,8 @@ final class AuthAction extends Action
         SerializerInterface $serializer,
         Configuration $config) {
         parent::__construct($logger, $serializer);
+        $this->authService = $authService;
+        $this->userRepos = $userRepository;
         $this->config = $config;
     }
 
@@ -48,19 +51,47 @@ final class AuthAction extends Action
             if (property_exists($registerData, "emailaddress") === false) {
                 throw new \Exception("geen emailadres ingevoerd");
             }
+            if (property_exists($registerData, "name") === false) {
+                throw new \Exception("geen naam ingevoerd");
+            }
             if (property_exists($registerData, "password") === false) {
                 throw new \Exception("geen wachtwoord ingevoerd");
             }
             $emailAddress = strtolower(trim($registerData->emailaddress));
+            $name = strtolower(trim($registerData->name));
             $password = $registerData->password;
 
-            $user = $this->authService->register($emailAddress, $password);
+            $user = $this->authService->register($emailAddress, $name, $password);
             if ($user === null) {
                 throw new \Exception("de nieuwe gebruiker kan niet worden geretourneerd");
             }
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
-            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
+            return $response->withStatus(200);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function validate(Request $request, Response $response, $args): Response
+    {
+        try {
+            $queryParams = $request->getQueryParams();
+
+            $emailAddress = null;
+            if (array_key_exists("emailaddress", $queryParams) && strlen($queryParams["emailaddress"]) > 0) {
+                $emailAddress = $queryParams["emailaddress"];
+            }
+            $key = null;
+            if (array_key_exists("key", $queryParams) && strlen($queryParams["key"]) > 0) {
+                $key = $queryParams["key"];
+            }
+            if ($emailAddress === null || $key === null) {
+                throw new \Exception("emailadres kan niet gevalideerd worden");
+            }
+
+            $this->authService->validate($emailAddress, $key);
+
+            return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
@@ -71,37 +102,93 @@ final class AuthAction extends Action
         try {
             /** @var stdClass $authData */
             $authData = $this->getFormData($request);
+            if (!property_exists($authData, "emailaddress") || strlen($authData->emailaddress) === 0) {
+                throw new \Exception("het emailadres is niet opgegeven");
+            }
+            $emailaddress = filter_var($authData->emailaddress, FILTER_VALIDATE_EMAIL);
+            if ($emailaddress === false) {
+                throw new \Exception("het emailadres \"" . $authData->emailaddress . "\" is onjuist");
+            }
+            $emailAddress = strtolower(trim($emailaddress));
             if (!property_exists($authData, "password") || strlen($authData->password) === 0) {
                 throw new \Exception("het wachtwoord is niet opgegeven");
             }
-            if (!password_verify($authData->password, $this->config->getString("auth.password"))) {
-                throw new \Exception("ongeldig wachtwoord");
+
+            $user = $this->userRepos->findOneBy(
+                array('emailaddress' => $emailaddress)
+            );
+
+            if (!$user or !password_verify($user->getSalt() . $authData->password, $user->getPassword())) {
+                throw new \Exception("ongeldige emailadres en wachtwoord combinatie");
             }
 
             /*if ( !$user->getActive() ) {
              throw new \Exception( "activeer eerst je account met behulp van de link in je ontvangen email", E_ERROR );
              }*/
 
-            $data = ["token" => $this->getToken() ];
-
-            return $this->respondWithJson($response, $this->serializer->serialize($data, 'json'));
+            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
     }
 
-    public function getToken()
+    public function passwordreset(Request $request, Response $response, $args): Response
     {
-        $jti = (new Base62)->encode(random_bytes(16));
+        try {
+            /** @var stdClass $paswordResetData */
+            $paswordResetData = $this->getFormData($request);
+            if (property_exists($paswordResetData, "emailaddress") === false) {
+                throw new \Exception("geen emailadres ingevoerd");
+            }
+            $emailAddress = strtolower(trim($paswordResetData->emailaddress));
 
-        $now = new DateTimeImmutable();
-        $future = new DateTimeImmutable("now +3 months");
+            $retVal = $this->authService->sendPasswordCode($emailAddress);
 
-        $payload = [
-            "iat" => $now->getTimestamp(),
-            "exp" => $future->getTimestamp(),
-            "jti" => $jti
-        ];
-        return JWT::encode($payload, $this->config->getString("auth.password"));
+            $data = ["retval" => $retVal];
+            $json = $this->serializer->serialize($data, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function passwordchange(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var stdClass $paswordChangeData */
+            $paswordChangeData = $this->getFormData($request);
+            if (property_exists($paswordChangeData, "emailaddress") === false) {
+                throw new \Exception("geen emailadres ingevoerd");
+            }
+            if (property_exists($paswordChangeData, "password") === false) {
+                throw new \Exception("geen wachtwoord ingevoerd");
+            }
+            if (property_exists($paswordChangeData, "code") === false) {
+                throw new \Exception("geen code ingevoerd");
+            }
+            $emailAddress = $emailAddress = strtolower(trim($paswordChangeData->emailaddress));
+            $password = $paswordChangeData->password;
+            $code = (string)$paswordChangeData->code;
+
+            $user = $this->authService->changePassword($emailAddress, $password, $code);
+
+            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function extendToken(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var User $user */
+            $user = $request->getAttribute("user");
+            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
     }
 }

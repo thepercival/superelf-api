@@ -5,8 +5,12 @@ declare(strict_types=1);
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 
+use SuperElf\User\Repository as UserRepository;
+use SuperElf\User;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool;
+use SuperElf\Competitor\Repository as CompetitorRepository;
+use SuperElf\Competitor;
 
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource;
@@ -54,9 +58,17 @@ use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
 use SportsImport\Attacher\Person as PersonAttacher;
 
 return [
+    UserRepository::class => function (ContainerInterface $container): UserRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new UserRepository($entityManager, $entityManager->getClassMetaData(User::class));
+    },
     PoolRepository::class => function (ContainerInterface $container): PoolRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolRepository($entityManager, $entityManager->getClassMetaData(Pool::class));
+    },
+    CompetitorRepository::class => function (ContainerInterface $container): CompetitorRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new CompetitorRepository($entityManager, $entityManager->getClassMetaData(Competitor::class));
     },
     SportRepository::class => function (ContainerInterface $container): SportRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
