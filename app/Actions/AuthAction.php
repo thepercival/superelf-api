@@ -75,23 +75,18 @@ final class AuthAction extends Action
     public function validate(Request $request, Response $response, $args): Response
     {
         try {
-            $queryParams = $request->getQueryParams();
-
-            $emailAddress = null;
-            if (array_key_exists("emailaddress", $queryParams) && strlen($queryParams["emailaddress"]) > 0) {
-                $emailAddress = $queryParams["emailaddress"];
+            /** @var stdClass $registerData */
+            $registerData = $this->getFormData($request);
+            if (property_exists($registerData, "emailaddress") === false) {
+                throw new \Exception("geen emailadres ingevoerd");
             }
-            $key = null;
-            if (array_key_exists("key", $queryParams) && strlen($queryParams["key"]) > 0) {
-                $key = $queryParams["key"];
+            if (property_exists($registerData, "key") === false) {
+                throw new \Exception("geen sleutel ingevoerd");
             }
-            if ($emailAddress === null || $key === null) {
-                throw new \Exception("emailadres kan niet gevalideerd worden");
-            }
+            $user = $this->authService->validate($registerData->emailaddress, $registerData->key);
 
-            $this->authService->validate($emailAddress, $key);
-
-            return $response->withStatus(200);
+            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }

@@ -87,7 +87,7 @@ class Service
 Dat kan met onderstaande link:</p>
 EOT;
         $bodyMiddle = '<p>';
-        $validateUrl = $baseUrl . 'public/auth/validate?emailaddress=' . urlencode($emailaddress) . '&key=' . $this->getValidateKey($emailaddress);
+        $validateUrl = $baseUrl . 'user/validate/' . urlencode($emailaddress) . '/' . $this->getValidateKey($emailaddress);
         $bodyMiddle .= '<a href="'.$validateUrl.'">' . $validateUrl . '</a>';
         $bodyMiddle .= '</p>';
 
@@ -99,7 +99,7 @@ EOT;
         return hash( "sha1", $this->config->getString("auth.validatesecret") . $emailaddress );
     }
 
-    public function validate(string $emailaddress, string $key)
+    public function validate(string $emailaddress, string $key): User
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
         if ($user === null || $user->getValidated() ) {
@@ -109,7 +109,7 @@ EOT;
             throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
         $user->setValidated(true);
-        $this->userRepos->save($user);
+        return $this->userRepos->save($user);
     }
 
     public function sendPasswordCode($emailAddress)

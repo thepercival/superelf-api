@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\AuthAction;
 use App\Actions\Pool\ShellAction;
+use App\Actions\UserAction;
 use App\Middleware\VersionMiddleware;
 use App\Middleware\UserMiddleware;
 use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
@@ -35,6 +36,16 @@ return function (App $app): void {
             $group->post('/extendtoken', AuthAction::class . ':extendToken');
             $group->options('/profile/{userId}', AuthAction::class . ':options');
             $group->put('/profile/{userId}', AuthAction::class . ':profile');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+
+    $app->group(
+        '/users/{userId}',
+        function (Group $group): void {
+            $group->options('', UserAction::class . ':options');
+            $group->get('', UserAction::class . ':fetchOne');
+            $group->put('', UserAction::class . ':edit');
+            $group->delete('', UserAction::class . ':remove');
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 

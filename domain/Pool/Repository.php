@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use SuperElf\Pool;
+use SuperElf\Role;
 use SuperElf\User;
 
 class Repository extends \SportsHelpers\Repository
@@ -69,23 +70,29 @@ class Repository extends \SportsHelpers\Repository
     {
         $exprExists = $this->getEM()->getExpressionBuilder();
 
+        $competitorQb = $this->getEM()->createQueryBuilder()
+            ->select('c.id')
+            ->from('SuperElf\Competitor', 'c')
+            ->where('c.pool = p')
+            ->andWhere('c.user = :user');
+        if( ( $roles & Role::ADMIN ) === Role::ADMIN ) {
+            $competitorQb = $competitorQb->andWhere('c.admin = :admin');
+        }
+
         $qb = $this->createQueryBuilder('p')
         ->andWhere(
             $exprExists->exists(
-                $this->getEM()->createQueryBuilder()
-                    ->select('c.id')
-                    ->from('SuperElf\Competitor', 'c')
-                    ->where('c.pool = p')
-                    ->andWhere('c.user = :user')
-                    ->andWhere('BIT_AND(tu.roles, :roles) > 0')
-                    ->getDQL()
+                $competitorQb->getDQL()
             )
         );
         $qb = $qb->setParameter('user', $user);
-        $qb = $qb->setParameter('roles', $roles);
+        if( ( $roles & Role::ADMIN ) === Role::ADMIN ) {
+            $qb = $qb->setParameter('admin', true);
+        }
 
         return $qb->getQuery()->getResult();
     }
+
 //
 //    public function remove($tournament)
 //    {
