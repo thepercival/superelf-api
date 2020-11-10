@@ -10,5 +10,9 @@
     <field name="name" column="name" type="string" length="15" nullable="true" unique="true"/>
     <field name="forgetpassword" column="forgetpassword" type="string" length="17" nullable="true" unique="false"/>
     <field name="validated" column="validated" type="boolean" nullable="false" unique="false"/>
+    <unique-constraints>
+      <unique-constraint columns="emailaddress" name="emailaddress_u_idx"/>
+      <unique-constraint columns="name" name="name_u_idx"/>
+    </unique-constraints>
   </entity>
 </doctrine-mapping>

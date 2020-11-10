@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Pool\User" table="poolUsers" repository-class="SuperElf\Pool\User\Repository">
+    <id name="id" type="integer" column="id">
+      <generator strategy="AUTO"/>
+    </id>
+    <field name="admin" column="admin" type="boolean" nullable="false" unique="false"/>
+    <many-to-one field="pool" target-entity="SuperElf\Pool">
+      <join-columns>
+        <join-column name="poolId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="user" target-entity="SuperElf\User">
+      <join-columns>
+        <join-column name="userId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <one-to-many field="competitors" target-entity="SuperElf\Competitor" mapped-by="poolUser">
+      <cascade>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
+  </entity>
+</doctrine-mapping>

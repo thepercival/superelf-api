@@ -8,20 +8,14 @@
         <field name="pouleNr" column="pouleNr" type="smallint" nullable="false" unique="false"/>
         <field name="registered" column="registered" type="boolean" nullable="true" unique="false"/>
         <field name="info" column="info" type="string" length="200" nullable="true" unique="false"/>
-        <field name="admin" column="admin" type="boolean" nullable="false" unique="false"/>
-        <many-to-one field="pool" target-entity="SuperElf\Pool" inversed-by="competitors">
+        <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="competitors">
             <join-columns>
-                <join-column name="poolId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+                <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
             </join-columns>
         </many-to-one>
         <many-to-one field="competition" target-entity="Sports\Competition">
             <join-columns>
                 <join-column name="competitionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
-            </join-columns>
-        </many-to-one>
-        <many-to-one field="user" target-entity="SuperElf\User" inversed-by="competitors">
-            <join-columns>
-                <join-column name="userId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>
         </many-to-one>
     </entity>

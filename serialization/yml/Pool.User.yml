@@ -1,0 +1,14 @@
+SuperElf\Pool\User:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    id:
+      type: integer
+      read_only: true
+    user:
+      type: SuperElf\User
+    admin:
+      type: boolean
+    competitors:
+      type: ArrayCollection<SuperElf\Competitor>

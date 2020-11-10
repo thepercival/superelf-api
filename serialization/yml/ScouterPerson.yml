@@ -1,0 +1,9 @@
+SuperElf\ScoutedPerson:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    person:
+      type: Sports\Person
+    nrOfStars:
+      type: integer

@@ -4,32 +4,48 @@
     <id name="id" type="integer" column="id">
       <generator strategy="AUTO"/>
     </id>
-    <one-to-many field="competitors" target-entity="SuperElf\Competitor" mapped-by="pool">
+    <many-to-one field="season" target-entity="Sports\Season">
+      <cascade>
+        <cascade-persist/>
+      </cascade>
+      <join-columns>
+        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="sourceCompetition" target-entity="Sports\Competition">
+      <cascade>
+        <cascade-persist/>
+      </cascade>
+      <join-columns>
+        <join-column name="sourceCompetitionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="collection" target-entity="SuperElf\PoolCollection" inversed-by="pools">
+      <cascade>
+        <cascade-persist/>
+      </cascade>
+      <join-columns>
+        <join-column name="collectionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <one-to-many field="users" target-entity="SuperElf\Pool\User" mapped-by="pool">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
     </one-to-many>
-    <many-to-one field="season" target-entity="Sports\Season">
-      <join-columns>
-        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
-      </join-columns>
-    </many-to-one>
-    <many-to-one field="collection" target-entity="SuperElf\PoolCollection" inversed-by="pools">
-      <join-columns>
-        <join-column name="collectionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
-      </join-columns>
-    </many-to-one>
-    <many-to-many field="competitions" target-entity="Sports\Competition">
-      <join-table name="pools_competition">
-        <join-columns>
-          <join-column name="pool_id" referenced-column-name="id" on-delete="CASCADE"/>
-        </join-columns>
-        <inverse-join-columns>
-          <join-column name="competition_id" referenced-column-name="id" on-delete="CASCADE"/>
-        </inverse-join-columns>
-      </join-table>
-    </many-to-many>
+    <one-to-many field="periods" target-entity="SuperElf\Pool\Period" mapped-by="pool">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
+    <one-to-many field="scoreUnits" target-entity="SuperElf\Pool\ScoreUnit" mapped-by="pool">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
   </entity>
 
 </doctrine-mapping>

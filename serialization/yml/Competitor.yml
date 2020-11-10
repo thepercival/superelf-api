@@ -1,0 +1,22 @@
+SuperElf\Competitor:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    pouleNr:
+      type: integer
+    placeNr:
+      type: integer
+  #    abbreviation:
+  #      type: string
+  #    registered:
+  #      type: boolean
+  #    info:
+  #      type: string
+  #    imageUrl:
+  #      type: string
+  virtual_properties:
+    getCompetitionId:
+      type: integer
+      serialized_name: competitionId

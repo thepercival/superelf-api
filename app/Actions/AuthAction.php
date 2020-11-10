@@ -85,7 +85,7 @@ final class AuthAction extends Action
             }
             $user = $this->authService->validate($registerData->emailaddress, $registerData->key);
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            $authItem = new AuthItem($this->authService->createToken($user), $user );
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -121,7 +121,7 @@ final class AuthAction extends Action
              throw new \Exception( "activeer eerst je account met behulp van de link in je ontvangen email", E_ERROR );
              }*/
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            $authItem = new AuthItem($this->authService->createToken($user), $user );
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -168,7 +168,7 @@ final class AuthAction extends Action
 
             $user = $this->authService->changePassword($emailAddress, $password, $code);
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -180,7 +180,7 @@ final class AuthAction extends Action
         try {
             /** @var User $user */
             $user = $request->getAttribute("user");
-            $authItem = new AuthItem($this->authService->createToken($user), $user->getId());
+            $authItem = new AuthItem($this->authService->createToken($user), $user );
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);

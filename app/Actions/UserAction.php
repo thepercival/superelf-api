@@ -41,13 +41,13 @@ final class UserAction extends Action
 
     protected function getDeserializationContext()
     {
-        $serGroups = ['Default', 'roleadmin'];
+        $serGroups = ['Default', 'admin'];
         return DeserializationContext::create()->setGroups($serGroups);
     }
 
     protected function getSerializationContext()
     {
-        $serGroups = ['Default', 'roleadmin'];
+        $serGroups = ['Default', 'admin'];
         return SerializationContext::create()->setGroups($serGroups);
     }
 

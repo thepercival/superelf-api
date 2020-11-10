@@ -87,7 +87,7 @@ class Command extends SymCommand
     }
 
     protected function getSportFromInput(InputInterface $input): Sport {
-        if( strlen( $input->getOption("sport") ) === 0 ) {
+        if( $input->getOption("sport") === null || strlen( $input->getOption("sport") ) === 0 ) {
             throw new Exception("no sport-option given", E_ERROR);
         }
         $sport = $this->sportRepos->findOneBy( ["name" => $input->getOption("sport") ] );
@@ -98,7 +98,7 @@ class Command extends SymCommand
     }
 
     protected function getAssociationFromInput(InputInterface $input): Association {
-        if( strlen( $input->getOption("association") ) === 0 ) {
+        if( $input->getOption("association") === null || strlen( $input->getOption("association") ) === 0 ) {
             throw new Exception("no association-option given", E_ERROR);
         }
         $association = $this->associationRepos->findOneBy( ["name" => $input->getOption("association") ] );
@@ -109,7 +109,7 @@ class Command extends SymCommand
     }
 
     protected function getLeagueFromInput(InputInterface $input): League {
-        if( strlen( $input->getOption("league") ) === 0 ) {
+        if( $input->getOption("league") === null || strlen( $input->getOption("league") ) === 0 ) {
             throw new Exception("no league-option given", E_ERROR);
         }
         $league = $this->leagueRepos->findOneBy( ["name" => $input->getOption("league") ] );
@@ -120,7 +120,7 @@ class Command extends SymCommand
     }
 
     protected function getSeasonFromInput(InputInterface $input): Season {
-        if( strlen( $input->getOption("season") ) === 0 ) {
+        if( $input->getOption("season") === null || strlen( $input->getOption("season") ) === 0 ) {
             throw new Exception("no season-option given", E_ERROR);
         }
         $season = $this->seasonRepos->findOneBy( ["name" => $input->getOption("season") ] );
@@ -131,7 +131,7 @@ class Command extends SymCommand
     }
 
     protected function getBatchNrRangeFromInput(InputInterface $input): Range {
-        if( strlen( $input->getOption("batchNrRange") ) === 0 ) {
+        if( $input->getOption("batchNrRange") === null || strlen( $input->getOption("batchNrRange") ) === 0 ) {
             return new Range(1,1);
         }
         if (strpos($input->getOption("batchNrRange"), "-") === false ) {
@@ -147,7 +147,7 @@ class Command extends SymCommand
      * @throws Exception
      */
     protected function getIdFromInput(InputInterface $input) {
-        if( strlen( $input->getOption("id") ) === 0 ) {
+        if( $input->getOption("id") === null || strlen( $input->getOption("id") ) === 0 ) {
             throw new Exception("id-option not found");
         }
         return $input->getOption('id');

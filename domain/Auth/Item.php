@@ -4,30 +4,26 @@ declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
+use SuperElf\User;
+
 class Item
 {
-    /**
-     * @var string
-     */
-    protected $token;
-    /**
-     * @var int
-     */
-    protected $userId;
+    protected string $token;
+    protected User $user;
 
-    public function __construct(string $token, int $userId)
+    public function __construct(string $token, User $user)
     {
         $this->token = $token;
-        $this->userId = $userId;
+        $this->user = $user;
     }
 
-    public function getToken()
+    public function getToken(): string
     {
         return $this->token;
     }
 
-    public function getUserId()
+    public function getUser(): User
     {
-        return $this->userId;
+        return $this->user;
     }
 }

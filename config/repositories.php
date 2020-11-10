@@ -9,6 +9,12 @@ use SuperElf\User\Repository as UserRepository;
 use SuperElf\User;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool;
+use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
+use SuperElf\PoolCollection;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
+use SuperElf\ScoutedPerson;
 use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Competitor;
 
@@ -65,6 +71,18 @@ return [
     PoolRepository::class => function (ContainerInterface $container): PoolRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolRepository($entityManager, $entityManager->getClassMetaData(Pool::class));
+    },
+    PoolUserRepository::class => function (ContainerInterface $container): PoolUserRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PoolUserRepository($entityManager, $entityManager->getClassMetaData(PoolUser::class));
+    },
+    PoolCollectionRepository::class => function (ContainerInterface $container): PoolCollectionRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PoolCollectionRepository($entityManager, $entityManager->getClassMetaData(PoolCollection::class));
+    },
+    ScoutedPersonRepository::class => function (ContainerInterface $container): ScoutedPersonRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new ScoutedPersonRepository($entityManager, $entityManager->getClassMetaData(ScoutedPerson::class));
     },
     CompetitorRepository::class => function (ContainerInterface $container): CompetitorRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

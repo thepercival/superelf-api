@@ -5,6 +5,32 @@ SuperElf\Pool:
 
   properties:
     id:
+      type: integer
       read_only: true
-    name:
-      type: string
+    collection:
+      type: SuperElf\PoolCollection
+    season:
+      type: Sports\Season
+    users:
+      type: ArrayCollection<SuperElf\Pool\User>
+      read_only: true
+    scoreUnits:
+      type: ArrayCollection<SuperElf\Pool\ScoreUnit>
+      read_only: true
+    periods:
+      type: ArrayCollection<SuperElf\Pool\Period>
+      read_only: true
+    sourceCompetition:
+      type: Sports\Competition
+      expose: false
+      read_only: true
+  virtual_properties:
+    getCompetitions:
+      type: array<Sports\Competition>
+      serialized_name: competitions
+    getFormations:
+      type: ArrayCollection<Sports\Sport\Formation>
+      serialized_name: formations
+    getSourceCompetitionId:
+      type: integer
+      serialized_name: sourceCompetitionId

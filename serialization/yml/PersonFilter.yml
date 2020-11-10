@@ -1,0 +1,14 @@
+SuperElf\PersonFilter:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    startDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+    endDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+    teamId:
+      type: integer
+    line:
+      type: integer

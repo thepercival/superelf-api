@@ -1,0 +1,11 @@
+SuperElf\PoolCollection:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_method
+
+  properties:
+    id:
+      read_only: true
+    association:
+      access_type: property
+      type: Sports\Association

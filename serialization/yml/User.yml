@@ -8,7 +8,6 @@ SuperElf\User:
       type: integer
     emailaddress:
       type: string
-      groups: [roleadmin]
+      groups: [admin]
     name:
       type: string
-      groups: [ roleadmin ]

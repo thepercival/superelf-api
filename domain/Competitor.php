@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use SuperElf\Pool\User as PoolUser;
 use Sports\Competition;
 use Sports\Competitor\Base;
 use Sports\Competitor as SportsCompetitor;
@@ -14,19 +15,16 @@ class Competitor implements SportsCompetitor
      * @var int|string
      */
     protected $id;
-    protected Pool $pool;
+    protected PoolUser $poolUser;
     protected Competition $competition;
-    protected User $user;
     protected bool $admin;
 
     use Base;
 
-    public function __construct(
-        Pool $pool, Competition $competition, User $user, int $pouleNr, int $placeNr)
+    public function __construct( PoolUser $poolUser, Competition $competition, int $pouleNr, int $placeNr)
     {
-        $this->setPool($pool);
+        $this->setPoolUser($poolUser);
         $this->competition = $competition;
-        $this->user = $user;
         $this->setPouleNr( $pouleNr );
         $this->setPlaceNr( $placeNr );
         $this->admin = false;
@@ -34,15 +32,20 @@ class Competitor implements SportsCompetitor
 
     public function getPool(): Pool
     {
-        return $this->pool;
+        return $this->poolUser->getPool();
     }
 
-    public function setPool(Pool $pool)
+    public function getPoolUser(): PoolUser
     {
-        if (!$pool->getCompetitors()->contains($this)) {
-            $pool->getCompetitors()->add($this) ;
+        return $this->poolUser;
+    }
+
+    public function setPoolUser(PoolUser $poolUser)
+    {
+        if (!$poolUser->getCompetitors()->contains($this)) {
+            $poolUser->getCompetitors()->add($this) ;
         }
-        $this->pool = $pool;
+        $this->poolUser = $poolUser;
     }
 
     public function getCompetition(): Competition
@@ -57,16 +60,10 @@ class Competitor implements SportsCompetitor
 
     public function getUser(): User
     {
-        return $this->user;
+        return $this->poolUser->getUser();
     }
 
-    public function getAdmin(): bool
-    {
-        return $this->admin;
-    }
-
-    public function setAdmin(bool $admin)
-    {
-        $this->admin = $admin;
+    public function getCompetitionId(): int {
+        return $this->getCompetition()->getId();
     }
 }

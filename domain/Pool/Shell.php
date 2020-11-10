@@ -35,7 +35,7 @@ class Shell
 
         $this->roles = 0;
         if ($user !== null) {
-            $poolUser = $pool->getCompetitor( $user );
+            $poolUser = $pool->getUser( $user );
             if ($poolUser !== null) {
                 $this->roles = Role::COMPETITOR;
                 if( $poolUser->getAdmin() ) {

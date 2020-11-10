@@ -71,12 +71,12 @@ class Repository extends \SportsHelpers\Repository
         $exprExists = $this->getEM()->getExpressionBuilder();
 
         $competitorQb = $this->getEM()->createQueryBuilder()
-            ->select('c.id')
-            ->from('SuperElf\Competitor', 'c')
-            ->where('c.pool = p')
-            ->andWhere('c.user = :user');
-        if( ( $roles & Role::ADMIN ) === Role::ADMIN ) {
-            $competitorQb = $competitorQb->andWhere('c.admin = :admin');
+            ->select('pu.id')
+            ->from('SuperElf\Pool\User', 'pu')
+            ->where('pu.pool = p')
+            ->andWhere('pu.user = :user');
+        if( $roles === Role::ADMIN ) {
+            $competitorQb = $competitorQb->andWhere('pu.admin = :admin');
         }
 
         $qb = $this->createQueryBuilder('p')
@@ -86,7 +86,7 @@ class Repository extends \SportsHelpers\Repository
             )
         );
         $qb = $qb->setParameter('user', $user);
-        if( ( $roles & Role::ADMIN ) === Role::ADMIN ) {
+        if( $roles === Role::ADMIN ) {
             $qb = $qb->setParameter('admin', true);
         }
 
