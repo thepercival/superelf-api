@@ -10,9 +10,9 @@
         <join-column name="userId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
-    <many-to-one field="season" target-entity="Sports\Season">
+    <many-to-one field="sourceCompetition" target-entity="Sports\Competition">
       <join-columns>
-        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+        <join-column name="sourceCompetitionId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
       </join-columns>
     </many-to-one>
     <many-to-one field="person" target-entity="Sports\Person">

@@ -7,8 +7,8 @@ use League\Period\Period;
 
 class PersonFilter
 {
-    protected DateTimeImmutable $startDateTime;
-    protected DateTimeImmutable $endDateTime;
+    protected DateTimeImmutable $start;
+    protected DateTimeImmutable $end;
     /**
      * @var int|string|null
      */
@@ -26,15 +26,15 @@ class PersonFilter
      */
     public function __construct(Period $period, $teamId = null, int $line = null)
     {
-        $this->startDateTime = $period->getStartDate();
-        $this->endDateTime = $period->getEndDate();
+        $this->start = $period->getStartDate();
+        $this->end = $period->getEndDate();
         $this->teamId = $teamId;
         $this->line = $line;
     }
 
     public function getPeriod(): Period
     {
-        return new Period( $this->startDateTime, $this->endDateTime );
+        return new Period( $this->start, $this->end );
     }
 
     /**

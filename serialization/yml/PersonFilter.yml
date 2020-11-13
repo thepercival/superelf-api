@@ -4,9 +4,9 @@ SuperElf\PersonFilter:
   access_type: public_property
 
   properties:
-    startDateTime:
+    start:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-    endDateTime:
+    end:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
     teamId:
       type: integer

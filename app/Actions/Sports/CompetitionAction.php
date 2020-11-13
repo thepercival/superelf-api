@@ -47,7 +47,7 @@ final class CompetitionAction extends Action
 
     protected function getSerializationContext()
     {
-        $serGroups = ['Default'];
+        $serGroups = ['Default', 'teamCompetitors'];
         return SerializationContext::create()->setGroups($serGroups);
     }
 }

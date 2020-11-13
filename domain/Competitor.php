@@ -17,7 +17,6 @@ class Competitor implements SportsCompetitor
     protected $id;
     protected PoolUser $poolUser;
     protected Competition $competition;
-    protected bool $admin;
 
     use Base;
 
@@ -27,7 +26,6 @@ class Competitor implements SportsCompetitor
         $this->competition = $competition;
         $this->setPouleNr( $pouleNr );
         $this->setPlaceNr( $placeNr );
-        $this->admin = false;
     }
 
     public function getPool(): Pool
