@@ -1,0 +1,11 @@
+SuperElf\Formation:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    lines:
+      type: ArrayCollection<SuperElf\Formation\Line>
+  virtual_properties:
+    getName:
+      type: string
+      serialized_name: name

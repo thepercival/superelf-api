@@ -1,11 +1,7 @@
-SuperElf\ScoutedPerson:
+SuperElf\Pool\Period\View\Round:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
   properties:
-    id:
-      type: integer
-    person:
-      type: Sports\Person
-    nrOfStars:
+    number:
       type: integer

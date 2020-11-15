@@ -88,11 +88,12 @@ return [
     ],
     'periods' => [
         'createAndJoinStart' => getenv('PERIODSTART_CREATE_AND_JOIN'),
-        'joinAndChoosePlayersStart' => getenv('PERIODSTART_JOIN_AND_CHOOSEPLAYERS'),
-        'joinAndChoosePlayersEnd' => getenv('PERIODEND_JOIN_AND_CHOOSEPLAYERS'),
+        'assembleStart' => getenv('PERIODSTART_ASSEMBLE'),
+        'assembleEnd' => getenv('PERIODEND_ASSEMBLE'),
         'transfersStart' => getenv('PERIODSTART_TRANSFER'),
         'transfersEnd' => getenv('PERIODEND_TRANSFER'),
     ],
+    'availableFormationNames' => ['3-4-3', '3-5-2', '4-3-3', '4-4-2', '5-3-2'],
     'scoreunits' => [
         \SuperElf\ScoreUnit::POINTS_WIN => getenv('SCOREUNIT_POINTS_WIN'),
         \SuperElf\ScoreUnit::POINTS_DRAW => getenv('BETPOINTS_POINTS_DRAW'),

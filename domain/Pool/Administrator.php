@@ -18,7 +18,9 @@ use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
 use SuperElf\ScoreUnit as BaseScoreUnit;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\Period as PoolPeriod;
-use League\Period\Period as BasePeriod;
+use SuperElf\Pool\Period\Assemble as AssemblePoolPeriod;
+use SuperElf\Pool\Period\Transfer as TransferPoolPeriod;
+use SuperElf\Pool\Period\View as PoolViewPeriod;
 use SuperElf\User;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\Config\Service as SportConfigService;
@@ -46,14 +48,16 @@ class Administrator
         $this->sportRepos = $sportRepos;
     }
 
-    public function createPool(Season $season, Competition $sourceCompetition, string $name, User $user): Pool
+    public function createPool(Competition $sourceCompetition, string $name, User $user): Pool
     {
         $poolCollection = new PoolCollection( new Association( $name ) );
-        $pool = new Pool( $poolCollection, $season, $sourceCompetition );
+        $pool = new Pool( $poolCollection, $sourceCompetition,
+                          $this->getAssemblePoolPeriod(), $this->getTransferPoolPeriod()
+        );
         $this->addDefaultScoreUnits( $pool );
-        $this->addPeriods( $pool );
 
         $defaultLeagueName = $poolCollection->getLeagueName( PoolCollection::LEAGUE_DEFAULT );
+        $season = $sourceCompetition->getSeason();
         $competition = new Competition( new League( $poolCollection->getAssociation(), $defaultLeagueName), $season );
         $competition->setStartDateTime( $season->getStartDateTime() );
         $this->sportConfigService->createDefault( $this->getSport(), $competition );
@@ -73,17 +77,18 @@ class Administrator
         }
     }
 
-    protected function addPeriods( Pool $pool ) {
-        $transfersStart = new DateTimeImmutable( $this->config->getString('periods.transfersStart' ) );
-        $transfersEnd = new DateTimeImmutable( $this->config->getString('periods.transfersEnd' ) );
+    protected function getAssemblePoolPeriod(): AssemblePoolPeriod {
+        $assemblePeriod = $this->activeConfigService->getAssemblePeriod();
+        $assembleViewPeriod = $this->activeConfigService->getAssembleViewPeriod();
+        return new AssemblePoolPeriod( $assemblePeriod,
+        new PoolViewPeriod( $assembleViewPeriod ) );
+    }
 
-        $createAndJoinPeriod = $this->activeConfigService->getActiveCreateAndJoinPeriod();
-        $joinAndChoosePlayersPeriod = $this->activeConfigService->getActiveJoinAndChoosePlayersPeriod();
-        $transferPeriod = new BasePeriod( $transfersStart, $transfersEnd );
-
-        new PoolPeriod( $pool, $createAndJoinPeriod, PoolPeriod::CREATE_AND_JOIN );
-        new PoolPeriod( $pool, $joinAndChoosePlayersPeriod, PoolPeriod::CHOOSE_PLAYERS );
-        new PoolPeriod( $pool, $transferPeriod, PoolPeriod::TRANSFER );
+    protected function getTransferPoolPeriod(): TransferPoolPeriod {
+        $transferPeriod = $this->activeConfigService->getTransferPeriod();
+        $transferViewPeriod = $this->activeConfigService->getTransferViewPeriod();
+        return new TransferPoolPeriod( $transferPeriod,
+                                   new PoolViewPeriod( $transferViewPeriod ) );
     }
 
     public function addUser( Pool $pool, User $user, bool $admin ): PoolUser {

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Sports\Sport\Formation;
 use Sports\Season;
 use Sports\Competition;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\Period as PoolPeriod;
+use SuperElf\Pool\Period\Assemble as PoolAssemblePeriod;
+use SuperElf\Pool\Period\Transfer as PoolTransferPeriod;
 use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
 
 class Pool
@@ -19,27 +19,26 @@ class Pool
      */
     protected $id;
     protected PoolCollection $collection;
-    protected Season $season;
     protected Competition $sourceCompetition;
+    protected PoolAssemblePeriod $assemblePeriod;
+    protected PoolTransferPeriod $transferPeriod;
     /**
      * @var ArrayCollection|PoolScoreUnit[]
      */
     protected $scoreUnits;
     /**
-     * @var ArrayCollection|PoolPeriod[]
-     */
-    protected $periods;
-    /**
      * @var ArrayCollection|PoolUser[]
      */
     protected $users;
 
-    public function __construct( PoolCollection $collection, Season $season, Competition $sourceCompetition )
+    public function __construct( PoolCollection $collection, Competition $sourceCompetition,
+        PoolAssemblePeriod $assemblePeriod, PoolTransferPeriod $transferPeriod
+)
     {
         $this->collection = $collection;
-        $this->season = $season;
         $this->sourceCompetition = $sourceCompetition;
-        $this->periods = new ArrayCollection();
+        $this->assemblePeriod = $assemblePeriod;
+        $this->transferPeriod = $transferPeriod;
         $this->scoreUnits = new ArrayCollection();
         $this->users = new ArrayCollection();
     }
@@ -65,7 +64,7 @@ class Pool
     }
 
     public function getSeason(): Season {
-        return $this->season;
+        return $this->getSourceCompetition()->getSeason();
     }
 
     public function getSourceCompetition(): Competition {
@@ -76,11 +75,12 @@ class Pool
         return $this->sourceCompetition->getId();
     }
 
-    /**
-     * @return ArrayCollection|PoolPeriod[]
-     */
-    public function getPeriods() {
-        return $this->periods;
+    public function getAssemblePeriod(): PoolAssemblePeriod {
+        return $this->assemblePeriod;
+    }
+
+    public function getTransferPeriod(): PoolTransferPeriod {
+        return $this->transferPeriod;
     }
 
     /**
@@ -127,12 +127,4 @@ class Pool
     public function getScoreUnits() {
         return $this->scoreUnits;
     }
-
-    /**
-     * @return ArrayCollection|Formation[]
-     */
-    public function getFormations() {
-        return $this->getCompetition()->getFirstSportConfig()->getSport()->getFormations();
-    }
-
 }

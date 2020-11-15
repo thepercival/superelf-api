@@ -20,14 +20,12 @@ use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
 use SuperElf\Pool\Administrator as PoolAdministrator;
-use Sports\Season\Repository as SeasonRepository;
 use SuperElf\User;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 
 final class PoolAction extends Action
 {
     protected PoolRepository $poolRepos;
-    protected SeasonRepository $seasonRepos;
     protected CompetitionRepository $competitionRepos;
     protected Configuration $config;
     protected PoolAvailabilityChecker $poolAvailabilityChecker;
@@ -38,7 +36,6 @@ final class PoolAction extends Action
         LoggerInterface $logger,
         SerializerInterface $serializer,
         PoolRepository $poolRepos,
-        SeasonRepository $seasonRepos,
         CompetitionRepository $competitionRepos,
         PoolAvailabilityChecker $poolAvailabilityChecker,
         PoolAdministrator $poolAdministrator,
@@ -47,7 +44,6 @@ final class PoolAction extends Action
     ) {
         parent::__construct($logger, $serializer);
         $this->poolRepos = $poolRepos;
-        $this->seasonRepos = $seasonRepos;
         $this->competitionRepos = $competitionRepos;
         $this->config = $config;
         $this->poolAvailabilityChecker = $poolAvailabilityChecker;
@@ -86,20 +82,15 @@ final class PoolAction extends Action
                 throw new \Exception("geen bron-competitie ingevoerd");
             }
 
-            $competition = $this->competitionRepos->find( (int)$poolData->sourceCompetitionId );
-            if( $competition === null ) {
+            $sourceCompetition = $this->competitionRepos->find( (int)$poolData->sourceCompetitionId );
+            if( $sourceCompetition === null ) {
                 throw new \Exception("er kan geen bron-competitie gevonden worden", E_ERROR);
             }
 
-            $period = $this->activeConfigService->getActiveJoinAndChoosePlayersPeriod();
-            $season = $this->seasonRepos->findOneByPeriod( $period );
-            if( $season === null ) {
-                throw new \Exception("er kan geen actieve competitie gevonden worden", E_ERROR);
-            }
             $this->poolAvailabilityChecker->check(
-                $season, $poolData->name, $user
+                $sourceCompetition->getSeason(), $poolData->name, $user
             );
-            $pool = $this->poolAdministrator->createPool( $season, $competition, $poolData->name, $user );
+            $pool = $this->poolAdministrator->createPool( $sourceCompetition, $poolData->name, $user );
 
             $this->poolRepos->save($pool);
             $serializationContext = $this->getSerializationContext($pool, $user);

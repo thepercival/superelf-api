@@ -1,0 +1,14 @@
+SuperElf\Pool\Period\View:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    rounds:
+      type: ArrayCollection<SuperElf\Pool\Period\View\Round>
+  virtual_properties:
+    getStartDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: start
+    getEndDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: end

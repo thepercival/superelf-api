@@ -20,5 +20,8 @@
         <join-column name="personId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
+    <unique-constraints>
+      <unique-constraint columns="userId,sourceCompetitionId,personId" name="main_u_idx"/>
+    </unique-constraints>
   </entity>
 </doctrine-mapping>

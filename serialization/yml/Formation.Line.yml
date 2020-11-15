@@ -1,0 +1,13 @@
+SuperElf\Formation\Line:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    number:
+      type: integer
+    persons:
+      type: ArrayCollection<Sports\Person>
+    maxNrOfPersons:
+      type: integer
+    substitute:
+      type: Sports\Person

@@ -2,8 +2,7 @@
 
 namespace SuperElf;
 
-use Sports\Team;
-use Sports\Sport\Formation\Line as FormationLine;
+use Sports\Sport\Custom as SportCustom;
 
 class ScoreUnit
 {
@@ -46,19 +45,19 @@ class ScoreUnit
             case self::ASSIST_GOALKEEPER:
             case self::SHEET_CLEAN_GOALKEEPER:
             case self::SHEET_SPOTTY_GOALKEEPER:
-                return FormationLine::GOALKEEPER;
+                return SportCustom::Football_Line_GoalKepeer;
             case self::GOAL_DEFENDER:
             case self::ASSIST_DEFENDER:
             case self::SHEET_CLEAN_DEFENDER:
             case self::SHEET_SPOTTY_DEFENDER:
-                return FormationLine::DEFENSE;
+                return SportCustom::Football_Line_Defense;
             case self::GOAL_MIDFIELDER:
             case self::ASSIST_MIDFIELDER:
-                return FormationLine::MIDFIELD;
+                return SportCustom::Football_Line_Midfield;
             case self::GOAL_FORWARD:
             case self::ASSIST_FORWARD:
-                return FormationLine::FORWARD;
+                return SportCustom::Football_Line_Forward;
         }
-        return FormationLine::FOOTBALL_ALL;
+        return SportCustom::Football_Line_All;
     }
 }

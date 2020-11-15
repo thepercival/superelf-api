@@ -6,9 +6,15 @@ SuperElf\Pool\User:
     id:
       type: integer
       read_only: true
-    user:
-      type: SuperElf\User
     admin:
       type: boolean
     competitors:
       type: ArrayCollection<SuperElf\Competitor>
+    assembleFormation:
+      type: SuperElf\Formation
+      groups: [formations]
+      read_only: true
+    transferFormation:
+      type: SuperElf\Formation
+      groups: [formations]
+      read_only: true

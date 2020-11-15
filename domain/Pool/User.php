@@ -4,6 +4,7 @@ namespace SuperElf\Pool;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use SuperElf\Competitor;
+use SuperElf\Formation;
 use SuperElf\Pool;
 use SuperElf\User as BaseUser;
 
@@ -13,6 +14,14 @@ class User {
     protected Pool $pool;
     protected BaseUser $user;
     protected bool $admin;
+    /**
+     * @var Formation | null
+     */
+    protected $assembleFormation;
+    /**
+     * @var Formation | null
+     */
+    protected $transferFormation;
     /**
      * @var ArrayCollection|Competitor[]
      */
@@ -57,5 +66,21 @@ class User {
     public function getCompetitors()
     {
         return $this->competitors;
+    }
+
+    public function getAssembleFormation(): ?Formation {
+        return $this->assembleFormation;
+    }
+
+    public function setAssembleFormation( Formation $formation ) {
+        $this->assembleFormation = $formation;
+    }
+
+    public function getTransferFormation(): ?Formation {
+        return $this->transferFormation;
+    }
+
+    public function setTransferFormation( Formation $formation ) {
+        $this->transferFormation = $formation;
     }
 }

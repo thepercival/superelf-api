@@ -82,6 +82,11 @@ final class ScoutedPersonAction extends Action
                 throw new \Exception("de persoon is niet gevonden", E_ERROR);
             }
 
+            $scoutedPerson = $this->scoutedPersonRepos->findOneBy( [
+                "person" => $person, "sourceCompetition" => $sourceCompetition, "user" => $user ] );
+            if( $scoutedPerson !== null ) {
+                throw new \Exception("de persoon staat al in je scouting-lijst", E_ERROR);
+            }
             $scoutedPerson = new ScoutedPerson( $user, $sourceCompetition, $person, $serScoutedPerson->getNrOfStars() );
 
             $this->scoutedPersonRepos->save($scoutedPerson);

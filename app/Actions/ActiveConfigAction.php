@@ -34,7 +34,7 @@ final class ActiveConfigAction extends Action
     public function fetchOne(Request $request, Response $response, $args): Response
     {
         try {
-            $activeConfig = $this->activeConfigService->getActiveConfig();
+            $activeConfig = $this->activeConfigService->getConfig();
             $json = $this->serializer->serialize($activeConfig,'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {

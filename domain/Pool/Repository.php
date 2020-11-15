@@ -42,7 +42,10 @@ class Repository extends \SportsHelpers\Repository
     ) {
         $query = $this->createQueryBuilder('p')
             ->join("p.collection", "pc")
-            ->join("p.season", "s");
+            ->join("pc.association", "a")
+            ->join("p.sourceCompetition", "sourceC")
+            ->join("sourceC.season", "s")
+        ;
 
         if ($startDateTime !== null) {
             $query = $query->where('s.startDateTime >= :startDateTime');
@@ -56,9 +59,9 @@ class Repository extends \SportsHelpers\Repository
 
         if ($name !== null) {
             if ($startDateTime !== null || $endDateTime !== null) {
-                $query = $query->andWhere("pc.name like :name");
+                $query = $query->andWhere("a.name like :name");
             } else {
-                $query = $query->where('pc.name like :name');
+                $query = $query->where('a.name like :name');
             }
             $query = $query->setParameter('name', '%' . $name . '%');
         }

@@ -9,54 +9,104 @@ use Doctrine\Common\Collections\ArrayCollection;
 use League\Period\Period;
 use Selective\Config\Configuration;
 use Sports\Competition;
+use Sports\Season;
+use SuperElf\Pool\Period as PoolPeriod;
 use Sports\Sport\Custom as SportCustom;
 use SuperElf\ActiveConfig;
 use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Season\Repository as SeasonRepository;
+use Sports\Sport\Repository as SportRepository;
 
 class Service
 {
     protected CompetitionRepository $competitionRepos;
+    protected SeasonRepository $seasonRepos;
+    protected SportRepository $sportRepos;
     protected Configuration $config;
-    protected int $activeSport;
 
     public function __construct(
         CompetitionRepository $competitionRepos,
+        SeasonRepository $seasonRepos,
+        SportRepository $sportRepos,
         Configuration $config) {
         $this->competitionRepos = $competitionRepos;
+        $this->seasonRepos = $seasonRepos;
+        $this->sportRepos = $sportRepos;
         $this->config = $config;
-        $this->activeSport = SportCustom::Football;
     }
 
-    public function getActiveConfig(): ActiveConfig {
-        return new ActiveConfig (
-            $this->getActiveCreateAndJoinPeriod(),
-            $this->getActiveJoinAndChoosePlayersPeriod(),
-            $this->getActiveSourceCompetitions(),
+    public function getConfig(): ActiveConfig {
+        $activeConfig = new ActiveConfig (
+            $this->getCreateAndJoinPeriod(),
+            $this->getSourceCompetitions(),
         );
+        $formations = [];
+        /** @var string $formationName */
+        foreach( $this->config->getArray('availableFormationNames' ) as $formationName ) {
+            $formations[] = [
+                "name" => $formationName,
+                "lines" => [
+                    SportCustom::Football_Line_GoalKepeer => 1,
+                    SportCustom::Football_Line_Defense => (int) substr( $formationName,0, 1 ),
+                    SportCustom::Football_Line_Midfield => (int) substr( $formationName,2, 1 ),
+                    SportCustom::Football_Line_Forward => (int) substr( $formationName,4, 1 )]
+            ];
+        }
+        $activeConfig->setAvailableFormations( $formations );
+        return $activeConfig;
     }
 
-    public function getActiveCreateAndJoinPeriod(): Period {
+    public function getCreateAndJoinPeriod(): Period {
         return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.createAndJoinStart' ) ),
-            new DateTimeImmutable( $this->config->getString('periods.joinAndChoosePlayersStart' ) )
+            $this->getSeason()->getStartDateTime(),
+            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) )
         );
     }
 
-    public function getActiveJoinAndChoosePlayersPeriod(): Period {
+    public function getAssemblePeriod(): Period {
         return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.joinAndChoosePlayersStart' ) ),
-            new DateTimeImmutable( $this->config->getString('periods.joinAndChoosePlayersEnd' ) )
+            new DateTimeImmutable( $this->config->getString('periods.assembleStart' ) ),
+            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) )
         );
     }
 
-    protected function getActiveSourceCompetitions(): array {
-        $activePeriod = $this->getActiveJoinAndChoosePlayersPeriod();
-        $competitions =  $this->competitionRepos->findByDate( $activePeriod->getEndDate() );
-        $filtered = array_filter( $competitions, function ( Competition $competition): bool {
-            return $competition->getFirstSportConfig()->getSport()->getCustomId() === $this->activeSport;
-        });
+    public function getAssembleViewPeriod(): Period {
+        return new Period (
+            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) ),
+            new DateTimeImmutable( $this->config->getString('periods.transfersStart' ) )
+        );
+    }
+
+    public function getTransferPeriod(): Period {
+        return new Period (
+            new DateTimeImmutable( $this->config->getString('periods.transfersStart' ) ),
+            new DateTimeImmutable( $this->config->getString('periods.transfersEnd' ) )
+        );
+    }
+
+    public function getTransferViewPeriod(): Period {
+        return new Period (
+            new DateTimeImmutable( $this->config->getString('periods.transfersEnd' ) ),
+            $this->getSeason()->getEndDateTime()
+        );
+    }
+
+    protected function getSourceCompetitions(): array {
+        $season = $this->getSeason();
+        if( $season === null ) {
+            return [];
+        }
+        $sport = $this->sportRepos->findOneBy( ["customId" => SportCustom::Football ] );
+        if( $sport === null ) {
+            return [];
+        }
+        $competitions =  $this->competitionRepos->findExt( $sport, $season->getPeriod() );
         return array_map( function( Competition $competition ): array {
             return ["id" => $competition->getId(), "name" => $competition->getName() ];
-        }, $filtered );
+        }, $competitions );
+    }
+
+    public function getSeason(): ?Season {
+        return $this->seasonRepos->findOneByPeriod( $this->getAssembleViewPeriod() );
     }
 }

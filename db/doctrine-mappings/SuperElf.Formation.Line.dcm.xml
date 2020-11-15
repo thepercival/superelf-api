@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Formation\Line" table="formationLines" repository-class="SuperElf\Formation\Line\Repository">
+    <id name="id" type="integer" column="id">
+      <generator strategy="AUTO"/>
+    </id>
+    <field name="number" column="number" type="smallint" nullable="false" unique="false"/>
+    <field name="maxNrOfPersons" column="maxNrOfPersons" type="smallint" nullable="false" unique="false"/>
+    <many-to-one field="formation" target-entity="SuperElf\Formation" inversed-by="lines">
+      <join-columns>
+        <join-column name="formationId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-many field="persons" target-entity="Sports\Person">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+    </many-to-many>
+    <one-to-one field="substitute" target-entity="Sports\Person">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+    </one-to-one>
+    <unique-constraints>
+      <unique-constraint columns="formationId,number" name="main_u_idx"/>
+    </unique-constraints>
+  </entity>
+</doctrine-mapping>

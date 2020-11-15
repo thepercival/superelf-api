@@ -8,9 +8,7 @@ SuperElf\ActiveConfig:
         type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
     createAndJoinEnd:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-    joinAndChoosePlayersStart:
-      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-    joinAndChoosePlayersEnd:
-      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
     sourceCompetitions:
       type: array<array>
+    availableFormations:
+        type: array

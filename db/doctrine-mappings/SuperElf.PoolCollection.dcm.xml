@@ -4,7 +4,7 @@
     <id name="id" type="integer" column="id">
       <generator strategy="AUTO"/>
     </id>
-    <one-to-one field="association" target-entity="Sports\Association">
+    <one-to-one field="association" target-entity="Sports\Association" >
       <cascade>
         <cascade-persist/>
       </cascade>
@@ -18,6 +18,9 @@
         <cascade-remove/>
       </cascade>
     </one-to-many>
+    <unique-constraints>
+      <unique-constraint columns="associationId" name="association_u_idx"/>
+    </unique-constraints>
   </entity>
 
 </doctrine-mapping>

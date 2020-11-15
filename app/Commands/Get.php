@@ -206,7 +206,7 @@ class Get extends Command
 
     protected function showTeams(League $league, Season $season)
     {
-        $competition = $this->competitionRepos->findExt( $league, $season );
+        $competition = $this->competitionRepos->findOneExt( $league, $season );
         if( $competition === null ) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
@@ -224,7 +224,7 @@ class Get extends Command
 
     protected function showTeamCompetitors(League $league, Season $season)
     {
-        $competition = $this->competitionRepos->findExt( $league, $season );
+        $competition = $this->competitionRepos->findOneExt( $league, $season );
         if( $competition === null ) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
@@ -236,7 +236,7 @@ class Get extends Command
 
     protected function showStructure(League $league, Season $season)
     {
-        $competition = $this->competitionRepos->findExt( $league, $season );
+        $competition = $this->competitionRepos->findOneExt( $league, $season );
         if( $competition === null ) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
@@ -251,7 +251,7 @@ class Get extends Command
 
     protected function showGames(League $league, Season $season)
     {
-        $competition = $this->competitionRepos->findExt( $league, $season );
+        $competition = $this->competitionRepos->findOneExt( $league, $season );
         if( $competition === null ) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
@@ -268,7 +268,7 @@ class Get extends Command
 
     protected function showGame(League $league, Season $season, $id )
     {
-        $competition = $this->competitionRepos->findExt( $league, $season );
+        $competition = $this->competitionRepos->findOneExt( $league, $season );
         if( $competition === null ) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
