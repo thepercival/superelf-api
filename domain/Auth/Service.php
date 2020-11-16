@@ -139,7 +139,7 @@ EOT;
         $jti = (new Base62)->encode(random_bytes(16));
 
         $now = new \DateTimeImmutable();
-        $future = $now->modify("+3 months");
+        $future = $now->modify("+11 months");
         // $future = $now->modify("+10 seconds");
 
         $payload = [

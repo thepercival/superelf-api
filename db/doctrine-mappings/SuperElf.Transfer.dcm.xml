@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Transfer" table="transfers" repository-class="SuperElf\Transfer\Repository">
+    <id name="id" type="integer" column="id">
+      <generator strategy="AUTO"/>
+    </id>
+    <field name="outHasTeam" column="outHasTeam" type="boolean" nullable="false" unique="false"/>
+    <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="transfers">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+      <join-columns>
+        <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <one-to-one field="out" target-entity="Sports\Person">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+      <join-columns>
+        <join-column name="outId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </one-to-one>
+    <one-to-one field="in" target-entity="Sports\Person">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+      <join-columns>
+        <join-column name="inId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </one-to-one>
+  </entity>
+</doctrine-mapping>

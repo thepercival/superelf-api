@@ -41,4 +41,15 @@ class Formation
             return $line->getMaxNrOfPersons();
         })->toArray() );
     }
+
+    public function getNrOfPersons(): int {
+        $nrOfPersons = 0;
+        foreach( $this->getLines() as $line ) {
+            $nrOfPersons += $line->getPersons()->count();
+            if( $line->getSubstitute() ) {
+                $nrOfPersons++;
+            }
+        }
+        return $nrOfPersons;
+    }
 }

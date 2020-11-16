@@ -6,6 +6,8 @@ SuperElf\Pool\User:
     id:
       type: integer
       read_only: true
+    user:
+      type: SuperElf\User
     admin:
       type: boolean
     competitors:
@@ -14,7 +16,24 @@ SuperElf\Pool\User:
       type: SuperElf\Formation
       groups: [formations]
       read_only: true
+    transfers:
+      type: ArrayCollection<SuperElf\Transfer>
+      groups: [ formations ]
+      read_only: true
+    substitutes:
+      type: ArrayCollection<SuperElf\Substitute>
+      groups: [ formations ]
+      read_only: true
     transferFormation:
       type: SuperElf\Formation
       groups: [formations]
       read_only: true
+  virtual_properties:
+    getNrOfAssembled:
+      type: integer
+      groups: [ admin ]
+      serialized_name: nrOfAssembled
+    getNrOfTransferedWithTeam:
+      type: integer
+      groups: [admin]
+      serialized_name: nrOfTransfersWithTeam

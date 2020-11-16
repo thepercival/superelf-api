@@ -3,6 +3,8 @@ SuperElf\Pool\Period\Transfer:
   exclude: false
   access_type: public_property
   properties:
+    maxNrOfTransfers:
+      type: integer
     viewPeriod:
       type: SuperElf\Pool\Period\view
   virtual_properties:

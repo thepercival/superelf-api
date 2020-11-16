@@ -87,8 +87,9 @@ class Administrator
     protected function getTransferPoolPeriod(): TransferPoolPeriod {
         $transferPeriod = $this->activeConfigService->getTransferPeriod();
         $transferViewPeriod = $this->activeConfigService->getTransferViewPeriod();
+        $maxNrOfTransfers = $this->config->getInt('defaultMaxNrOfTransfers' );
         return new TransferPoolPeriod( $transferPeriod,
-                                   new PoolViewPeriod( $transferViewPeriod ) );
+                                   new PoolViewPeriod( $transferViewPeriod ), $maxNrOfTransfers );
     }
 
     public function addUser( Pool $pool, User $user, bool $admin ): PoolUser {

@@ -94,6 +94,7 @@ return [
         'transfersEnd' => getenv('PERIODEND_TRANSFER'),
     ],
     'availableFormationNames' => ['3-4-3', '3-5-2', '4-3-3', '4-4-2', '5-3-2'],
+    'defaultMaxNrOfTransfers' => getenv('DEFAULT_MAXNROFTRANSFERS'),
     'scoreunits' => [
         \SuperElf\ScoreUnit::POINTS_WIN => getenv('SCOREUNIT_POINTS_WIN'),
         \SuperElf\ScoreUnit::POINTS_DRAW => getenv('BETPOINTS_POINTS_DRAW'),

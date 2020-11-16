@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Pool;
 
 use App\Response\ForbiddenResponse;
+use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use App\Response\ErrorResponse;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use SuperElf\Pool;
+use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use App\Actions\Action;
 use Psr\Log\LoggerInterface;
@@ -29,6 +31,77 @@ final class UserAction extends Action
         parent::__construct($logger, $serializer);
         $this->poolUserRepos = $poolUserRepos;
         $this->serializer = $serializer;
+    }
+
+    public function fetchOne(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var Pool $pool */
+            $pool = $request->getAttribute("pool");
+
+            $poolUser = $this->poolUserRepos->find((int)$args['poolUserId']);
+            if ($poolUser === null) {
+                throw new \Exception("geen deelnemer met het opgegeven id gevonden", E_ERROR);
+            }
+            if ($poolUser->getPool() !== $pool) {
+                return new ForbiddenResponse("de pool komt niet overeen met de pool van de deelnemer");
+            }
+            return $this->fetchOneHelper($response, $poolUser);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function fetchOneFromSession(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var Pool $pool */
+            $pool = $request->getAttribute("pool");
+
+            $user = $request->getAttribute("user");
+
+            $poolUser = $pool->getUser($user);
+            if ($poolUser === null ) {
+                return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
+            }
+
+            return $this->fetchOneHelper($response, $poolUser);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function fetchOneHelper(Response $response, PoolUser $poolUser ): Response
+    {
+        try {
+            $json = $this->serializer->serialize(
+                $poolUser,
+                'json',
+                $this->getSerializationContext('formations')
+            );
+
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function fetch(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var Pool $pool */
+            $pool = $request->getAttribute("pool");
+
+            $json = $this->serializer->serialize(
+                $pool->getUsers(),
+                'json',
+                $this->getSerializationContext('admin')
+            );
+
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400);
+        }
     }
 
     public function remove(Request $request, Response $response, $args): Response
@@ -51,5 +124,11 @@ final class UserAction extends Action
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
+    }
+
+    protected function getSerializationContext( string $group )
+    {
+        $serGroups = ['Default', $group];
+        return SerializationContext::create()->setGroups($serGroups);
     }
 }

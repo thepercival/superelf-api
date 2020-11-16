@@ -91,10 +91,17 @@ return function (App $app): void {
                     $group->group(
                         'users',
                         function (Group $group): void {
+                            $group->options('/session', PoolUserAction::class . ':options');
+                            $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(PoolUserAuthMiddleware::class);
+                            $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
+
+                            $group->options('', PoolUserAction::class . ':options');
+                            $group->get('', PoolUserAction::class . ':fetch')->add(PoolAdminAuthMiddleware::class);
+
                             $group->options('/{poolUserId}', PoolUserAction::class . ':options');
-                            $group->delete('/{poolUserId}', PoolUserAction::class . ':remove');
+                            $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
                         }
-                    )->add(PoolAdminAuthMiddleware::class);;
+                    );
                 },
             );
         }

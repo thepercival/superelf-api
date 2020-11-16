@@ -6,6 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Pool;
+use SuperElf\Substitution;
+use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
 
 class User {
@@ -18,6 +20,14 @@ class User {
      * @var Formation | null
      */
     protected $assembleFormation;
+    /**
+     * @var ArrayCollection | Transfer[]
+     */
+    protected $transfers;
+    /**
+     * @var ArrayCollection | Substitution[]
+     */
+    protected $substitutions;
     /**
      * @var Formation | null
      */
@@ -32,6 +42,8 @@ class User {
         $this->setPool( $pool );
         $this->user = $user;
         $this->competitors = new ArrayCollection();
+        $this->transfers = new ArrayCollection();
+        $this->substitutions = new ArrayCollection();
     }
 
     public function getPool(): Pool {
@@ -68,6 +80,27 @@ class User {
         return $this->competitors;
     }
 
+    /**
+     * @return ArrayCollection|Transfer[]
+     */
+    public function getTransfers( bool $outHasTeam = null )
+    {
+        if( $outHasTeam === null ) {
+            return $this->transfers;
+        }
+        return $this->transfers->filter( function( Transfer $transfer ) use ($outHasTeam): bool {
+            return $transfer->outHasTeam() === $outHasTeam;
+        });
+    }
+
+    /**
+     * @return ArrayCollection|Substitution[]
+     */
+    public function getSubstitutions()
+    {
+        return $this->substitutions;
+    }
+
     public function getAssembleFormation(): ?Formation {
         return $this->assembleFormation;
     }
@@ -82,5 +115,14 @@ class User {
 
     public function setTransferFormation( Formation $formation ) {
         $this->transferFormation = $formation;
+    }
+
+    public function getNrOfAssembled(): int {
+        $formation = $this->getAssembleFormation();
+        return $formation ? $formation->getNrOfPersons() : 0;
+    }
+
+    public function getNrOfTransferedWithTeam(): int {
+        return $this->getTransfers( true )->count();
     }
 }

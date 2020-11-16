@@ -9,14 +9,14 @@ use SuperElf\Pool\Period\View as ViewPoolPeriod;
 
 class Transfer extends PoolPeriod {
 
-    public const DefaultMaxAmount = 2;
-    protected int $maxNrOfTransfers = self::DefaultMaxAmount;
+    protected int $maxNrOfTransfers;
     protected ViewPoolPeriod $viewPeriod;
 
-    public function __construct(BasePeriod $period, ViewPoolPeriod $viewPeriod)
+    public function __construct(BasePeriod $period, ViewPoolPeriod $viewPeriod, int $maxNrOfTransfers )
     {
         parent::__construct( $period );
         $this->viewPeriod = $viewPeriod;
+        $this->maxNrOfTransfers = $maxNrOfTransfers;
     }
 
     public function getViewPeriod(): ViewPoolPeriod

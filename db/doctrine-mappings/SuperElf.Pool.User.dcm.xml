@@ -30,9 +30,19 @@
         <cascade-remove/>
       </cascade>
       <join-columns>
-        <join-column name="transferFormationId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+        <join-column name="transferFormationId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
       </join-columns>
     </one-to-one>
+    <one-to-many field="transfers" target-entity="SuperElf\Transfer" mapped-by="poolUser">
+      <cascade>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
+    <one-to-many field="substitutions" target-entity="SuperElf\Substitution" mapped-by="poolUser">
+      <cascade>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
     <one-to-many field="competitors" target-entity="SuperElf\Competitor" mapped-by="poolUser">
       <cascade>
         <cascade-remove/>
