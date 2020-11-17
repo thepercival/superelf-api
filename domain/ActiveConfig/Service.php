@@ -46,10 +46,10 @@ class Service
             $formations[] = [
                 "name" => $formationName,
                 "lines" => [
-                    SportCustom::Football_Line_GoalKepeer => 1,
-                    SportCustom::Football_Line_Defense => (int) substr( $formationName,0, 1 ),
-                    SportCustom::Football_Line_Midfield => (int) substr( $formationName,2, 1 ),
-                    SportCustom::Football_Line_Forward => (int) substr( $formationName,4, 1 )]
+                    SportCustom::Football_Line_GoalKepeer => (int) substr( $formationName,0, 1 ),
+                    SportCustom::Football_Line_Defense => (int) substr( $formationName,2, 1 ),
+                    SportCustom::Football_Line_Midfield => (int) substr( $formationName,4, 1 ),
+                    SportCustom::Football_Line_Forward => (int) substr( $formationName,6, 1 )]
             ];
         }
         $activeConfig->setAvailableFormations( $formations );

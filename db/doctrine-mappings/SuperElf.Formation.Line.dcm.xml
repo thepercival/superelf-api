@@ -22,6 +22,9 @@
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
+      <join-columns>
+        <join-column name="substituteId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+      </join-columns>
     </one-to-one>
     <unique-constraints>
       <unique-constraint columns="formationId,number" name="main_u_idx"/>

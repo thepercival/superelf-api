@@ -14,11 +14,13 @@ use App\Middleware\AuthorizationMiddleware;
 
 class AdminMiddleware extends AuthorizationMiddleware
 {
-    protected function isAuthorized(Request $request, User $user = null, Pool $pool = null)
+    protected function isAuthorized(Request $request)
     {
+        $user = $request->getAttribute('user');
         if ($user === null) {
             throw new \Exception("je moet ingelogd zijn voor deze pool", E_ERROR);
-        };
+        }
+        $pool = $request->getAttribute('pool');
         if ($pool === null) {
             throw new \Exception("de pool is onbekend", E_ERROR);
         }

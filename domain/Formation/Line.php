@@ -19,7 +19,10 @@ class Line
      * @var ArrayCollection | Person[]
      */
     protected $persons;
-    protected ?Person $substitute;
+    /**
+     * @var Person|null
+     */
+    protected $substitute;
 
     public function __construct(FormationBase $formation, int $number, int $maxNrOfPersons)
     {

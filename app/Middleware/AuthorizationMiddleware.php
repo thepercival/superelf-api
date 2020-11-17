@@ -21,7 +21,7 @@ abstract class AuthorizationMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
         try {
-            $this->isAuthorized($request, $request->getAttribute('user'), $request->getAttribute('pool'));
+            $this->isAuthorized($request);
         } catch (Exception $e) {
             return new ForbiddenResponse($e->getMessage());
         }
@@ -30,9 +30,7 @@ abstract class AuthorizationMiddleware implements MiddlewareInterface
 
     /**
      * @param Request $request
-     * @param User|null $user
-     * @param Pool|null $pool
      * @throws Exception
      */
-    abstract protected function isAuthorized(Request $request, User $user = null, Pool $pool = null);
+    abstract protected function isAuthorized(Request $request);
 }

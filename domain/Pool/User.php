@@ -119,7 +119,7 @@ class User {
 
     public function getNrOfAssembled(): int {
         $formation = $this->getAssembleFormation();
-        return $formation ? $formation->getNrOfPersons() : 0;
+        return $formation !== null ? $formation->getNrOfPersons() : 0;
     }
 
     public function getNrOfTransferedWithTeam(): int {

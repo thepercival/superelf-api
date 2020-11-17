@@ -8,6 +8,7 @@ use App\Actions\Pool\ShellAction;
 use App\Actions\Sports\CompetitionAction;
 use App\Actions\Sports\PersonAction;
 use App\Actions\Sports\PlayerAction;
+use App\Actions\FormationAction;
 use App\Actions\UserAction;
 use App\Actions\PoolAction;
 use App\Actions\Pool\UserAction as PoolUserAction;
@@ -15,9 +16,11 @@ use App\Actions\ScoutedPersonAction;
 use App\Middleware\PoolMiddleware;
 use App\Middleware\VersionMiddleware;
 use App\Middleware\UserMiddleware;
+use App\Middleware\PoolUserMiddleware;
 use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
 use App\Middleware\Authorization\Pool\AdminMiddleware as PoolAdminAuthMiddleware;
-use App\Middleware\Authorization\Pool\UserMiddleware as PoolUserAuthMiddleware;
+use App\Middleware\Authorization\Pool\UserMiddleware as UserThroughPoolAuthMiddleware;
+use App\Middleware\Authorization\PoolUserMiddleware as PoolUserAuthMiddlewareNew;
 
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
@@ -92,20 +95,37 @@ return function (App $app): void {
                         'users',
                         function (Group $group): void {
                             $group->options('/session', PoolUserAction::class . ':options');
-                            $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(PoolUserAuthMiddleware::class);
-                            $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
+                            $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(UserThroughPoolAuthMiddleware::class);
 
                             $group->options('', PoolUserAction::class . ':options');
                             $group->get('', PoolUserAction::class . ':fetch')->add(PoolAdminAuthMiddleware::class);
-
-                            $group->options('/{poolUserId}', PoolUserAction::class . ':options');
-                            $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
                         }
                     );
                 },
             );
         }
     )->add(PoolMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+
+    $app->group(
+        '/poolusers',
+        function (Group $group): void {
+            $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
+            $group->options('/{poolUserId}', PoolUserAction::class . ':options');
+            $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
+
+            $group->group(
+                '/{poolUserId}/formations',
+                function (Group $group): void {
+                    $group->options('', FormationAction::class . ':options');
+                    $group->post('', FormationAction::class . ':add');
+
+                    // $group->get('/{formationId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
+                    $group->options('/{formationId}', PoolUserAction::class . ':options');
+                    $group->delete('/{formationId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
+                }
+            )->add(PoolUserAuthMiddlewareNew::class);
+        }
+    )->add(UserAuthMiddleware::class)->add(PoolUserMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
         '/persons',
