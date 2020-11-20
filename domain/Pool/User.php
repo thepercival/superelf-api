@@ -105,7 +105,7 @@ class User {
         return $this->assembleFormation;
     }
 
-    public function setAssembleFormation( Formation $formation ) {
+    public function setAssembleFormation( Formation $formation = null ) {
         $this->assembleFormation = $formation;
     }
 

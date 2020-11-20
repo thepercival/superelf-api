@@ -21,7 +21,7 @@
         <cascade-remove/>
       </cascade>
       <join-columns>
-        <join-column name="assembleFormationId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+        <join-column name="assembleFormationId" referenced-column-name="id" nullable="true" on-delete="SET NULL"/>
       </join-columns>
     </one-to-one>
     <one-to-one field="transferFormation" target-entity="SuperElf\Formation">

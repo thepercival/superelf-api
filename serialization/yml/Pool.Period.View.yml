@@ -1,10 +1,11 @@
 SuperElf\Pool\Period\View:
   exclusion_policy: ALL
   exclude: false
-  access_type: public_property
+  access_type: public_method
   properties:
     rounds:
       type: ArrayCollection<SuperElf\Pool\Period\View\Round>
+      read_only: true
   virtual_properties:
     getStartDateTime:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>

@@ -3,6 +3,9 @@ SuperElf\Formation:
   exclude: false
   access_type: public_property
   properties:
+    id:
+      type: integer
+      read_only: true
     lines:
       type: ArrayCollection<SuperElf\Formation\Line>
   virtual_properties:

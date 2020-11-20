@@ -120,8 +120,8 @@ return function (App $app): void {
                     $group->post('', FormationAction::class . ':add');
 
                     // $group->get('/{formationId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
-                    $group->options('/{formationId}', PoolUserAction::class . ':options');
-                    $group->delete('/{formationId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
+                    $group->options('/{formationId}', FormationAction::class . ':options');
+                    $group->delete('/{formationId}', FormationAction::class . ':remove');
                 }
             )->add(PoolUserAuthMiddlewareNew::class);
         }

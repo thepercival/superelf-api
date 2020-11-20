@@ -34,4 +34,8 @@ abstract class Period {
     {
         return new BasePeriod($this->getStartDateTime(), $this->getEndDateTime());
     }
+
+    public function contains(DateTimeImmutable $date = null): bool {
+        return $this->getPeriod()->contains( $date !== null ? $date : new DateTimeImmutable() ) ;
+    }
 }

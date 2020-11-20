@@ -79,6 +79,8 @@ return [
         ]
     ],
     'images' => [
+        'personsSuffix' => 'images/persons/',
+        'teamsSuffix' => 'images/teams/',
     ],
     'proxy' => [
         'host' => getenv('EXTERNAL_PROXY_HOST'),

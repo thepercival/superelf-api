@@ -100,6 +100,8 @@ class Import extends Command
                             $this->importSchedule($externalSourceImpl, $sport, $association, $league, $season);
                         } elseif ( $objectType === "gamedetails" ) {
                             $this->importGameDetails($externalSourceImpl, $sport, $association, $league, $season);
+                        } elseif ( $objectType === "images" ) {
+                            $this->importImages($externalSourceImpl, $league, $season);
                         } else {
                             echo "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen" . PHP_EOL;
                         }
@@ -171,5 +173,22 @@ class Import extends Command
             new \DateTimeImmutable('2020-09-12 18:00'),
             new \DateTimeImmutable('2020-09-12 18:00') );
         $this->importService->importGameDetails($externalSourceImpl, $sport, $association, $league, $season, $period );
+    }
+
+    protected function importImages(Implementation $externalSourceImpl, League $league, Season $season)
+    {
+        $localPath = $this->config->getString('www.apiurl-localpath');
+        $localPath .= $this->config->getString('images.personsSuffix');
+        $publicPath = $this->config->getString('www.apiurl');
+        $publicPath .= $this->config->getString('images.personsSuffix');
+        $maxWidth = 150;
+        $this->importService->importPersonImages($externalSourceImpl, $league, $season, $localPath, $publicPath, $maxWidth );
+
+        $localPath = $this->config->getString('www.apiurl-localpath');
+        $localPath .= $this->config->getString('images.teamsSuffix');
+        $publicPath = $this->config->getString('www.apiurl');
+        $publicPath .= $this->config->getString('images.teamsSuffix');
+        $maxWidth = 150;
+        $this->importService->importTeamImages($externalSourceImpl, $league, $season, $localPath, $publicPath, $maxWidth );
     }
 }

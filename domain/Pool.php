@@ -83,6 +83,10 @@ class Pool
         return $this->transferPeriod;
     }
 
+    public function isInAssembleOrTransferPeriod(): bool {
+    return $this->getAssemblePeriod()->contains() || $this->getTransferPeriod()->contains();
+    }
+
     /**
      * @return ArrayCollection|PoolUser[]
      */

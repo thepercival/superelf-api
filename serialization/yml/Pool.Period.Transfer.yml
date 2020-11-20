@@ -3,10 +3,13 @@ SuperElf\Pool\Period\Transfer:
   exclude: false
   access_type: public_property
   properties:
+    id:
+      type: integer
+      read_only: true
     maxNrOfTransfers:
       type: integer
     viewPeriod:
-      type: SuperElf\Pool\Period\view
+      type: SuperElf\Pool\Period\View
   virtual_properties:
     getStartDateTime:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>

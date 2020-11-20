@@ -22,6 +22,9 @@ class View extends PeriodBase {
         $this->rounds = new ArrayCollection();
     }
 
+    /**
+     * @return ArrayCollection|View\Round[]
+     */
     public function getRounds()
     {
         return $this->rounds;

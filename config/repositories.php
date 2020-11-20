@@ -13,6 +13,8 @@ use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\PoolCollection;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\Formation\Repository as FormationRepository;
+use SuperElf\Formation;
 use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
 use SuperElf\ScoutedPerson;
 use SuperElf\Competitor\Repository as CompetitorRepository;
@@ -77,6 +79,10 @@ return [
     PoolUserRepository::class => function (ContainerInterface $container): PoolUserRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolUserRepository($entityManager, $entityManager->getClassMetaData(PoolUser::class));
+    },
+    FormationRepository::class => function (ContainerInterface $container): FormationRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new FormationRepository($entityManager, $entityManager->getClassMetaData(Formation::class));
     },
     PoolCollectionRepository::class => function (ContainerInterface $container): PoolCollectionRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
