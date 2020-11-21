@@ -31,9 +31,20 @@ class Formation
         $this->id = $id;
     }
 
+    /**
+     * @return ArrayCollection|Line[]
+     */
     public function getLines()
     {
         return $this->lines;
+    }
+
+    public function getLine( int $lineNumber ): ?Line
+    {
+        $filtered = $this->lines->filter( function( Line $line ) use ($lineNumber): bool {
+            return $line->getNumber() === $lineNumber;
+        });
+        return $filtered->count() > 0 ? $filtered->first() : 0;
     }
 
     public function getName(): string {
@@ -46,7 +57,7 @@ class Formation
         $nrOfPersons = 0;
         foreach( $this->getLines() as $line ) {
             $nrOfPersons += $line->getPersons()->count();
-            if( $line->getSubstitute() ) {
+            if( $line->getSubstitute() !== null ) {
                 $nrOfPersons++;
             }
         }

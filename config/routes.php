@@ -122,6 +122,7 @@ return function (App $app): void {
                     // $group->get('/{formationId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
                     $group->options('/{formationId}', FormationAction::class . ':options');
                     $group->delete('/{formationId}', FormationAction::class . ':remove');
+                    $group->put('/{formationId}', FormationAction::class . ':edit');
                 }
             )->add(PoolUserAuthMiddlewareNew::class);
         }

@@ -17,6 +17,7 @@ use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\Custom as SportCustom;
+use SuperElf\User;
 
 final class FormationAction extends Action
 {
@@ -40,38 +41,66 @@ final class FormationAction extends Action
     public function add(Request $request, Response $response, $args): Response
     {
         try {
-            /** @var Pool\User $poolUser */
-            $poolUser = $request->getAttribute("poolUser");
-
-            $formationData = $this->getFormData($request);
-            if (property_exists($formationData, "name") === false) {
-                throw new \Exception("geen naam ingevoerd");
-            }
-            /** @var stdClass $formationData */
-            if (property_exists($formationData, "lines") === false) {
-                throw new \Exception("geen naam ingevoerd");
-            }
-
-            if( $poolUser->getAssembleFormation() !== null ) {
-                throw new \Exception("er is al een formatie aanwezig");
-            }
-
-            /** @var stdClass $lines */
-            $lines = $formationData->lines;
-            $formation = new Formation();
-            for( $lineNumber = 1 ; $lineNumber <= SportCustom::Football_Line_All ; $lineNumber *= 2) {
-                new Formation\Line( $formation, $lineNumber, $lines->{$lineNumber});
-            }
-
-            $poolUser->setAssembleFormation( $formation );
-            $this->poolUserRepos->save($poolUser);
-
-             // $serializationContext = $this->getSerializationContext($pool, $user);
-            $json = $this->serializer->serialize($formation, 'json'/*, $serializationContext*/);
+            $formation = $this->process( $request );
+            $json = $this->serializer->serialize($formation, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
+    }
+
+    public function edit(Request $request, Response $response, $args): Response
+    {
+        try {
+            $formation = $this->process( $request );
+            return $this->respondWithJson( $response, $this->serializer->serialize( $formation,'json' ) );
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    protected function process(Request $request ): Formation
+    {
+        /** @var PoolUser $poolUser */
+        $poolUser = $request->getAttribute("poolUser");
+
+        if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+            throw new \Exception("je kan alleen een formatie wijzigen tijdens de periode waarin je een team samenstelt");
+        }
+
+        $formationData = $this->getFormData($request);
+        if (property_exists($formationData, "name") === false) {
+            throw new \Exception("geen naam ingevoerd");
+        }
+        /** @var stdClass $formationData */
+        if (property_exists($formationData, "lines") === false) {
+            throw new \Exception("geen naam ingevoerd");
+        }
+
+        $oldFormation = $poolUser->getAssembleFormation();
+        if( $oldFormation !== null ) {
+            $poolUser->setAssembleFormation( null );
+            $this->formationRepos->remove($oldFormation);
+        }
+
+        /** @var stdClass $lines */
+        $lines = $formationData->lines;
+        $newFormation = new Formation();
+        for( $lineNumber = 1 ; $lineNumber <= SportCustom::Football_Line_All ; $lineNumber *= 2) {
+            $formationLine = new Formation\Line( $newFormation, $lineNumber, $lines->{$lineNumber});
+            $oldLine = $oldFormation->getLine( $lineNumber );
+            $oldLinePersons = $oldLine->getPersons()->toArray();
+            while( count( $oldLinePersons ) > 0 && $formationLine->getPersons()->count() < $formationLine->getMaxNrOfPersons()) {
+                $formationLine->getPersons()->add( array_shift($oldLinePersons) );
+            }
+            $substitute = count( $oldLinePersons ) > 0 ? array_shift($oldLinePersons) : ( $oldLine->getSubstitute() );
+            $formationLine->setSubstitute( $substitute );
+        }
+
+        $poolUser->setAssembleFormation( $newFormation );
+        $this->poolUserRepos->save($poolUser);
+
+        return $newFormation;
     }
 
     public function remove(Request $request, Response $response, $args): Response

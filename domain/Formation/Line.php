@@ -81,4 +81,9 @@ class Line
     {
         return $this->substitute;
     }
+
+    public function setSubstitute( Person $substitute = null )
+    {
+        $this->substitute = $substitute;
+    }
 }

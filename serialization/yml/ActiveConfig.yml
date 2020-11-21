@@ -11,4 +11,4 @@ SuperElf\ActiveConfig:
     sourceCompetitions:
       type: array<array>
     availableFormations:
-        type: array
+        type: array<SuperElf\Formation>

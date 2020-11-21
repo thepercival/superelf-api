@@ -10,6 +10,9 @@ class ActiveConfig
     protected DateTimeImmutable $createAndJoinStart;
     protected DateTimeImmutable $createAndJoinEnd;
     protected array $sourceCompetitions;
+    /**
+     * @var array | Formation[]
+     */
     protected array $availableFormations = [];
 
     public function __construct(
@@ -32,10 +35,14 @@ class ActiveConfig
         return $this->sourceCompetitions;
     }
 
+    /**
+     * @return array|Formation[]
+     */
     public function getAvailableFormations(): array
     {
         return $this->availableFormations;
     }
+
 
     public function setAvailableFormations( array $availableFormations )
     {
