@@ -77,7 +77,7 @@ final class UserAction extends Action
             $json = $this->serializer->serialize(
                 $poolUser,
                 'json',
-                $this->getSerializationContext('formations')
+                $this->getSerializationContext(['formations','players'])
             );
 
             return $this->respondWithJson($response, $json);
@@ -85,6 +85,7 @@ final class UserAction extends Action
             return new ErrorResponse($e->getMessage(), 400);
         }
     }
+
 
     public function fetch(Request $request, Response $response, $args): Response
     {
@@ -95,7 +96,7 @@ final class UserAction extends Action
             $json = $this->serializer->serialize(
                 $pool->getUsers(),
                 'json',
-                $this->getSerializationContext('admin')
+                $this->getSerializationContext(['admin'])
             );
 
             return $this->respondWithJson($response, $json);
@@ -126,9 +127,12 @@ final class UserAction extends Action
         }
     }
 
-    protected function getSerializationContext( string $group )
+    /**
+     * @param array | string[] $group
+     * @return SerializationContext
+     */
+    protected function getSerializationContext( array $groups ): SerializationContext
     {
-        $serGroups = ['Default', $group];
-        return SerializationContext::create()->setGroups($serGroups);
+        return SerializationContext::create()->setGroups( array_merge( ['Default'], $groups ) );
     }
 }

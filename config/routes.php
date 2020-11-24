@@ -123,6 +123,16 @@ return function (App $app): void {
                     $group->options('/{formationId}', FormationAction::class . ':options');
                     $group->delete('/{formationId}', FormationAction::class . ':remove');
                     $group->put('/{formationId}', FormationAction::class . ':edit');
+
+                    $group->group(
+                        '/{formationId}/persons',
+                        function (Group $group): void {
+                            $group->options('', FormationAction::class . ':options');
+                            $group->post('', FormationAction::class . ':addPerson');
+                            $group->options('/{playerId}', FormationAction::class . ':options');
+                            $group->delete('/{playerId}', FormationAction::class . ':removePerson');
+                        }
+                    )->add(PoolUserAuthMiddlewareNew::class);
                 }
             )->add(PoolUserAuthMiddlewareNew::class);
         }

@@ -3,6 +3,8 @@
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Sports\Person;
+use Sports\Team;
 use SuperElf\Formation\Line;
 
 class Formation
@@ -62,5 +64,23 @@ class Formation
             }
         }
         return $nrOfPersons;
+    }
+
+    /**
+     * @return array | Person[]
+     */
+    public function getPersons(): array {
+        $persons = [];
+        foreach( $this->lines as $line ) {
+            $persons = array_merge( $persons, $line->getAllPersons() );
+        }
+        return $persons;
+    }
+
+    public function getPerson(Team $team, \DateTimeImmutable $date = null): ?Person {
+        $filtered = array_filter( $this->getPersons(), function(Person $person) use ($team, $date): bool {
+            return $person->getPlayer($team, $date) !== null;
+        });
+        return count($filtered) > 0 ? reset($filtered) : null;
     }
 }

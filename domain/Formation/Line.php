@@ -86,4 +86,16 @@ class Line
     {
         $this->substitute = $substitute;
     }
+
+    /**
+     * @return array|Person[]
+     */
+    public function getAllPersons(): array
+    {
+        $persons = $this->getPersons()->toArray();
+        if( $this->substitute !== null ) {
+            return array_merge( $persons, [$this->substitute] );
+        }
+        return $persons;
+    }
 }

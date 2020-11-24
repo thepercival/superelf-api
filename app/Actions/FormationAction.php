@@ -10,11 +10,13 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use JMS\Serializer\SerializerInterface;
+use Sports\Team\Player;
 use stdClass;
 use SuperElf\Formation;
 use SuperElf\Pool;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\Formation\Repository as FormationRepository;
+use Sports\Team\Player\Repository as PlayerRepository;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\Custom as SportCustom;
 use SuperElf\User;
@@ -23,6 +25,7 @@ final class FormationAction extends Action
 {
     protected PoolUserRepository $poolUserRepos;
     protected FormationRepository $formationRepos;
+    protected PlayerRepository $playerRepos;
     protected Configuration $config;
 
     public function __construct(
@@ -30,11 +33,13 @@ final class FormationAction extends Action
         SerializerInterface $serializer,
         PoolUserRepository $poolUserRepos,
         FormationRepository $formationRepos,
+        PlayerRepository $playerRepos,
         Configuration $config
     ) {
         parent::__construct($logger, $serializer);
         $this->poolUserRepos = $poolUserRepos;
         $this->formationRepos = $formationRepos;
+        $this->playerRepos = $playerRepos;
         $this->config = $config;
     }
 
@@ -88,6 +93,9 @@ final class FormationAction extends Action
         $newFormation = new Formation();
         for( $lineNumber = 1 ; $lineNumber <= SportCustom::Football_Line_All ; $lineNumber *= 2) {
             $formationLine = new Formation\Line( $newFormation, $lineNumber, $lines->{$lineNumber});
+            if( $oldFormation === null ) {
+                continue;
+            }
             $oldLine = $oldFormation->getLine( $lineNumber );
             $oldLinePersons = $oldLine->getPersons()->toArray();
             while( count( $oldLinePersons ) > 0 && $formationLine->getPersons()->count() < $formationLine->getMaxNrOfPersons()) {
@@ -116,6 +124,74 @@ final class FormationAction extends Action
             $formation = $poolUser->getAssembleFormation();
             $poolUser->setAssembleFormation( null );
             $this->formationRepos->remove($formation);
+            return $response->withStatus(200);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function addPerson(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
+            }
+
+            $formation = $poolUser->getAssembleFormation();
+
+            /** @var Player $serPlayer */
+            $serPlayer = $this->serializer->deserialize(
+                $this->getRawData(),
+                Player::class,
+                'json'
+            );
+            
+            $player = $this->playerRepos->find( (int) $serPlayer->getId() );
+            if( $player === null ) {
+                throw new \Exception("de toe te voegen speler kan niet gevonden worden", E_ERROR);
+            }
+
+            $person = $formation->getPerson( $player->getTeam() );
+            if( $person !== null ) {
+                throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR );
+            }
+
+            $formationLine = $formation->getLine( $player->getLine() );
+            $formationLine->getPersons()->add( $player->getPerson() );
+
+            $this->playerRepos->save($player);
+
+            return $response->withStatus(200);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    public function removePerson(Request $request, Response $response, $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
+            }
+
+            $formation = $poolUser->getAssembleFormation();
+
+            $player = $this->playerRepos->find( (int) $args["playerId"] );
+            if( $player === null ) {
+                throw new \Exception("de toe te voegen speler kan niet gevonden worden", E_ERROR);
+            }
+
+            $formationLine = $formation->getLine( $player->getLine() );
+            $formationLine->getPersons()->removeElement( $player->getPerson() );
+
+            $this->formationRepos->save($formation);
+
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
