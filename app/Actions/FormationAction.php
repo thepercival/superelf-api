@@ -82,7 +82,13 @@ final class FormationAction extends Action
             throw new \Exception("geen naam ingevoerd");
         }
 
+        // NEED TO READ TO USE LATER
         $oldFormation = $poolUser->getAssembleFormation();
+        foreach( $oldFormation->getLines() as $line ) {
+            foreach( $line->getPersons() as $person ) {
+
+            }
+        }
         if( $oldFormation !== null ) {
             $poolUser->setAssembleFormation( null );
             $this->formationRepos->remove($oldFormation);
@@ -132,6 +138,17 @@ final class FormationAction extends Action
 
     public function addPerson(Request $request, Response $response, $args): Response
     {
+        return $this->addPersonHelper($request, $response );
+    }
+
+    public function addSubstitute(Request $request, Response $response, $args): Response
+    {
+        return $this->addPersonHelper($request, $response, true );
+    }
+
+    protected function addPersonHelper(Request $request, Response $response, bool $isSubstitute = false ): Response
+    {
+        sleep(2);
         try {
             /** @var PoolUser $poolUser */
             $poolUser = $request->getAttribute("poolUser");
@@ -148,7 +165,7 @@ final class FormationAction extends Action
                 Player::class,
                 'json'
             );
-            
+
             $player = $this->playerRepos->find( (int) $serPlayer->getId() );
             if( $player === null ) {
                 throw new \Exception("de toe te voegen speler kan niet gevonden worden", E_ERROR);
@@ -160,9 +177,13 @@ final class FormationAction extends Action
             }
 
             $formationLine = $formation->getLine( $player->getLine() );
-            $formationLine->getPersons()->add( $player->getPerson() );
+            if( $isSubstitute ) {
+                $formationLine->setSubstitute( $player->getPerson() );
+            } else {
+                $formationLine->getPersons()->add( $player->getPerson() );
+            }
 
-            $this->playerRepos->save($player);
+            $this->formationRepos->save($formation);
 
             return $response->withStatus(200);
         } catch (\Exception $e) {
@@ -171,6 +192,16 @@ final class FormationAction extends Action
     }
 
     public function removePerson(Request $request, Response $response, $args): Response
+    {
+        return $this->removePersonHelper($request, $response, $args );
+    }
+
+    public function removeSubstitute(Request $request, Response $response, $args): Response
+    {
+        return $this->removePersonHelper($request, $response, $args, true );
+    }
+
+    public function removePersonHelper(Request $request, Response $response, $args, bool $isSubstitute = false): Response
     {
         try {
             /** @var PoolUser $poolUser */
@@ -188,7 +219,11 @@ final class FormationAction extends Action
             }
 
             $formationLine = $formation->getLine( $player->getLine() );
-            $formationLine->getPersons()->removeElement( $player->getPerson() );
+            if( $isSubstitute ) {
+                $formationLine->setSubstitute( null );
+            } else {
+                $formationLine->getPersons()->removeElement( $player->getPerson() );
+            }
 
             $this->formationRepos->save($formation);
 

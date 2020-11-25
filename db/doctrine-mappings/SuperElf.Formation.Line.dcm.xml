@@ -14,13 +14,11 @@
     <many-to-many field="persons" target-entity="Sports\Person">
       <cascade>
         <cascade-persist/>
-        <cascade-remove/>
       </cascade>
     </many-to-many>
     <one-to-one field="substitute" target-entity="Sports\Person">
       <cascade>
         <cascade-persist/>
-        <cascade-remove/>
       </cascade>
       <join-columns>
         <join-column name="substituteId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>

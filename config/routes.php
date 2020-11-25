@@ -133,6 +133,11 @@ return function (App $app): void {
                             $group->delete('/{playerId}', FormationAction::class . ':removePerson');
                         }
                     )->add(PoolUserAuthMiddlewareNew::class);
+
+                    $group->options('/{formationId}/substitute', FormationAction::class . ':options');
+                    $group->post('/{formationId}/substitute', FormationAction::class . ':addSubstitute')->add(PoolUserAuthMiddlewareNew::class);
+                    $group->options('/{formationId}/substitute/{playerId}', FormationAction::class . ':options');
+                    $group->delete('/{formationId}/substitute/{playerId}', FormationAction::class . ':removeSubstitute')->add(PoolUserAuthMiddlewareNew::class);
                 }
             )->add(PoolUserAuthMiddlewareNew::class);
         }
