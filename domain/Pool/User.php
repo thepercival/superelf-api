@@ -9,6 +9,7 @@ use SuperElf\Pool;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
+use SuperElf\Pool\User\GameRoundScore as GameRoundScore;
 
 class User {
 
@@ -36,6 +37,10 @@ class User {
      * @var ArrayCollection|Competitor[]
      */
     protected $competitors;
+    /**
+     * @var ArrayCollection|GameRoundScore[]
+     */
+    protected $scores;
 
     public function __construct(Pool $pool, BaseUser $user )
     {
@@ -44,6 +49,7 @@ class User {
         $this->competitors = new ArrayCollection();
         $this->transfers = new ArrayCollection();
         $this->substitutions = new ArrayCollection();
+        $this->scores = new ArrayCollection();
     }
 
     public function getPool(): Pool {
@@ -124,5 +130,13 @@ class User {
 
     public function getNrOfTransferedWithTeam(): int {
         return $this->getTransfers( true )->count();
+    }
+
+    /**
+     * @return ArrayCollection|GameRoundScore[]
+     */
+    public function getScores()
+    {
+        return $this->scores;
     }
 }

@@ -9,18 +9,20 @@ SuperElf\Pool:
       read_only: true
     collection:
       type: SuperElf\PoolCollection
-    scoreUnits:
-      type: ArrayCollection<SuperElf\Pool\ScoreUnit>
-      read_only: true
-    assemblePeriod:
-      type: SuperElf\Pool\Period\Assemble
-      read_only: true
-    transferPeriod:
-      type: SuperElf\Pool\Period\Transfer
-      read_only: true
     sourceCompetition:
       type: Sports\Competition
       expose: false
+      read_only: true
+    createAndJoinPeriod:
+      type: SuperElf\Period\View
+    assemblePeriod:
+      type: SuperElf\Period\Assemble
+      read_only: true
+    transferPeriod:
+      type: SuperElf\Period\Transfer
+      read_only: true
+    scoreUnits:
+      type: ArrayCollection<SuperElf\Pool\ScoreUnit>
       read_only: true
   virtual_properties:
     getCompetitions:

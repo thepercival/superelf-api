@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Pool\Period\View" table="poolViewPeriods" repository-class="SuperElf\Pool\Period\View\Repository">
-    <one-to-many field="rounds" target-entity="SuperElf\Pool\Period\View\Round" mapped-by="poolViewPeriod">
+  <entity name="SuperElf\Period\Assemble" table="assemblePeriods" repository-class="SuperElf\Period\Assemble\Repository">
+    <one-to-one field="viewPeriod" target-entity="SuperElf\Period\View" fetch="EAGER">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
-    </one-to-many>
+      <join-columns>
+        <join-column name="viewPeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </one-to-one>
   </entity>
 </doctrine-mapping>

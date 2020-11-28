@@ -128,7 +128,7 @@ final class UserAction extends Action
     }
 
     /**
-     * @param array | string[] $group
+     * @param array | string[] $groups
      * @return SerializationContext
      */
     protected function getSerializationContext( array $groups ): SerializationContext

@@ -1,0 +1,10 @@
+SuperElf\Period\Assemble:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    id:
+      type: integer
+      read_only: true
+    viewPeriod:
+      type: SuperElf\Period\View

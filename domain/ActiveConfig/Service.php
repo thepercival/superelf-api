@@ -10,7 +10,6 @@ use League\Period\Period;
 use Selective\Config\Configuration;
 use Sports\Competition;
 use Sports\Season;
-use SuperElf\Pool\Period as PoolPeriod;
 use Sports\Sport\Custom as SportCustom;
 use SuperElf\ActiveConfig;
 use Sports\Competition\Repository as CompetitionRepository;

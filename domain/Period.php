@@ -1,23 +1,26 @@
 <?php
 
-namespace SuperElf\Pool;
+namespace SuperElf;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
-use SuperElf\Formation;
-use SuperElf\Pool;
 use League\Period\Period as BasePeriod;
+use Sports\Competition;
 
 abstract class Period {
     protected int $id;
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
+    protected Competition $sourceCompetition;
 
-    public function __construct(BasePeriod $period)
+    public function __construct(Competition $competition, BasePeriod $period)
     {
-
+        $this->sourceCompetition = $competition;
         $this->startDateTime = $period->getStartDate();
         $this->endDateTime = $period->getEndDate();
+    }
+
+    public function getSourceCompetition(): Competition {
+        return $this->sourceCompetition;
     }
 
     public function getStartDateTime(): DateTimeImmutable

@@ -7,10 +7,12 @@ namespace SuperElf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sports\Season;
 use Sports\Competition;
+use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\Period\Assemble as PoolAssemblePeriod;
-use SuperElf\Pool\Period\Transfer as PoolTransferPeriod;
+use SuperElf\Period\Assemble as AssemblePeriod;
+use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
+use SuperElf\Pool\GameRoundScore;
 
 class Pool
 {
@@ -20,8 +22,9 @@ class Pool
     protected $id;
     protected PoolCollection $collection;
     protected Competition $sourceCompetition;
-    protected PoolAssemblePeriod $assemblePeriod;
-    protected PoolTransferPeriod $transferPeriod;
+    protected ViewPeriod $createAndJoinPeriod;
+    protected AssemblePeriod $assemblePeriod;
+    protected TransferPeriod $transferPeriod;
     /**
      * @var ArrayCollection|PoolScoreUnit[]
      */
@@ -30,17 +33,23 @@ class Pool
      * @var ArrayCollection|PoolUser[]
      */
     protected $users;
+    /**
+     * @var ArrayCollection|GameRoundScore[]
+     */
+    protected $scores;
 
     public function __construct( PoolCollection $collection, Competition $sourceCompetition,
-        PoolAssemblePeriod $assemblePeriod, PoolTransferPeriod $transferPeriod
-)
+        ViewPeriod $createAndJoinPeriod, AssemblePeriod $assemblePeriod, TransferPeriod $transferPeriod
+    )
     {
         $this->collection = $collection;
         $this->sourceCompetition = $sourceCompetition;
+        $this->createAndJoinPeriod = $createAndJoinPeriod;
         $this->assemblePeriod = $assemblePeriod;
         $this->transferPeriod = $transferPeriod;
         $this->scoreUnits = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->scores = new ArrayCollection();
     }
 
     /**
@@ -59,6 +68,11 @@ class Pool
         $this->id = $id;
     }
 
+    public function getCreateAndJoinPeriod(): ViewPeriod
+    {
+        return $this->createAndJoinPeriod;
+    }
+
     public function getCollection(): PoolCollection {
         return $this->collection;
     }
@@ -75,11 +89,11 @@ class Pool
         return $this->sourceCompetition->getId();
     }
 
-    public function getAssemblePeriod(): PoolAssemblePeriod {
+    public function getAssemblePeriod(): AssemblePeriod {
         return $this->assemblePeriod;
     }
 
-    public function getTransferPeriod(): PoolTransferPeriod {
+    public function getTransferPeriod(): TransferPeriod {
         return $this->transferPeriod;
     }
 
@@ -130,5 +144,13 @@ class Pool
      */
     public function getScoreUnits() {
         return $this->scoreUnits;
+    }
+
+    /**
+     * @return ArrayCollection|GameRoundScore[]
+     */
+    public function getScores()
+    {
+        return $this->scores;
     }
 }

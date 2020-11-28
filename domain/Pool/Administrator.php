@@ -9,7 +9,6 @@ use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition;
 use Sports\League;
-use Sports\Season;
 use Sports\Sport;
 use SuperElf\Competitor;
 use SuperElf\PoolCollection;
@@ -17,10 +16,10 @@ use SuperElf\Pool;
 use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
 use SuperElf\ScoreUnit as BaseScoreUnit;
 use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool\Period as PoolPeriod;
-use SuperElf\Pool\Period\Assemble as AssemblePoolPeriod;
-use SuperElf\Pool\Period\Transfer as TransferPoolPeriod;
-use SuperElf\Pool\Period\View as PoolViewPeriod;
+use SuperElf\Period\Assemble as AssemblePeriod;
+use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Period\Administrator as PeriodAdministrator;
 use SuperElf\User;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\Config\Service as SportConfigService;
@@ -30,6 +29,7 @@ use SuperElf\ActiveConfig\Service as ActiveConfigService;
 class Administrator
 {
     protected PoolRepository $poolRepos;
+    protected PeriodAdministrator $periodAdministrator;
     protected SportRepository $sportRepos;
     protected Configuration $config;
     protected SportConfigService $sportConfigService;
@@ -38,10 +38,12 @@ class Administrator
 
     public function __construct(
         PoolRepository $poolRepos,
+        PeriodAdministrator $periodAdministrator,
         SportRepository $sportRepos,
         ActiveConfigService $activeConfigService,
         Configuration $config) {
         $this->poolRepos = $poolRepos;
+        $this->periodAdministrator = $periodAdministrator;
         $this->config = $config;
         $this->sportConfigService = new SportConfigService();
         $this->activeConfigService = $activeConfigService;
@@ -52,7 +54,9 @@ class Administrator
     {
         $poolCollection = new PoolCollection( new Association( $name ) );
         $pool = new Pool( $poolCollection, $sourceCompetition,
-                          $this->getAssemblePoolPeriod(), $this->getTransferPoolPeriod()
+                          $this->periodAdministrator->getCreateAndJoinPeriod($sourceCompetition),
+                          $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
+                          $this->periodAdministrator->getTransferPeriod($sourceCompetition)
         );
         $this->addDefaultScoreUnits( $pool );
 
@@ -75,21 +79,6 @@ class Administrator
         foreach( $this->config->getArray("scoreunits" ) as $number => $points ) {
             new PoolScoreUnit( $pool, new BaseScoreUnit( $number ), (int) $points );
         }
-    }
-
-    protected function getAssemblePoolPeriod(): AssemblePoolPeriod {
-        $assemblePeriod = $this->activeConfigService->getAssemblePeriod();
-        $assembleViewPeriod = $this->activeConfigService->getAssembleViewPeriod();
-        return new AssemblePoolPeriod( $assemblePeriod,
-        new PoolViewPeriod( $assembleViewPeriod ) );
-    }
-
-    protected function getTransferPoolPeriod(): TransferPoolPeriod {
-        $transferPeriod = $this->activeConfigService->getTransferPeriod();
-        $transferViewPeriod = $this->activeConfigService->getTransferViewPeriod();
-        $maxNrOfTransfers = $this->config->getInt('defaultMaxNrOfTransfers' );
-        return new TransferPoolPeriod( $transferPeriod,
-                                   new PoolViewPeriod( $transferViewPeriod ), $maxNrOfTransfers );
     }
 
     public function addUser( Pool $pool, User $user, bool $admin ): PoolUser {

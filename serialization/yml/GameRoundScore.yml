@@ -1,0 +1,12 @@
+SuperElf\GameRoundScore:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    id:
+      type: integer
+      read_only: true
+    points:
+      type: integer
+    detailedPoints:
+      type: array<integer>

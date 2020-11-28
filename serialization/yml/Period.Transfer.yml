@@ -1,0 +1,12 @@
+SuperElf\Period\Transfer:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    id:
+      type: integer
+      read_only: true
+    maxNrOfTransfers:
+      type: integer
+    viewPeriod:
+      type: SuperElf\Period\View

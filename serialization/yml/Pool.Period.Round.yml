@@ -1,7 +1,0 @@
-SuperElf\Pool\Period\Round:
-  exclusion_policy: ALL
-  exclude: false
-  access_type: public_property
-  properties:
-    number:
-      type: integer

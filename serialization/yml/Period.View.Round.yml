@@ -1,4 +1,4 @@
-SuperElf\Pool\Period\View\Round:
+SuperElf\Period\View\Round:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property

@@ -1,25 +1,25 @@
 <?php
 
-namespace SuperElf\Pool\Period;
+namespace SuperElf\Period;
 
-use SuperElf\Pool;
 use League\Period\Period as BasePeriod;
-use SuperElf\Pool\Period as PoolPeriod;
-use SuperElf\Pool\Period\View as ViewPoolPeriod;
+use Sports\Competition;
+use SuperElf\Period as S11Period;
+use SuperElf\Period\View as ViewPeriod;
 
-class Transfer extends PoolPeriod {
+class Transfer extends S11Period {
 
     protected int $maxNrOfTransfers;
-    protected ViewPoolPeriod $viewPeriod;
+    protected ViewPeriod $viewPeriod;
 
-    public function __construct(BasePeriod $period, ViewPoolPeriod $viewPeriod, int $maxNrOfTransfers )
+    public function __construct(Competition $competition, BasePeriod $period, ViewPeriod $viewPeriod, int $maxNrOfTransfers )
     {
-        parent::__construct( $period );
+        parent::__construct( $competition, $period );
         $this->viewPeriod = $viewPeriod;
         $this->maxNrOfTransfers = $maxNrOfTransfers;
     }
 
-    public function getViewPeriod(): ViewPoolPeriod
+    public function getViewPeriod(): ViewPeriod
     {
         return $this->viewPeriod;
     }

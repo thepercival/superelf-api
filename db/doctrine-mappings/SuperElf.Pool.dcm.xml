@@ -20,7 +20,16 @@
         <join-column name="collectionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
-    <one-to-one field="assemblePeriod" target-entity="SuperElf\Pool\Period\Assemble" fetch="EAGER">
+    <one-to-one field="createAndJoinPeriod" target-entity="SuperElf\Period\View" fetch="EAGER">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+      <join-columns>
+        <join-column name="createAndJoinPeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </one-to-one>
+    <one-to-one field="assemblePeriod" target-entity="SuperElf\Period\Assemble" fetch="EAGER">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
@@ -29,7 +38,7 @@
         <join-column name="assemblePeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </one-to-one>
-    <one-to-one field="transferPeriod" target-entity="SuperElf\Pool\Period\Transfer" fetch="EAGER">
+    <one-to-one field="transferPeriod" target-entity="SuperElf\Period\Transfer" fetch="EAGER">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
@@ -50,7 +59,13 @@
         <cascade-remove/>
       </cascade>
     </one-to-many>
+    <one-to-many field="scores" target-entity="SuperElf\Pool\GameRoundScore" mapped-by="pool">
+      <cascade>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
     <unique-constraints>
+      <unique-constraint columns="createAndJoinPeriodId" name="createAndJoinPeriod_u_idx"/>
       <unique-constraint columns="assemblePeriodId" name="assemblePeriod_u_idx"/>
       <unique-constraint columns="transferPeriodId" name="transferPeriod_u_idx"/>
     </unique-constraints>

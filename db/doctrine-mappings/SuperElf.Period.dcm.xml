@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <mapped-superclass name="SuperElf\Period" >
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="startDateTime" column="startDateTime" type="datetime_immutable" nullable="false" unique="false"/>
+        <field name="endDateTime" column="endDateTime" type="datetime_immutable" nullable="false" unique="false"/>
+        <many-to-one field="sourceCompetition" target-entity="Sports\Competition">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+            <join-columns>
+                <join-column name="sourceCompetitionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+            </join-columns>
+        </many-to-one>
+        <unique-constraints>
+            <unique-constraint columns="sourceCompetitionId,startDateTime" name="main_u_idx"/>
+        </unique-constraints>
+    </mapped-superclass>
+</doctrine-mapping>
