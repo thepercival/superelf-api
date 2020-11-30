@@ -7,6 +7,14 @@ use Psr\Container\ContainerInterface;
 
 use SuperElf\User\Repository as UserRepository;
 use SuperElf\User;
+use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
+use SuperElf\Period\Assemble as AssemblePeriod;
+use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
+use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\PersonStats\Repository as PersonStatsRepository;
+use SuperElf\PersonStats;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
@@ -72,6 +80,18 @@ return [
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new UserRepository($entityManager, $entityManager->getClassMetaData(User::class));
     },
+    ViewPeriodRepository::class => function (ContainerInterface $container): ViewPeriodRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new ViewPeriodRepository($entityManager, $entityManager->getClassMetaData(ViewPeriod::class));
+    },
+    AssemblePeriodRepository::class => function (ContainerInterface $container): AssemblePeriodRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new AssemblePeriodRepository($entityManager, $entityManager->getClassMetaData(AssemblePeriod::class));
+    },
+    TransferPeriodRepository::class => function (ContainerInterface $container): TransferPeriodRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new TransferPeriodRepository($entityManager, $entityManager->getClassMetaData(TransferPeriod::class));
+    },
     PoolRepository::class => function (ContainerInterface $container): PoolRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolRepository($entityManager, $entityManager->getClassMetaData(Pool::class));
@@ -87,6 +107,10 @@ return [
     PoolCollectionRepository::class => function (ContainerInterface $container): PoolCollectionRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolCollectionRepository($entityManager, $entityManager->getClassMetaData(PoolCollection::class));
+    },
+    PersonStatsRepository::class => function (ContainerInterface $container): PersonStatsRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PersonStatsRepository($entityManager, $entityManager->getClassMetaData(PersonStats::class));
     },
     ScoutedPersonRepository::class => function (ContainerInterface $container): ScoutedPersonRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

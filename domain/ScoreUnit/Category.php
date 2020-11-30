@@ -9,16 +9,21 @@ use SuperElf\ScoreUnit;
 
 class Category
 {
-    public const CATEGORY_POINTS = 1;
-    public const CATEGORY_GOALS = 2;
-    public const CATEGORY_ASSISTS = 4;
-    public const CATEGORY_GOALS_PENALTY = 8;
-    public const CATEGORY_GOALS_OWN = 16;
-    public const CATEGORY_SHEET_CLEAN = 32;
-    public const CATEGORY_SHEET_SPOTTY = 64;
-    public const CATEGORY_CARDS = 128;
+    public const POINTS = 1;
+    public const GOALS = 2;
+    public const ASSISTS = 4;
+    public const GOALS_PENALTY = 8;
+    public const GOALS_OWN = 16;
+    public const SHEET_CLEAN = 32;
+    public const SHEET_SPOTTY = 64;
+    public const CARDS = 128;
+    public const SUBSTITUTE = 256;
 
-    public const CATEGORY_ALL = 255;
+    public const FILTER = 255;
+    public const ALL = 511;
+
+    // bijhouden stats
+    // en
 
     protected int $id;
     protected int $scoreUnitIds;

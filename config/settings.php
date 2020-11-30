@@ -88,6 +88,15 @@ return [
         'username' => getenv('EXTERNAL_PROXY_USERNAME'),
         'password' => getenv('EXTERNAL_PROXY_PASSWORD'),
     ],
+    'queue' => [
+        'host' => 'localhost',
+        'port' => 5672,
+        'vhost' => '/',
+        'user' => 'guest',
+        'pass' => 'guest',
+        'persisted' => false,
+        'queueSuffix' => getenv('QUEUE_NAME_SUFFIX')
+    ],
     'periods' => [
         'createAndJoinStart' => getenv('PERIODSTART_CREATE_AND_JOIN'),
         'assembleStart' => getenv('PERIODSTART_ASSEMBLE'),
@@ -97,6 +106,7 @@ return [
     ],
     'availableFormationNames' => ['1-3-4-3', '1-3-5-2', '1-4-3-3', '1-4-4-2', '1-5-3-2'],
     'defaultMaxNrOfTransfers' => getenv('DEFAULT_MAXNROFTRANSFERS'),
+    'sheet-spotty-defaultthreshold' => getenv('SHEET_SPOTTY_THRESHOLD'),
     'scoreunits' => [
         \SuperElf\ScoreUnit::POINTS_WIN => getenv('SCOREUNIT_POINTS_WIN'),
         \SuperElf\ScoreUnit::POINTS_DRAW => getenv('BETPOINTS_POINTS_DRAW'),

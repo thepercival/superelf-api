@@ -1,4 +1,4 @@
-SuperElf\Period\View:
+SuperElf\Period:
   exclusion_policy: ALL
   exclude: false
   access_type: public_method
@@ -6,9 +6,11 @@ SuperElf\Period\View:
     rounds:
       type: ArrayCollection<SuperElf\GameRound>
       read_only: true
-#    startDateTime:
-#      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-#      serialized_name: start
-#    endDateTime:
-#      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-#      serialized_name: end
+    startDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: start
+      read_only: true
+    endDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: end
+      read_only: true

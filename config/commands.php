@@ -8,6 +8,7 @@ use App\Commands\Listing as ListingCommand;
 use App\Commands\Import as ImportCommand;
 use App\Commands\GetExternal as GetExternalCommand;
 use App\Commands\Get as GetCommand;
+use App\Commands\Calculate\PersonStats as PersonStatsCommand;
 
 $commands = [
     "app:import" => function (ContainerInterface $container): ImportCommand {
@@ -18,6 +19,9 @@ $commands = [
     },
     "app:get" => function (ContainerInterface $container): GetCommand {
         return new GetCommand($container);
+    },
+    "app:calculate-personstats" => function (ContainerInterface $container): PersonStatsCommand {
+        return new PersonStatsCommand($container);
     }
 ];
 

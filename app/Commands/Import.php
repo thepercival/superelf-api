@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
+use App\QueueService;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use App\Command;
@@ -35,6 +36,7 @@ class Import extends Command
         $this->externalSourceFactory = $container->get(ExternalSourceFactory::class);
         $this->importService = $container->get(ImportService::class);
         parent::__construct($container);
+        $this->importService->setEventSender( new QueueService( $this->config->getArray('queue') ) );
     }
 
     protected function configure()
@@ -69,7 +71,6 @@ class Import extends Command
             echo "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden" . PHP_EOL;
             return -1;
         }
-
         $objectType = $input->getArgument('objectType');
 
         try {
