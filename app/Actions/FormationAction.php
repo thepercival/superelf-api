@@ -84,12 +84,12 @@ final class FormationAction extends Action
 
         // NEED TO READ TO USE LATER
         $oldFormation = $poolUser->getAssembleFormation();
-        foreach( $oldFormation->getLines() as $line ) {
-            foreach( $line->getPersons() as $person ) {
-
-            }
-        }
         if( $oldFormation !== null ) {
+            foreach( $oldFormation->getLines() as $line ) {
+                foreach( $line->getPersons() as $person ) {
+
+                }
+            }
             $poolUser->setAssembleFormation( null );
             $this->formationRepos->remove($oldFormation);
         }

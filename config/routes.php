@@ -6,8 +6,7 @@ use App\Actions\ActiveConfigAction;
 use App\Actions\AuthAction;
 use App\Actions\Pool\ShellAction;
 use App\Actions\Sports\CompetitionAction;
-use App\Actions\Sports\PersonAction;
-use App\Actions\Sports\PlayerAction;
+use App\Actions\CompetitionPersonAction;
 use App\Actions\FormationAction;
 use App\Actions\UserAction;
 use App\Actions\PoolAction;
@@ -144,20 +143,20 @@ return function (App $app): void {
     )->add(UserAuthMiddleware::class)->add(PoolUserMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
-        '/persons',
+        '/competitionpersons',
         function (Group $group): void {
-            $group->options('', PersonAction::class . ':options');
-            $group->post('', PersonAction::class . ':fetch');
+            $group->options('', CompetitionPersonAction::class . ':options');
+            $group->post('', CompetitionPersonAction::class . ':fetch');
         }
     )->add(VersionMiddleware::class);
 
-    $app->group(
+    /*$app->group(
         '/players',
         function (Group $group): void {
             $group->options('', PlayerAction::class . ':options');
             $group->post('', PlayerAction::class . ':fetch');
         }
-    )->add(VersionMiddleware::class);
+    )->add(VersionMiddleware::class);*/
 
     $app->group(
         '/competitions/{competitionId}',

@@ -16,7 +16,7 @@ class GameRoundScore extends BaseGameRoundScore {
     }
 
     public function getPool(): Pool {
-        return $this->getPool();
+        return $this->pool;
     }
 
     protected function setPool(Pool $pool)

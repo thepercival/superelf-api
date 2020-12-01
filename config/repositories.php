@@ -13,8 +13,8 @@ use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\PersonStats\Repository as PersonStatsRepository;
-use SuperElf\PersonStats;
+use SuperElf\CompetitionPerson\Repository as CompetitionPersonRepository;
+use SuperElf\CompetitionPerson;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
@@ -27,6 +27,10 @@ use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
 use SuperElf\ScoutedPerson;
 use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Competitor;
+use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\GameRound;
+use SuperElf\CompetitionPerson\GameRoundScore\Repository as PersonGameRoundScoreRepository;
+use SuperElf\CompetitionPerson\GameRoundScore as PersonGameRoundScore;
 
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource;
@@ -108,9 +112,17 @@ return [
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolCollectionRepository($entityManager, $entityManager->getClassMetaData(PoolCollection::class));
     },
-    PersonStatsRepository::class => function (ContainerInterface $container): PersonStatsRepository {
+    CompetitionPersonRepository::class => function (ContainerInterface $container): CompetitionPersonRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new PersonStatsRepository($entityManager, $entityManager->getClassMetaData(PersonStats::class));
+        return new CompetitionPersonRepository($entityManager, $entityManager->getClassMetaData(CompetitionPerson::class));
+    },
+    PersonGameRoundScoreRepository::class => function (ContainerInterface $container): PersonGameRoundScoreRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new PersonGameRoundScoreRepository($entityManager, $entityManager->getClassMetaData(PersonGameRoundScore::class));
+    },
+    GameRoundRepository::class => function (ContainerInterface $container): GameRoundRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new GameRoundRepository($entityManager, $entityManager->getClassMetaData(GameRound::class));
     },
     ScoutedPersonRepository::class => function (ContainerInterface $container): ScoutedPersonRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

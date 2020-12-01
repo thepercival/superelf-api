@@ -1,0 +1,15 @@
+SuperElf\GameRound\Score:
+  exclusion_policy: ALL
+  access_type: public_method
+  properties:
+    detailedPoints:
+      type: array
+      read_only: true
+    gameRound:
+      expose: false
+      type: SuperElf\GameRound
+      read_only: true
+  virtual_properties:
+    getGameRoundNumber:
+      type: integer
+      serialized_name: gameRoundNumber

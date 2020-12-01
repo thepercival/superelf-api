@@ -1,0 +1,5 @@
+SuperElf\CompetitionPerson\GameRoundScore:
+  exclusion_policy: ALL
+  access_type: public_method
+  properties:
+

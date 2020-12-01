@@ -1,0 +1,16 @@
+SuperElf\CompetitionPerson:
+  exclusion_policy: ALL
+  access_type: public_property
+  properties:
+    id:
+      type: integer
+      expose: true
+      exclude: false
+      read_only: true
+    person:
+      type: Sports\Person
+      read_only: true
+      expose: true
+    gameRoundScores:
+      type: ArrayCollection<SuperElf\CompetitionPerson\GameRoundScore>
+      read_only: true

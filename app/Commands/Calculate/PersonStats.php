@@ -20,19 +20,25 @@ use SuperElf\ScoreUnit;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use SuperElf\PersonStats as PersonStatsBase;
+use SuperElf\CompetitionPerson;
 use Sports\Game\Repository as GameRepository;
-use SuperElf\PersonStats\Repository as PersonStatsRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\CompetitionPerson\Repository as CompetitionPersonRepository;
 use Sports\Sport\ScoreConfig\Service as SportScoreConfigService;
 use Sports\Game\Event\Goal as GoalEvent;
 use Sports\Competitor\Team as TeamCompetitor;
+use SuperElf\GameRound;
+use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\CompetitionPerson\GameRoundScore;
+use SuperElf\CompetitionPerson\GameRoundScore\Repository as GameRoundScoreRepository;
+use SuperElf\Period\View\Repository as ViewPeriodRepository;
 
 class PersonStats extends Command
 {
     protected GameRepository $gameRepos;
-    protected PersonStatsRepository $personStatsRepos;
+    protected GameRoundRepository $gameRoundRepos;
+    protected GameRoundScoreRepository $gameRoundScoreRepos;
     protected ViewPeriodRepository $viewPeriodRepos;
+    protected CompetitionPersonRepository $competitionPersonRepos;
     /**
      * @var EntityManager
      */
@@ -43,8 +49,10 @@ class PersonStats extends Command
         parent::__construct($container);
         $this->mailer = $container->get(Mailer::class);
         $this->gameRepos = $container->get(GameRepository::class);
-        $this->personStatsRepos = $container->get(PersonStatsRepository::class);
+        $this->gameRoundRepos = $container->get(GameRoundRepository::class);
+        $this->gameRoundScoreRepos = $container->get(GameRoundScoreRepository::class);
         $this->viewPeriodRepos = $container->get(ViewPeriodRepository::class);
+        $this->competitionPersonRepos = $container->get(CompetitionPersonRepository::class);
         $this->entityManager = $container->get(EntityManager::class);
     }
 
@@ -123,10 +131,7 @@ class PersonStats extends Command
         if( $finalScore === null ) {
             return;
         }
-        $viewPeriod  = $this->viewPeriodRepos->findOneByGame( $game );
-        if( $viewPeriod === null ) {
-            return;
-        }
+
         // ophalen via $competition en $game->getStartDateTime via customFind
         // findOneExt
 
@@ -137,32 +142,49 @@ class PersonStats extends Command
                 }
                 $participations = $game->getParticipations( $teamCompetitor );
                 foreach( $participations as $participation ) {
+                    $competitionPerson = $this->competitionPersonRepos->findOneBy( [
+                                                                                       "sourceCompetition" => $competition,
+                                                                                       "person" => $participation->getPlayer()->getPerson() ] );
+                    if( $competitionPerson === null ) {
+                        $competitionPerson = new CompetitionPerson( $competition, $participation->getPlayer()->getPerson() );
+                        $this->competitionPersonRepos->save($competitionPerson);
+                    }
+
                     $stats = [
-                        PersonStatsBase::POINTS_WIN => $finalScore->getResult($homeAway) === Game::RESULT_WIN ? 1 : 0,
-                        PersonStatsBase::POINTS_DRAW => $finalScore->getResult($homeAway) === Game::RESULT_DRAW ? 1 : 0,
-                        PersonStatsBase::GOALS_FIELD => $participation->getGoals( GoalEvent::FIELD )->count(),
-                        PersonStatsBase::GOALS_PENALTY => $participation->getGoals( GoalEvent::PENALTY )->count(),
-                        PersonStatsBase::GOALS_OWN => $participation->getGoals( GoalEvent::OWN )->count(),
-                        PersonStatsBase::ASSISTS => $participation->getAssists()->count(),
-                        PersonStatsBase::SHEET_CLEAN => $finalScore->get(!$homeAway) === 0 ? 1 : 0,
-                        PersonStatsBase::SHEET_SPOTTY => $finalScore->get(!$homeAway) >= PersonStatsBase::SHEET_SPOTTY_THRESHOLD ? 1 : 0,
-                        PersonStatsBase::CARDS_YELLOW => $participation->getCards( Sport::WARNING )->count(),
-                        PersonStatsBase::CARD_RED => $participation->getCards( Sport::SENDOFF )->count(),
-                        PersonStatsBase::LINEUP => !$participation->isBeginning() ? 1 : 0,
-                        PersonStatsBase::SUBSTITUTED => $participation->isSubstituted() ? 1 : 0,
-                        PersonStatsBase::SUBSTITUTE => $participation->isSubstituted() ? 1 : 0
+                        CompetitionPerson::RESULT => $finalScore->getResult($homeAway),
+                        CompetitionPerson::GOALS_FIELD => $participation->getGoals( GoalEvent::FIELD )->count(),
+                        CompetitionPerson::GOALS_PENALTY => $participation->getGoals( GoalEvent::PENALTY )->count(),
+                        CompetitionPerson::GOALS_OWN => $participation->getGoals( GoalEvent::OWN )->count(),
+                        CompetitionPerson::ASSISTS => $participation->getAssists()->count(),
+                        CompetitionPerson::SHEET_CLEAN => $finalScore->get(!$homeAway) === 0,
+                        CompetitionPerson::SHEET_SPOTTY => $finalScore->get(!$homeAway) >= CompetitionPerson::SHEET_SPOTTY_THRESHOLD,
+                        CompetitionPerson::CARDS_YELLOW => $participation->getCards( Sport::WARNING )->count(),
+                        CompetitionPerson::CARD_RED => $participation->getCards( Sport::SENDOFF )->count(),
+                        CompetitionPerson::LINEUP => !$participation->isBeginning(),
+                        CompetitionPerson::SUBSTITUTED => $participation->isSubstituted(),
+                        CompetitionPerson::SUBSTITUTE => $participation->isSubstituted(),
+                        CompetitionPerson::LINE => $participation->getPlayer()->getLine()
                     ];
 
-                    $oldPersonStats = $this->personStatsRepos->findOneBy( [
-                        "person" => $participation->getPlayer()->getPerson(),
-                        "viewPeriod" => $viewPeriod,
-                        "gameRound" => $game->getBatchNr() ] );
-                    if( $oldPersonStats !== null ) {
-                        $this->personStatsRepos->remove($oldPersonStats);
+                    $gameRound = $this->gameRoundRepos->findOneByGame( $game );
+                    if( $gameRound === null ) {
+                        $viewPeriod = $this->viewPeriodRepos->findOneByGame( $game );
+                        if( $viewPeriod === null ) {
+                            continue;
+                        }
+                        $gameRound = new GameRound( $viewPeriod, $game->getBatchNr() );
+                        $this->gameRoundRepos->save($gameRound);
                     }
-                    $personStats = new PersonStatsBase( $participation->getPlayer()->getPerson(), $stats, $viewPeriod );
-                    $personStats->setGameRound( $game->getBatchNr() );
-                    $this->personStatsRepos->save($personStats);
+
+                    $gameRoundScore = $this->gameRoundScoreRepos->findOneByCustom(
+                        $competition, $participation->getPlayer()->getPerson(), $game->getBatchNr() );
+
+                    if( $gameRoundScore === null ) {
+                        $gameRoundScore = new GameRoundScore( $competitionPerson, $gameRound );
+                    }
+
+                    $gameRoundScore->setDetailedPoints( $stats );
+                    $this->gameRoundScoreRepos->save($gameRoundScore);
                 }
             }
         }

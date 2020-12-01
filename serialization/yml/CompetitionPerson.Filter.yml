@@ -1,12 +1,12 @@
-SuperElf\GameRoundScore:
+SuperElf\CompetitionPerson\Filter:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
+
   properties:
-    id:
+    sourceCompetitionId:
       type: integer
-      read_only: true
-    points:
+    teamId:
       type: integer
-    detailedPoints:
-      type: array<integer>
+    line:
+      type: integer

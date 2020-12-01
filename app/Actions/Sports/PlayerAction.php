@@ -15,7 +15,7 @@ use Sports\Team\Repository as TeamRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Actions\Action;
-use SuperElf\PersonFilter;
+use SuperElf\CompetitionPerson\Filter as CompetitionPersonFilter;
 
 final class PlayerAction extends Action
 {
@@ -33,21 +33,22 @@ final class PlayerAction extends Action
         $this->teamRepos = $teamRepos;
     }
 
-    public function fetch(Request $request, Response $response, $args): Response
-    {
-        try {
-            /** @var PersonFilter $playerFilter */
-            $playerFilter = $this->serializer->deserialize($this->getRawData(), PersonFilter::class, 'json');
-            $maxResults = 50;
-            $team = $playerFilter->getTeamId() !== null ? $this->teamRepos->find( $playerFilter->getTeamId() ) : null;
-            $players = $this->playerRepos->findByExt( $playerFilter->getPeriod(), $team, $playerFilter->getLine(), $maxResults );
-
-            $json = $this->serializer->serialize($players, 'json', $this->getSerializationContext() );
-            return $this->respondWithJson($response, $json);
-        } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
-        }
-    }
+    // findByExt needs Period, so convert $personFilter->getSourceCompetitionId to Period if needed
+//    public function fetch(Request $request, Response $response, $args): Response
+//    {
+//        try {
+//            /** @var CompetitionPersonFilter $personFilter */
+//            $personFilter = $this->serializer->deserialize($this->getRawData(), CompetitionPersonFilter::class, 'json');
+//            $maxResults = 50;
+//            $team = $personFilter->getTeamId() !== null ? $this->teamRepos->find( $personFilter->getTeamId() ) : null;
+//            $players = $this->playerRepos->findByExt( $personFilter->getSourceCompetitionId(), $team, $personFilter->getLine(), $maxResults );
+//
+//            $json = $this->serializer->serialize($players, 'json', $this->getSerializationContext() );
+//            return $this->respondWithJson($response, $json);
+//        } catch (\Exception $e) {
+//            return new ErrorResponse($e->getMessage(), 422);
+//        }
+//    }
 
     protected function getSerializationContext()
     {

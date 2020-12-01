@@ -19,6 +19,10 @@ abstract class Score {
         return $this->gameRound;
     }
 
+    public function getGameRoundNumber(): int {
+        return $this->gameRound->getNumber();
+    }
+
     public function getPoints(): int {
         return $this->points;
     }
