@@ -67,8 +67,6 @@ class PersonStats extends Command
             // the "--help" option
             ->setHelp('Calculates the person-stats after game-import');
         parent::configure();
-
-        $this->addArgument('gameId', InputArgument::OPTIONAL, 'game-id');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -78,19 +76,7 @@ class PersonStats extends Command
 
         try {
             $queueService = new QueueService($this->config->getArray('queue'));
-            if ($input->getArgument('gameId') !== null && strlen($input->getArgument('gameId')) > 0) {
-                $game = $this->gameRepos->find((int)$input->getArgument('gameId'));
-                if ($game === null) {
-                    $this->logger->info('game ' . $input->getArgument('gameId') . ' not found');
-                    return 0;
-                }
-                $this->processGame($queueService, $game);
-                $this->logger->info('personstats for gameid ' . $input->getArgument('gameId') . ' created');
-                return 0;
-            }
-
             $timeoutInSeconds = 295;
-
             $queueName = QueueService::NAME_UPDATE_GAMEDETAILS_QUEUE;
             $queueService->receive($this->getReceiver($queueService), $timeoutInSeconds, $queueName);
         } catch (\Exception $e) {
@@ -131,12 +117,12 @@ class PersonStats extends Command
         if( $finalScore === null ) {
             return;
         }
-
-        // ophalen via $competition en $game->getStartDateTime via customFind
-        // findOneExt
+        $map = new PlaceLocationMap( $competition->getTeamCompetitors()->toArray() );
 
         foreach( [Game::HOME, Game::AWAY] as $homeAway ) {
-            foreach( $game->getCompetitors( new PlaceLocationMap( $competition->getTeamCompetitors()->toArray() ) ) as $teamCompetitor ) {
+
+
+            foreach( $game->getCompetitors( $map, $homeAway ) as $teamCompetitor ) {
                 if( !($teamCompetitor instanceof TeamCompetitor ) ) {
                     continue;
                 }
@@ -166,14 +152,9 @@ class PersonStats extends Command
                         CompetitionPerson::LINE => $participation->getPlayer()->getLine()
                     ];
 
-                    $gameRound = $this->gameRoundRepos->findOneByGame( $game );
+                    $gameRound = $this->gameRoundRepos->findOneByNumber( $competition, $game->getBatchNr() );
                     if( $gameRound === null ) {
-                        $viewPeriod = $this->viewPeriodRepos->findOneByGame( $game );
-                        if( $viewPeriod === null ) {
-                            continue;
-                        }
-                        $gameRound = new GameRound( $viewPeriod, $game->getBatchNr() );
-                        $this->gameRoundRepos->save($gameRound);
+                        continue;
                     }
 
                     $gameRoundScore = $this->gameRoundScoreRepos->findOneByCustom(
@@ -184,6 +165,7 @@ class PersonStats extends Command
                     }
 
                     $gameRoundScore->setDetailedPoints( $stats );
+                    // echo $competitionPerson->getId() . " => " . implode(",",$stats) .  PHP_EOL;
                     $this->gameRoundScoreRepos->save($gameRoundScore);
                 }
             }

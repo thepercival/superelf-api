@@ -6,6 +6,7 @@ namespace SuperElf\GameRound;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Sports\Competition;
 use Sports\Game;
 use SuperElf\GameRound as BaseGameRound;
 
@@ -21,19 +22,22 @@ class Repository extends \SportsHelpers\Repository
         return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
     }
 
-    public function findOneByGame(Game $game): ?BaseGameRound
+    public function findOneByNumber( Competition $competition, int $gameRoundNumber): ?BaseGameRound
     {
         $query = $this->createQueryBuilder('gr')
             ->join('gr.viewPeriod', 'vp')
             ->where('vp.sourceCompetition = :competition')
             ->andWhere('gr.number = :gameRound')
         ;
-        $query = $query->setParameter('competition', $game->getRound()->getNumber()->getCompetition() );
-        $query = $query->setParameter('gameRound', $game->getBatchNr() );
+        $query = $query->setParameter('competition', $competition );
+        $query = $query->setParameter('gameRound', $gameRoundNumber );
 
         $gameRounds = $query->getQuery()->getResult();
         if (count($gameRounds) === 0) {
             return null;
+        }
+        if (count($gameRounds) > 1) {
+            throw new \Exception("gameround should only be in one viewperiod", E_ERROR );
         }
         return reset($gameRounds);
     }

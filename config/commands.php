@@ -9,6 +9,7 @@ use App\Commands\Import as ImportCommand;
 use App\Commands\GetExternal as GetExternalCommand;
 use App\Commands\Get as GetCommand;
 use App\Commands\Calculate\PersonStats as PersonStatsCommand;
+use App\Commands\Calculate\GameRounds as GameRoundsCommand;
 
 $commands = [
     "app:import" => function (ContainerInterface $container): ImportCommand {
@@ -22,6 +23,9 @@ $commands = [
     },
     "app:calculate-personstats" => function (ContainerInterface $container): PersonStatsCommand {
         return new PersonStatsCommand($container);
+    },
+    "app:calculate-gamerounds" => function (ContainerInterface $container): GameRoundsCommand {
+        return new GameRoundsCommand($container);
     }
 ];
 

@@ -47,8 +47,11 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         $this->options = $options;
     }
 
-    public function sendUpdateGameEvent(Game $game) {
-        $content = ["gameId" => $game->getId()];
+    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null) {
+        $content = ["gameId" => $game->getId() ];
+        if( $oldStartDateTime !== null ) {
+            $content["oldTimestamp"] = $oldStartDateTime->getTimestamp();
+        }
         $this->sendEventHelper( self::NAME_UPDATE_GAME_QUEUE, $content );
     }
 
