@@ -11,7 +11,6 @@ use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
 use SuperElf\Pool\GameRoundScore;
 
 class Pool
@@ -25,10 +24,6 @@ class Pool
     protected ViewPeriod $createAndJoinPeriod;
     protected AssemblePeriod $assemblePeriod;
     protected TransferPeriod $transferPeriod;
-    /**
-     * @var ArrayCollection|PoolScoreUnit[]
-     */
-    protected $scoreUnits;
     /**
      * @var ArrayCollection|PoolUser[]
      */
@@ -47,7 +42,6 @@ class Pool
         $this->createAndJoinPeriod = $createAndJoinPeriod;
         $this->assemblePeriod = $assemblePeriod;
         $this->transferPeriod = $transferPeriod;
-        $this->scoreUnits = new ArrayCollection();
         $this->users = new ArrayCollection();
         $this->scores = new ArrayCollection();
     }
@@ -137,13 +131,6 @@ class Pool
     public function getName(): string
     {
         return $this->getCollection()->getAssociation()->getName();
-    }
-
-    /**
-     * @return ArrayCollection|PoolScoreUnit[]
-     */
-    public function getScoreUnits() {
-        return $this->scoreUnits;
     }
 
     /**

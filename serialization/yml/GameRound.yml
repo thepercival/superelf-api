@@ -1,4 +1,4 @@
-SuperElf\Period\View\Round:
+SuperElf\GameRound:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property

@@ -9,11 +9,12 @@ use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition;
 use Sports\League;
+use Sports\Season;
 use Sports\Sport;
 use SuperElf\Competitor;
 use SuperElf\PoolCollection;
 use SuperElf\Pool;
-use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
+use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 use SuperElf\ScoreUnit as BaseScoreUnit;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Period\Assemble as AssemblePeriod;
@@ -58,7 +59,6 @@ class Administrator
                           $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
                           $this->periodAdministrator->getTransferPeriod($sourceCompetition)
         );
-        $this->addDefaultScoreUnits( $pool );
 
         $defaultLeagueName = $poolCollection->getLeagueName( PoolCollection::LEAGUE_DEFAULT );
         $season = $sourceCompetition->getSeason();
@@ -73,12 +73,6 @@ class Administrator
         $competitor = $this->addCompetitor( $poolUser );
 
         return $pool;
-    }
-
-    protected function addDefaultScoreUnits( Pool $pool ) {
-        foreach( $this->config->getArray("scoreunits" ) as $number => $points ) {
-            new PoolScoreUnit( $pool, new BaseScoreUnit( $number ), (int) $points );
-        }
     }
 
     public function addUser( Pool $pool, User $user, bool $admin ): PoolUser {

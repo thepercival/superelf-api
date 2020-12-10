@@ -40,6 +40,33 @@ class Repository extends \SportsHelpers\Repository
         return reset($games);
     }
 
+    public function findOneByGameRoundNumber(Competition $competition, int $gameRoundNumber ): ?ViewPeriod
+    {
+        $exprExists = $this->getEM()->getExpressionBuilder();
+
+        $query = $this->createQueryBuilder('vp')
+            ->where('vp.sourceCompetition = :competition')
+            ->andWhere(
+                $exprExists->exists(
+                    $this->getEM()->createQueryBuilder()
+                        ->select('gr.id')
+                        ->from('SuperElf\GameRound', 'gr')
+                        ->where('gr.viewPeriod = vp.id')
+                        ->andWhere('gr.number = :gameRoundNumber')
+                        ->getDQL()
+                )
+            )
+        ;
+        $query = $query->setParameter('competition', $competition );
+        $query = $query->setParameter('gameRoundNumber', $gameRoundNumber );
+
+        $viewPeriods = $query->getQuery()->getResult();
+        if (count($viewPeriods) === 0) {
+            return null;
+        }
+        return reset($viewPeriods);
+    }
+
 //    select * from viewPeriods vp
 //    where (select count(*) from games where startDateTime > vp.startDateTime and startDateTime < vp.endDateTime and resourceBatch = 1 )  > 4.5
     public function findGameRoundOwner(Poule $poule, SportConfig $sportConfig, int $gameRoundNumber): ?ViewPeriod

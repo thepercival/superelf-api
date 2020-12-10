@@ -1,4 +1,4 @@
-SuperElf\CompetitionPerson\GameRoundScore:
+SuperElf\Period\View\Person\GameRoundScore:
   exclusion_policy: ALL
   access_type: public_method
   properties:

@@ -1,4 +1,4 @@
-SuperElf\CompetitionPerson:
+SuperElf\Period\View\Person:
   exclusion_policy: ALL
   access_type: public_property
   properties:
@@ -11,6 +11,12 @@ SuperElf\CompetitionPerson:
       type: Sports\Person
       read_only: true
       expose: true
+    points:
+      type: array
+      read_only: true
+    total:
+      type: integer
+      read_only: true
     gameRoundScores:
-      type: ArrayCollection<SuperElf\CompetitionPerson\GameRoundScore>
+      type: ArrayCollection<SuperElf\Period\View\Person\GameRoundScore>
       read_only: true

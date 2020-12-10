@@ -4,8 +4,8 @@
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
-        <field name="points" column="points" type="smallint" nullable="false" unique="false"/>
-        <field name="detailedPoints" column="detailedPoints" type="json" nullable="false" unique="false"/>
+        <field name="total" column="total" type="smallint" nullable="false" unique="false"/>
+        <field name="points" column="points" type="json" nullable="false" unique="false"/>
         <many-to-one field="gameRound" target-entity="SuperElf\GameRound">
             <join-columns>
                 <join-column name="gameRoundId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

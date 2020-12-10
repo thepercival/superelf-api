@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SuperElf\Formation;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use SuperElf\Formation as FormationBase;
 use Sports\Person;
+use SuperElf\Formation as FormationBase;
+use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 
 class Line
 {
@@ -16,11 +20,11 @@ class Line
     protected int $maxNrOfPersons;
     protected FormationBase $formation;
     /**
-     * @var ArrayCollection | Person[]
+     * @var ArrayCollection | ViewPeriodPerson[]
      */
-    protected $persons;
+    protected $viewPeriodPersons;
     /**
-     * @var Person|null
+     * @var PoolUserViewPeriodPerson|null
      */
     protected $substitute;
 
@@ -29,7 +33,7 @@ class Line
         $this->setFormation($formation);
         $this->number = $number;
         $this->maxNrOfPersons = $maxNrOfPersons;
-        $this->persons = new ArrayCollection();
+        $this->viewPeriodPersons = new ArrayCollection();
     }
 
     public function getId(): int
@@ -70,19 +74,19 @@ class Line
     }
 
     /**
-     * @return ArrayCollection|Person[]
+     * @return ArrayCollection|ViewPeriodPerson[]
      */
-    public function getPersons()
+    public function getViewPeriodPersons()
     {
-        return $this->persons;
+        return $this->viewPeriodPersons;
     }
 
-    public function getSubstitute(): ?Person
+    public function getSubstitute(): ?PoolUserViewPeriodPerson
     {
         return $this->substitute;
     }
 
-    public function setSubstitute( Person $substitute = null )
+    public function setSubstitute( PoolUserViewPeriodPerson $substitute = null )
     {
         $this->substitute = $substitute;
     }
@@ -92,9 +96,12 @@ class Line
      */
     public function getAllPersons(): array
     {
-        $persons = $this->getPersons()->toArray();
-        if( $this->substitute !== null ) {
-            return array_merge( $persons, [$this->substitute] );
+        $persons = [];
+        foreach( $this->getViewPeriodPersons() as $viewPeriodPerson ) {
+            $persons[] = $viewPeriodPerson->getPerson();
+        }
+        if( $this->getSubstitute() !== null ) {
+            $persons[] = $this->getSubstitute()->getViewPeriodPerson()->getPerson();
         }
         return $persons;
     }

@@ -7,15 +7,7 @@ namespace SuperElf\Period;
 use DateTimeImmutable;
 use League\Period\Period;
 use Selective\Config\Configuration;
-use Sports\Association;
 use Sports\Competition;
-use Sports\League;
-use Sports\Sport;
-use SuperElf\Competitor;
-use SuperElf\PoolCollection;
-use SuperElf\Pool;
-use SuperElf\Pool\ScoreUnit as PoolScoreUnit;
-use SuperElf\ScoreUnit as BaseScoreUnit;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
@@ -23,10 +15,6 @@ use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
 use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
-use SuperElf\User;
-use SuperElf\Pool\User as PoolUser;
-use Sports\Sport\Config\Service as SportConfigService;
-use Sports\Sport\Repository as SportRepository;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 
 class Administrator

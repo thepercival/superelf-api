@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <entity name="SuperElf\CompetitionPerson" table="competitionPersons" repository-class="SuperElf\CompetitionPerson\Repository">
+    <entity name="SuperElf\Period\View\Person" table="viewPeriodPersons" repository-class="SuperElf\Period\View\Person\Repository">
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
-        <many-to-one field="sourceCompetition" target-entity="Sports\Competition">
+        <field name="total" column="total" type="smallint" nullable="false" unique="false"/>
+        <field name="points" column="points" type="json" nullable="false" unique="false"/>
+        <many-to-one field="viewPeriod" target-entity="SuperElf\Period\View">
             <join-columns>
-                <join-column name="sourceCompetitionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+                <join-column name="viewPeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
             </join-columns>
         </many-to-one>
         <many-to-one field="person" target-entity="Sports\Person">
@@ -14,13 +16,13 @@
                 <join-column name="personId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>
         </many-to-one>
-        <one-to-many field="gameRoundScores" target-entity="SuperElf\CompetitionPerson\GameRoundScore" mapped-by="competitionPerson">
+        <one-to-many field="gameRoundScores" target-entity="SuperElf\Period\View\Person\GameRoundScore" mapped-by="viewPeriodPerson">
             <cascade>
                 <cascade-remove/>
             </cascade>
         </one-to-many>
         <unique-constraints>
-            <unique-constraint columns="sourceCompetitionId,personId" name="main_u_idx"/>
+            <unique-constraint columns="viewPeriodId,personId" name="main_u_idx"/>
         </unique-constraints>
     </entity>
 </doctrine-mapping>

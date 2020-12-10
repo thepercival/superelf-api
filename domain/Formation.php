@@ -5,6 +5,7 @@ namespace SuperElf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sports\Person;
 use Sports\Team;
+use Sports\Team\Player;
 use SuperElf\Formation\Line;
 
 class Formation
@@ -58,10 +59,7 @@ class Formation
     public function getNrOfPersons(): int {
         $nrOfPersons = 0;
         foreach( $this->getLines() as $line ) {
-            $nrOfPersons += $line->getPersons()->count();
-            if( $line->getSubstitute() !== null ) {
-                $nrOfPersons++;
-            }
+            $nrOfPersons += count($line->getAllPersons());
         }
         return $nrOfPersons;
     }
@@ -78,9 +76,20 @@ class Formation
     }
 
     public function getPerson(Team $team, \DateTimeImmutable $date = null): ?Person {
+        if( $date === null ) {
+            $date = new \DateTimeImmutable();
+        }
         $filtered = array_filter( $this->getPersons(), function(Person $person) use ($team, $date): bool {
             return $person->getPlayer($team, $date) !== null;
         });
         return count($filtered) > 0 ? reset($filtered) : null;
+    }
+
+    public function getPlayer(Person $person, \DateTimeImmutable $dateTime = null): ?Player {
+        $checkDateTime = $dateTime !== null ? $dateTime : new \DateTimeImmutable();
+        $filtered = $person->getPlayers()->filter( function(Player $player) use ($checkDateTime): bool {
+            return $player->getPeriod()->contains( $checkDateTime );
+        });
+        return $filtered->count() === 0 ? null : $filtered->first();
     }
 }

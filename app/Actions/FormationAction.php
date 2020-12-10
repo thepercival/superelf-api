@@ -10,37 +10,50 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use JMS\Serializer\SerializerInterface;
+use Sports\Person;
 use Sports\Team\Player;
 use stdClass;
 use SuperElf\Formation;
-use SuperElf\Pool;
+use SuperElf\OneTeamSimultaneous;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Period\View\Person\Repository as ViewPeriodPersonRepository;
+use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
+use SuperElf\Pool\User\ViewPeriodPerson\Repository as PoolUserViewPeriodPersonRepository;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\Formation\Repository as FormationRepository;
-use Sports\Team\Player\Repository as PlayerRepository;
+use Sports\Person\Repository as PersonRepository;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\Custom as SportCustom;
-use SuperElf\User;
 
 final class FormationAction extends Action
 {
     protected PoolUserRepository $poolUserRepos;
     protected FormationRepository $formationRepos;
-    protected PlayerRepository $playerRepos;
+    protected PersonRepository $personRepos;
+    protected ViewPeriodPersonRepository $viewPeriodPersonRepos;
+    protected PoolUserViewPeriodPersonRepository $poolUserViewPeriodPersonRepos;
     protected Configuration $config;
+    protected OneTeamSimultaneous $oneTeamSimultaneous;
 
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
         PoolUserRepository $poolUserRepos,
         FormationRepository $formationRepos,
-        PlayerRepository $playerRepos,
+        PersonRepository $personRepos,
+        ViewPeriodPersonRepository $viewPeriodPersonRepos,
+        PoolUserViewPeriodPersonRepository $poolUserViewPeriodPersonRepos,
         Configuration $config
     ) {
         parent::__construct($logger, $serializer);
         $this->poolUserRepos = $poolUserRepos;
         $this->formationRepos = $formationRepos;
-        $this->playerRepos = $playerRepos;
+        $this->viewPeriodPersonRepos = $viewPeriodPersonRepos;
+        $this->poolUserViewPeriodPersonRepos = $poolUserViewPeriodPersonRepos;
+        $this->personRepos = $personRepos;
         $this->config = $config;
+        $this->oneTeamSimultaneous = new OneTeamSimultaneous();
     }
 
     public function add(Request $request, Response $response, $args): Response
@@ -86,9 +99,9 @@ final class FormationAction extends Action
         $oldFormation = $poolUser->getAssembleFormation();
         if( $oldFormation !== null ) {
             foreach( $oldFormation->getLines() as $line ) {
-                foreach( $line->getPersons() as $person ) {
-
+                foreach( $line->getViewPeriodPersons() as $person ) {
                 }
+                $z = $line->getSubstitute();
             }
             $poolUser->setAssembleFormation( null );
             $this->formationRepos->remove($oldFormation);
@@ -103,9 +116,9 @@ final class FormationAction extends Action
                 continue;
             }
             $oldLine = $oldFormation->getLine( $lineNumber );
-            $oldLinePersons = $oldLine->getPersons()->toArray();
-            while( count( $oldLinePersons ) > 0 && $formationLine->getPersons()->count() < $formationLine->getMaxNrOfPersons()) {
-                $formationLine->getPersons()->add( array_shift($oldLinePersons) );
+            $oldLinePersons = $oldLine->getViewPeriodPersons()->toArray();
+            while( count( $oldLinePersons ) > 0 && $formationLine->getViewPeriodPersons()->count() < $formationLine->getMaxNrOfPersons()) {
+                $formationLine->getViewPeriodPersons()->add( array_shift($oldLinePersons) );
             }
             $substitute = count( $oldLinePersons ) > 0 ? array_shift($oldLinePersons) : ( $oldLine->getSubstitute() );
             $formationLine->setSubstitute( $substitute );
@@ -119,89 +132,149 @@ final class FormationAction extends Action
 
     public function remove(Request $request, Response $response, $args): Response
     {
+//        try {
+//            /** @var PoolUser $poolUser */
+//            $poolUser = $request->getAttribute("poolUser");
+//
+//            if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+//                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
+//            }
+//
+//            $formation = $poolUser->getAssembleFormation();
+//            $poolUser->setAssembleFormation( null );
+//            $this->formationRepos->remove($formation);
+//            return $response->withStatus(200);
+//        } catch (\Exception $e) {
+//            return new ErrorResponse($e->getMessage(), 422);
+//        }
+        return new ErrorResponse("implement", 422);
+    }
+
+    public function addViewPeriodPerson(Request $request, Response $response, $args): Response
+    {
         try {
             /** @var PoolUser $poolUser */
             $poolUser = $request->getAttribute("poolUser");
 
-            if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+            $assemblePeriod = $poolUser->getPool()->getAssemblePeriod();
+
+            if( !$assemblePeriod->contains() ) {
                 throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
             }
 
             $formation = $poolUser->getAssembleFormation();
-            $poolUser->setAssembleFormation( null );
-            $this->formationRepos->remove($formation);
-            return $response->withStatus(200);
+            $formationLine = $formation->getLine( (int) $args["lineNumber"] );
+
+            /** @var Person $serPerson */
+            $serPerson = $this->serializer->deserialize(
+                $this->getRawData(),
+                Person::class,
+                'json'
+            );
+            $person = $this->personRepos->find( $serPerson->getId() );
+            if( $person === null ) {
+                throw new \Exception("de persoon kan niet gevonden worden", E_ERROR );
+            }
+
+            $player = $this->oneTeamSimultaneous->getPlayer( $person );
+            $personSameTeam = $formation->getPerson( $player->getTeam() );
+            if( $personSameTeam !== null ) {
+                throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR );
+            }
+
+            $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
+            $viewPeriodPerson = $this->createViewPeriodPerson( $viewPeriod, $player->getPerson() );
+            $formationLine->getViewPeriodPersons()->add( $viewPeriodPerson );
+
+
+            $this->formationRepos->save($formation);
+
+            $json = $this->serializer->serialize($viewPeriodPerson, 'json');
+            return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
-    }
-
-    public function addPerson(Request $request, Response $response, $args): Response
-    {
-        return $this->addPersonHelper($request, $response );
     }
 
     public function addSubstitute(Request $request, Response $response, $args): Response
     {
-        return $this->addPersonHelper($request, $response, true );
-    }
-
-    protected function addPersonHelper(Request $request, Response $response, bool $isSubstitute = false ): Response
-    {
-        sleep(2);
         try {
             /** @var PoolUser $poolUser */
             $poolUser = $request->getAttribute("poolUser");
 
-            if( !$poolUser->getPool()->getAssemblePeriod()->contains() ) {
+            $assemblePeriod = $poolUser->getPool()->getAssemblePeriod();
+
+            if( !$assemblePeriod->contains() ) {
                 throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
             }
 
             $formation = $poolUser->getAssembleFormation();
+            $formationLine = $formation->getLine( (int) $args["lineNumber"] );
 
-            /** @var Player $serPlayer */
-            $serPlayer = $this->serializer->deserialize(
+            /** @var Person $serPerson */
+            $serPerson = $this->serializer->deserialize(
                 $this->getRawData(),
-                Player::class,
+                Person::class,
                 'json'
             );
-
-            $player = $this->playerRepos->find( (int) $serPlayer->getId() );
-            if( $player === null ) {
-                throw new \Exception("de toe te voegen speler kan niet gevonden worden", E_ERROR);
+            $person = $this->personRepos->find( $serPerson->getId() );
+            if( $person === null ) {
+                throw new \Exception("de persoon kan niet gevonden worden", E_ERROR );
             }
 
-            $person = $formation->getPerson( $player->getTeam() );
-            if( $person !== null ) {
+            $player = $this->oneTeamSimultaneous->getPlayer( $person );
+            $personSameTeam = $formation->getPerson( $player->getTeam() );
+            if( $personSameTeam !== null ) {
                 throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR );
             }
 
-            $formationLine = $formation->getLine( $player->getLine() );
-            if( $isSubstitute ) {
-                $formationLine->setSubstitute( $player->getPerson() );
-            } else {
-                $formationLine->getPersons()->add( $player->getPerson() );
-            }
+            $poolUserViewPeriodPerson = $this->createPoolUserViewPeriodPerson( $poolUser, $player->getPerson());
+            $formationLine->setSubstitute( $poolUserViewPeriodPerson );
 
             $this->formationRepos->save($formation);
 
-            return $response->withStatus(200);
+            $json = $this->serializer->serialize($poolUserViewPeriodPerson, 'json');
+            return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
     }
 
-    public function removePerson(Request $request, Response $response, $args): Response
+    protected function createViewPeriodPerson( ViewPeriod $viewPeriod, Person $person): ViewPeriodPerson {
+        $viewPeriodPerson = $this->viewPeriodPersonRepos->findOneBy( ["viewPeriod" => $viewPeriod, "person" => $person ]);
+        if( $viewPeriodPerson !== null ) {
+            return $viewPeriodPerson;
+        }
+        $viewPeriodPerson = new ViewPeriodPerson( $viewPeriod, $person);
+        return $this->viewPeriodPersonRepos->save($viewPeriodPerson);
+    }
+
+    protected function createPoolUserViewPeriodPerson( PoolUser $poolUser, Person $person): PoolUserViewPeriodPerson {
+        $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
+        $viewPeriodPerson = $this->createViewPeriodPerson( $viewPeriod, $person);
+        return new PoolUserViewPeriodPerson( $poolUser, $viewPeriodPerson );
+    }
+
+    public function removeViewPeriodPerson(Request $request, Response $response, $args): Response
     {
-        return $this->removePersonHelper($request, $response, $args );
+        $viewPeriodPerson = $this->viewPeriodPersonRepos->find( (int) $args["viewPeriodPersonId"] );
+        if( $viewPeriodPerson === null ) {
+            throw new \Exception("de te verwijderen speler kan niet gevonden worden", E_ERROR);
+        }
+        return $this->removePersonHelper($request, $response, $args, $viewPeriodPerson, null );
     }
 
     public function removeSubstitute(Request $request, Response $response, $args): Response
     {
-        return $this->removePersonHelper($request, $response, $args, true );
+        $substistute = $this->poolUserViewPeriodPersonRepos->find( (int) $args["substistuteId"] );
+        if( $substistute === null ) {
+            throw new \Exception("de te verwijderen wissel kan niet gevonden worden", E_ERROR);
+        }
+        return $this->removePersonHelper($request, $response, $args, null, $substistute );
     }
 
-    public function removePersonHelper(Request $request, Response $response, $args, bool $isSubstitute = false): Response
+    public function removePersonHelper(Request $request, Response $response, $args,
+        ViewPeriodPerson $viewPeriodPerson = null, PoolUserViewPeriodPerson $substistute = null): Response
     {
         try {
             /** @var PoolUser $poolUser */
@@ -212,17 +285,12 @@ final class FormationAction extends Action
             }
 
             $formation = $poolUser->getAssembleFormation();
+            $formationLine = $formation->getLine( (int) $args["lineNumber"] );
 
-            $player = $this->playerRepos->find( (int) $args["playerId"] );
-            if( $player === null ) {
-                throw new \Exception("de toe te voegen speler kan niet gevonden worden", E_ERROR);
-            }
-
-            $formationLine = $formation->getLine( $player->getLine() );
-            if( $isSubstitute ) {
+            if( $substistute !== null ) {
                 $formationLine->setSubstitute( null );
             } else {
-                $formationLine->getPersons()->removeElement( $player->getPerson() );
+                $formationLine->getViewPeriodPersons()->removeElement( $viewPeriodPerson );
             }
 
             $this->formationRepos->save($formation);

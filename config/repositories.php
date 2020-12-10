@@ -13,8 +13,10 @@ use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\CompetitionPerson\Repository as CompetitionPersonRepository;
-use SuperElf\CompetitionPerson;
+use SuperElf\Period\View\Person\Repository as ViewPeriodPersonRepository;
+use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Pool\User\ViewPeriodPerson\Repository as PoolUserViewPeriodPersonRepository;
+use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
@@ -29,8 +31,10 @@ use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Competitor;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\GameRound;
-use SuperElf\CompetitionPerson\GameRoundScore\Repository as PersonGameRoundScoreRepository;
-use SuperElf\CompetitionPerson\GameRoundScore as PersonGameRoundScore;
+use SuperElf\Period\View\Person\GameRoundScore\Repository as ViewPeriodPersonGameRoundScoreRepository;
+use SuperElf\Period\View\Person\GameRoundScore as ViewPeriodPersonGameRoundScore;
+use SuperElf\Season\ScoreUnit\Repository as SeasonScoreUnitRepository;
+use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource;
@@ -112,13 +116,21 @@ return [
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new PoolCollectionRepository($entityManager, $entityManager->getClassMetaData(PoolCollection::class));
     },
-    CompetitionPersonRepository::class => function (ContainerInterface $container): CompetitionPersonRepository {
+    ViewPeriodPersonRepository::class => function (ContainerInterface $container): ViewPeriodPersonRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new CompetitionPersonRepository($entityManager, $entityManager->getClassMetaData(CompetitionPerson::class));
+        return new ViewPeriodPersonRepository($entityManager, $entityManager->getClassMetaData(ViewPeriodPerson::class));
     },
-    PersonGameRoundScoreRepository::class => function (ContainerInterface $container): PersonGameRoundScoreRepository {
+    ViewPeriodPersonGameRoundScoreRepository::class => function (ContainerInterface $container): ViewPeriodPersonGameRoundScoreRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new PersonGameRoundScoreRepository($entityManager, $entityManager->getClassMetaData(PersonGameRoundScore::class));
+        return new ViewPeriodPersonGameRoundScoreRepository($entityManager, $entityManager->getClassMetaData(ViewPeriodPersonGameRoundScore::class));
+    },
+    PoolUserViewPeriodPersonRepository::class => function (ContainerInterface $container): PoolUserViewPeriodPersonRepository {
+    $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+    return new PoolUserViewPeriodPersonRepository($entityManager, $entityManager->getClassMetaData(PoolUserViewPeriodPerson::class));
+},
+    SeasonScoreUnitRepository::class => function (ContainerInterface $container): SeasonScoreUnitRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new SeasonScoreUnitRepository($entityManager, $entityManager->getClassMetaData(SeasonScoreUnit::class));
     },
     GameRoundRepository::class => function (ContainerInterface $container): GameRoundRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

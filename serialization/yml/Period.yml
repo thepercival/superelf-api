@@ -3,6 +3,8 @@ SuperElf\Period:
   exclude: false
   access_type: public_method
   properties:
+    id:
+      type: integer
     rounds:
       type: ArrayCollection<SuperElf\GameRound>
       read_only: true

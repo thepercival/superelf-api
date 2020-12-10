@@ -1,10 +1,10 @@
-SuperElf\CompetitionPerson\Filter:
+SuperElf\Period\View\Person\Filter:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
 
   properties:
-    sourceCompetitionId:
+    viewPeriodId:
       type: integer
     teamId:
       type: integer

@@ -2,8 +2,11 @@ SuperElf\GameRound\Score:
   exclusion_policy: ALL
   access_type: public_method
   properties:
-    detailedPoints:
+    points:
       type: array
+      read_only: true
+    total:
+      type: integer
       read_only: true
     gameRound:
       expose: false

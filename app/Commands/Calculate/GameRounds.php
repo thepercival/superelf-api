@@ -20,9 +20,8 @@ use SuperElf\ScoreUnit;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use SuperElf\CompetitionPerson;
+use SuperElf\Person;
 use Sports\Game\Repository as GameRepository;
-use SuperElf\CompetitionPerson\Repository as CompetitionPersonRepository;
 use Sports\Sport\ScoreConfig\Service as SportScoreConfigService;
 use Sports\Game\Event\Goal as GoalEvent;
 use Sports\Competitor\Team as TeamCompetitor;
@@ -37,7 +36,6 @@ class GameRounds extends Command
     protected GameRepository $gameRepos;
     protected GameRoundRepository $gameRoundRepos;
     protected ViewPeriodRepository $viewPeriodRepos;
-    protected CompetitionPersonRepository $competitionPersonRepos;
     /**
      * @var EntityManager
      */
@@ -50,7 +48,6 @@ class GameRounds extends Command
         $this->gameRepos = $container->get(GameRepository::class);
         $this->gameRoundRepos = $container->get(GameRoundRepository::class);
         $this->viewPeriodRepos = $container->get(ViewPeriodRepository::class);
-        $this->competitionPersonRepos = $container->get(CompetitionPersonRepository::class);
         $this->entityManager = $container->get(EntityManager::class);
     }
 

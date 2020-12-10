@@ -1,4 +1,4 @@
-SuperElf\Pool\ScoreUnit:
+SuperElf\Season\ScoreUnit:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property

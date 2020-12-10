@@ -170,9 +170,17 @@ class Import extends Command
     protected function importGameDetails(Implementation $externalSourceImpl,
         Sport $sport, Association $association, League $league, Season $season)
     {
+        // bepaal de period waarin gezocht moet worden
+        // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
+
+
         $period = new Period(
-            new \DateTimeImmutable('2020-09-12 18:00'),
-            new \DateTimeImmutable('2020-09-12 18:00') );
+            new \DateTimeImmutable('2020-09-12 19:00'),
+            new \DateTimeImmutable('2020-09-12 20:00') );
+        // HIER VERDER
+        /*$period = new Period(
+            new \DateTimeImmutable('2020-11-01 00:00'),
+            new \DateTimeImmutable('2020-12-01 00:00') );*/
         $this->importService->importGameDetails($externalSourceImpl, $sport, $association, $league, $season, $period );
     }
 

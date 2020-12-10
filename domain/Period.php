@@ -19,6 +19,16 @@ abstract class Period {
         $this->endDateTime = $period->getEndDate();
     }
 
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id)
+    {
+        $this->id = $id;
+    }
+
     public function getSourceCompetition(): Competition {
         return $this->sourceCompetition;
     }

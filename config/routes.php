@@ -6,7 +6,7 @@ use App\Actions\ActiveConfigAction;
 use App\Actions\AuthAction;
 use App\Actions\Pool\ShellAction;
 use App\Actions\Sports\CompetitionAction;
-use App\Actions\CompetitionPersonAction;
+use App\Actions\ViewPeriodPersonAction;
 use App\Actions\FormationAction;
 use App\Actions\UserAction;
 use App\Actions\PoolAction;
@@ -19,7 +19,7 @@ use App\Middleware\PoolUserMiddleware;
 use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
 use App\Middleware\Authorization\Pool\AdminMiddleware as PoolAdminAuthMiddleware;
 use App\Middleware\Authorization\Pool\UserMiddleware as UserThroughPoolAuthMiddleware;
-use App\Middleware\Authorization\PoolUserMiddleware as PoolUserAuthMiddlewareNew;
+use App\Middleware\Authorization\PoolUserMiddleware as PoolUserAuthMiddleware;
 
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
@@ -123,30 +123,38 @@ return function (App $app): void {
                     $group->delete('/{formationId}', FormationAction::class . ':remove');
                     $group->put('/{formationId}', FormationAction::class . ':edit');
 
+//                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/person' { viewPeriodPerson }
+//                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/substitute' { poolUserViewPeriodPerson }
+
                     $group->group(
-                        '/{formationId}/persons',
+                        '/{formationId}/lines/{lineNumber}/viewperiodpersons',
                         function (Group $group): void {
                             $group->options('', FormationAction::class . ':options');
-                            $group->post('', FormationAction::class . ':addPerson');
-                            $group->options('/{playerId}', FormationAction::class . ':options');
-                            $group->delete('/{playerId}', FormationAction::class . ':removePerson');
+                            $group->post('', FormationAction::class . ':addViewPeriodPerson');
+                            $group->options('/{viewPeriodPersonId}', FormationAction::class . ':options');
+                            $group->delete('/{viewPeriodPersonId}', FormationAction::class . ':removeViewPeriodPerson');
                         }
-                    )->add(PoolUserAuthMiddlewareNew::class);
+                    )->add(PoolUserAuthMiddleware::class);
 
-                    $group->options('/{formationId}/substitute', FormationAction::class . ':options');
-                    $group->post('/{formationId}/substitute', FormationAction::class . ':addSubstitute')->add(PoolUserAuthMiddlewareNew::class);
-                    $group->options('/{formationId}/substitute/{playerId}', FormationAction::class . ':options');
-                    $group->delete('/{formationId}/substitute/{playerId}', FormationAction::class . ':removeSubstitute')->add(PoolUserAuthMiddlewareNew::class);
+                    $group->group(
+                        '/{formationId}/lines/{lineNumber}/substitute',
+                        function (Group $group): void {
+                            $group->options('', FormationAction::class . ':options');
+                            $group->post('', FormationAction::class . ':addSubstitute');
+                            $group->options('/{substituteId}', FormationAction::class . ':options');
+                            $group->delete('/{substituteId}', FormationAction::class . ':removeSubstitute');
+                        }
+                    )->add(PoolUserAuthMiddleware::class);
                 }
-            )->add(PoolUserAuthMiddlewareNew::class);
+            )->add(PoolUserAuthMiddleware::class);
         }
     )->add(UserAuthMiddleware::class)->add(PoolUserMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
-        '/competitionpersons',
+        '/viewperiodpersons',
         function (Group $group): void {
-            $group->options('', CompetitionPersonAction::class . ':options');
-            $group->post('', CompetitionPersonAction::class . ':fetch');
+            $group->options('', ViewPeriodPersonAction::class . ':options');
+            $group->post('', ViewPeriodPersonAction::class . ':fetch');
         }
     )->add(VersionMiddleware::class);
 

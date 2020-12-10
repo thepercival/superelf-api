@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Period\View\Person\GameRoundScore" table="viewPeriodPersonGameRoundScores" repository-class="SuperElf\Period\View\Person\GameRoundScore\Repository">
+    <field name="stats" column="stats" type="json" nullable="false" unique="false"/>
+    <many-to-one field="viewPeriodPerson" target-entity="SuperElf\Period\View\Person" inversed-by="gameRoundScores">
+      <join-columns>
+        <join-column name="viewPeriodPersonId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <unique-constraints>
+      <unique-constraint columns="viewPeriodPersonId,gameRoundId" name="main_u_idx"/>
+    </unique-constraints>
+  </entity>
+</doctrine-mapping>

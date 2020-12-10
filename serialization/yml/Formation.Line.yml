@@ -5,9 +5,9 @@ SuperElf\Formation\Line:
   properties:
     number:
       type: integer
-    persons:
-      type: ArrayCollection<Sports\Person>
+    viewPeriodPersons:
+      type: ArrayCollection<SuperElf\Period\View\Person>
     maxNrOfPersons:
       type: integer
     substitute:
-      type: Sports\Person
+      type: SuperElf\Pool\User\Period\View\Person

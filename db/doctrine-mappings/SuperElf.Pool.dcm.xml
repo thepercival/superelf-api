@@ -53,12 +53,6 @@
         <cascade-remove/>
       </cascade>
     </one-to-many>
-    <one-to-many field="scoreUnits" target-entity="SuperElf\Pool\ScoreUnit" mapped-by="pool">
-      <cascade>
-        <cascade-persist/>
-        <cascade-remove/>
-      </cascade>
-    </one-to-many>
     <one-to-many field="scores" target-entity="SuperElf\Pool\GameRoundScore" mapped-by="pool">
       <cascade>
         <cascade-remove/>

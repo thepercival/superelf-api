@@ -21,9 +21,6 @@ SuperElf\Pool:
     transferPeriod:
       type: SuperElf\Period\Transfer
       read_only: true
-    scoreUnits:
-      type: ArrayCollection<SuperElf\Pool\ScoreUnit>
-      read_only: true
   virtual_properties:
     getCompetitions:
       type: array<Sports\Competition>

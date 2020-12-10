@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Pool\ScoreUnit" table="poolScoreUnits" repository-class="SuperElf\Pool\ScoreUnit\Repository">
+  <entity name="SuperElf\Season\ScoreUnit" table="scoreUnits" repository-class="SuperElf\Season\ScoreUnit\Repository">
     <id name="id" type="integer" column="id">
       <generator strategy="AUTO"/>
     </id>
     <field name="number" column="number" type="integer" nullable="false" unique="false"/>
     <field name="points" column="points" type="smallint" nullable="false" unique="false"/>
-    <many-to-one field="pool" target-entity="SuperElf\Pool">
+    <many-to-one field="season" target-entity="Sports\Season">
       <join-columns>
-        <join-column name="poolId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
       </join-columns>
     </many-to-one>
     <unique-constraints>
-      <unique-constraint columns="poolId,number" name="poolscoreunit_u_idx"/>
+      <unique-constraint columns="seasonId,number" name="main_u_idx"/>
     </unique-constraints>
   </entity>
 </doctrine-mapping>

@@ -1,16 +1,12 @@
 <?php
 
-namespace SuperElf\CompetitionPerson;
+namespace SuperElf\Period\View\Person;
 
 use DateTimeImmutable;
-use League\Period\Period;
 
 class Filter
 {
-    /**
-     * @var int|string
-     */
-    protected $sourceCompetitionId;
+    protected int $viewPeriodId;
     protected DateTimeImmutable $end;
     /**
      * @var int|string|null
@@ -22,23 +18,20 @@ class Filter
     protected $line;
 
     /**
-     * @param string|int $sourceCompetitionId
+     * @param int $viewPeriodId
      * @param int|string|null $teamId
      * @param int|null $line
      */
-    public function __construct($sourceCompetitionId, $teamId = null, int $line = null)
+    public function __construct(int $viewPeriodId, $teamId = null, int $line = null)
     {
-        $this->sourceCompetitionId = $sourceCompetitionId;
+        $this->viewPeriodId = $viewPeriodId;
         $this->teamId = $teamId;
         $this->line = $line;
     }
 
-    /**
-     * @return int|string
-     */
-    public function getSourceCompetitionId()
+    public function getViewPeriodId(): int
     {
-        return $this->sourceCompetitionId;
+        return $this->viewPeriodId;
     }
 
     /**

@@ -7,8 +7,11 @@ use SuperElf\GameRound as BaseGameRound;
 abstract class Score {
     protected int $id;
     protected BaseGameRound $gameRound;
-    protected int $points = 0;
-    protected array $detailedPoints = [];
+    protected int $total = 0;
+    /**
+     * @var array | int[]
+     */
+    protected array $points = [];
 
     public function __construct(BaseGameRound $gameRound )
     {
@@ -23,19 +26,25 @@ abstract class Score {
         return $this->gameRound->getNumber();
     }
 
-    public function getPoints(): int {
+    public function getTotal(): int {
+        return $this->total;
+    }
+
+    public function setTotal(int $total) {
+        $this->total = $total;
+    }
+
+    /**
+     * @return array|int[]
+     */
+    public function getPoints(): array {
         return $this->points;
     }
 
-    public function setPoints(int $points ) {
+    /**
+     * @param array|int[] $points
+     */
+    public function setPoints(array $points ) {
         $this->points = $points;
-    }
-
-    public function getDetailedPoints(): array {
-        return $this->detailedPoints;
-    }
-
-    public function setDetailedPoints(array $detailedPoints ) {
-        $this->detailedPoints = $detailedPoints;
     }
 }
