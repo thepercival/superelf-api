@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf\Calculator;
 
-use App\Mailer;
-use App\QueueService;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityManager;
-use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game;
-use Sports\Game\Score as GameScore;
 use Sports\Game\Score\HomeAway as GameScoreHomeAway;
 use Sports\Game\Event\Goal as GoalEvent;
 use Sports\Game\Participation as GameParticipation;
@@ -19,7 +14,6 @@ use Sports\Person;
 use Sports\Place\Location\Map as PlaceLocationMap;
 use Sports\Sport;
 use Sports\Sport\ScoreConfig\Service as SportScoreConfigService;
-use Sports\Team;
 use SuperElf\GameRound;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Period\View as ViewPeriod;
@@ -31,6 +25,7 @@ use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Calculator\Substitute as PoolUserViewPeriodPersonCalculator;
 use SuperElf\Season\ScoreUnit\Creator as ScoreUnitCreator;
 use SuperElf\Season\ScoreUnit\Calculator as ScoreUnitCalculator;
+use Sports\Output\Game as GameOutput;
 
 class ViewPeriodPerson
 {
@@ -41,6 +36,10 @@ class ViewPeriodPerson
     protected PoolUserViewPeriodPersonCalculator $substituteCalculator;
     protected ScoreUnitCreator $scoreUnitCreator;
     protected ScoreUnitCalculator $scoreUnitCalculator;
+    /**
+     * @var LoggerInterface|null
+     */
+    protected $logger;
 
     public function __construct(
         GameRoundRepository $gameRoundRepos,
@@ -62,6 +61,7 @@ class ViewPeriodPerson
     public function calculate( Game $game) {
         $competition = $game->getRound()->getNumber()->getCompetition();
         $map = new PlaceLocationMap( $competition->getTeamCompetitors()->toArray() );
+        $this->logGame( $game, $map );
 
         $viewPeriod = $this->viewPeriodRepos->findOneByGameRoundNumber( $competition, $game->getBatchNr() );
         if( $viewPeriod === null ) {
@@ -96,8 +96,8 @@ class ViewPeriodPerson
         if( $viewPeriodPerson !== null ) {
             return;
         }
-        $viewPeriodPerson = new BaseViewPeriodPerson($viewPeriod, $person );
-        $this->viewPeriodPersonRepos->save($viewPeriodPerson);
+        $viewPeriodPerson = new BaseViewPeriodPerson($viewPeriod, $person );        ;
+        $this->logCreateViewPeriodPerson( $this->viewPeriodPersonRepos->save($viewPeriodPerson) );
     }
 
     protected function calculateViewPeriodPersonGameRounds( ViewPeriod $viewPeriod, Game $game, bool $homeAway, TeamCompetitor $teamCompetitor ) {
@@ -112,26 +112,31 @@ class ViewPeriodPerson
         if( $gameRound === null ) {
             return;
         }
+        $seasonScoreUnits = $this->scoreUnitCreator->create( $viewPeriod->getSourceCompetition()->getSeason() );
         $gameParticipations = $game->getParticipations( $teamCompetitor );
         $teamViewPeriodPersons = $this->viewPeriodPersonRepos->findByExt( $viewPeriod, $teamCompetitor->getTeam() );
         foreach( $teamViewPeriodPersons as $viewPeriodPerson ) {
-            $gameParticipation = $this->getGameParticipation( $viewPeriodPerson, $gameParticipations->toArray() );
-            $changedGameRoundScore = $this->calculateGameRoundScore( $viewPeriodPerson, $gameParticipation, $gameRound, $finalScore, $homeAway );
-            if( $changedGameRoundScore !== null ) {
-                $totals = $this->calculateTotals( $viewPeriodPerson );
-                $viewPeriodPerson->setPoints( $totals );
-                $viewPeriodPerson->setTotal( (int) array_sum($totals) );
-                if( $gameParticipation === null ) {
-                    $player = $viewPeriodPerson->getPerson()->getPlayer( $teamCompetitor->getTeam(), $game->getStartDateTime() );
-                    $this->substituteCalculator->calculate( $viewPeriodPerson, $player->getLine(), $gameRound );
-                }
+            $player = $viewPeriodPerson->getPerson()->getPlayer( $teamCompetitor->getTeam(), $game->getStartDateTime() );
+            if( $player === null ) {
+                $this->logNoPlayer( $viewPeriodPerson );
+                continue;
             }
+            $gameParticipation = $this->getGameParticipation( $viewPeriodPerson, $gameParticipations->toArray() );
+            $changedGameRoundScore = $this->calculateGameRoundScore( $viewPeriodPerson, $gameRound, $finalScore, $homeAway, $gameParticipation );
+            if( $changedGameRoundScore === null ) {
+                continue;
+            }
+            $points = $viewPeriodPerson->calculatePoints( $seasonScoreUnits );
+            $viewPeriodPerson->setPoints( $points );
+            $viewPeriodPerson->setTotal( (int) array_sum($points) );
+            $this->viewPeriodPersonRepos->save($viewPeriodPerson);
+            $this->substituteCalculator->calculate( $viewPeriodPerson, $player->getLine(), $gameRound, $seasonScoreUnits );
         }
     }
 
     protected function calculateGameRoundScore(
-        BaseViewPeriodPerson $viewPeriodPerson, GameParticipation $gameParticipation,
-        GameRound $gameRound, GameScoreHomeAway $finalScore, bool $homeAway ): ?ViewPeriodPersonGameRoundScore
+        BaseViewPeriodPerson $viewPeriodPerson, GameRound $gameRound,
+        GameScoreHomeAway $finalScore, bool $homeAway, GameParticipation $gameParticipation = null ): ?ViewPeriodPersonGameRoundScore
     {
 
         $gameRoundScore = $this->createGameRoundScore( $viewPeriodPerson, $gameRound );
@@ -150,26 +155,6 @@ class ViewPeriodPerson
         $gameRoundScore->setTotal( (int)array_sum($points) );
         // echo $competitionPerson->getId() . " => " . implode(",",$stats) .  PHP_EOL;
         return $this->gameRoundScoreRepos->save($gameRoundScore);
-    }
-
-    /**
-     * @param BaseViewPeriodPerson $viewPeriodPerson
-     * @return array|int[]
-     */
-    protected function calculateTotals(BaseViewPeriodPerson $viewPeriodPerson) : array {
-        $seasonScoreUnits = $this->scoreUnitCreator->create( $viewPeriodPerson->getViewPeriod()->getSourceCompetition()->getSeason() );
-
-        $totals = [];
-        foreach( $viewPeriodPerson->getGameRoundScores() as $gameRoundScore ) {
-            $gameRoundScorePoints = $gameRoundScore->getPoints();
-            foreach ($seasonScoreUnits as $seasonScoreUnit) {
-                if (!array_key_exists($seasonScoreUnit->getNumber(), $totals)) {
-                    $totals[$seasonScoreUnit->getNumber()] = 0;
-                }
-                $totals[$seasonScoreUnit->getNumber()] += $gameRoundScorePoints[$seasonScoreUnit->getNumber()];
-            }
-        }
-        return $totals;
     }
 
     /**
@@ -260,5 +245,35 @@ class ViewPeriodPerson
             && $oldStats[BaseViewPeriodPerson::SUBSTITUTED] === $newStats[BaseViewPeriodPerson::SUBSTITUTED]
             && $oldStats[BaseViewPeriodPerson::SUBSTITUTE] === $newStats[BaseViewPeriodPerson::SUBSTITUTE]
             && $oldStats[BaseViewPeriodPerson::LINE] === $newStats[BaseViewPeriodPerson::LINE];
+    }
+
+    public function setLogger( LoggerInterface $logger ) {
+        $this->logger = $logger;
+    }
+
+    protected function logGame( Game $game, PlaceLocationMap $placeLocationMap ) {
+        if( $this->logger === null ) {
+            return;
+        }
+        $gameOutput = new GameOutput($placeLocationMap);
+        $gameOutput->output( $game );
+    }
+
+    protected function logCreateViewPeriodPerson(BaseViewPeriodPerson $viewPeriodPerson ) {
+        if( $this->logger === null ) {
+            return;
+        }
+        $basePeriod = $viewPeriodPerson->getViewPeriod()->getPeriod();
+        $periodDescription = "periode " . $basePeriod->getStartDate()->format( "Y-m-d"). " t/m " . $basePeriod->getEndDate()->format( "Y-m-d");
+        $this->logger->info( "  toegevoegd: " . $periodDescription ." , persoon: " . $viewPeriodPerson->getPerson()->getName() );
+    }
+
+    protected function logNoPlayer(BaseViewPeriodPerson $viewPeriodPerson ) {
+        $this->logger->info( "  voor persoon: " . $viewPeriodPerson->getPerson()->getName() . " is geen speler gevonden" );
+        foreach( $viewPeriodPerson->getPerson()->getPlayers() as $playerIt ) {
+            $basePeriod = $playerIt->getPeriod();
+            $periodDescription = "periode " . $basePeriod->getStartDate()->format( "Y-m-d"). " t/m " . $basePeriod->getEndDate()->format( "Y-m-d");
+            $this->logger->info( "      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => " . $periodDescription );
+        }
     }
 }

@@ -175,12 +175,21 @@ class Import extends Command
 
 
         $period = new Period(
-            new \DateTimeImmutable('2020-09-12 19:00'),
-            new \DateTimeImmutable('2020-09-12 20:00') );
+            new \DateTimeImmutable('2020-10-18 12:29'),
+            new \DateTimeImmutable('2020-10-18 12:31') ); // klaiber
         // HIER VERDER
         /*$period = new Period(
-            new \DateTimeImmutable('2020-11-01 00:00'),
-            new \DateTimeImmutable('2020-12-01 00:00') );*/
+            new \DateTimeImmutable('2020-09-01 08:00'),
+            new \DateTimeImmutable('2020-09-21 08:00') );
+        $period = new Period(
+            new \DateTimeImmutable('2020-09-21 08:00'),
+            new \DateTimeImmutable('2020-10-16 08:00') );
+        $period = new Period(
+            new \DateTimeImmutable('2020-10-16 08:00'),
+            new \DateTimeImmutable('2020-10-19 08:00') );*/
+        $period = new Period(
+            new \DateTimeImmutable('2020-10-19 08:00'),
+            new \DateTimeImmutable('2020-12-11 08:00') );
         $this->importService->importGameDetails($externalSourceImpl, $sport, $association, $league, $season, $period );
     }
 

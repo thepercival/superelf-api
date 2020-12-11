@@ -60,17 +60,12 @@ class Administrator
                           $this->periodAdministrator->getTransferPeriod($sourceCompetition)
         );
 
-        $defaultLeagueName = $poolCollection->getLeagueName( PoolCollection::LEAGUE_DEFAULT );
-        $season = $sourceCompetition->getSeason();
-        $competition = new Competition( new League( $poolCollection->getAssociation(), $defaultLeagueName), $season );
-        $competition->setStartDateTime( $season->getStartDateTime() );
-        $this->sportConfigService->createDefault( $this->getSport(), $competition );
-
         $poolUser = $this->addUser( $pool, $user, true );
-        $this->poolRepos->save( $competition );
+        // $this->poolRepos->save( $competition ); // else save per competition
         $this->poolRepos->save( $pool );
 
-        $competitor = $this->addCompetitor( $poolUser );
+        $this->competitionsCreator->create( $pool );
+        $this->poolRepos->save( $pool );
 
         return $pool;
     }
@@ -79,20 +74,6 @@ class Administrator
         $poolUser = new PoolUser( $pool, $user );
         $poolUser->setAdmin( $admin );
         return $poolUser;
-    }
-
-    public function addCompetitor( PoolUser $poolUser, Competition $competition = null ): Competitor {
-        if ( $competition === null ) {
-            $competition = $poolUser->getPool()->getCompetition();
-        }
-        $placeNr = $poolUser->getPool()->getUsers()->count() + 1;
-        $competitor = new Competitor( $poolUser, $competition, 1, $placeNr );
-        $this->poolRepos->save( $competitor );
-        return $competitor;
-    }
-
-    public function removeCompetitor() {
-
     }
 
     protected function getSport(): Sport {

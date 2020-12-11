@@ -49,7 +49,7 @@ class Repository extends \SportsHelpers\Repository
             $qb = $qb->setParameter('team', $team );
         }
         if( $line !== null ) {
-            $qb = $qb->andWhere('pl.line = :line' );
+            $qb = $qb->andWhere('BIT_AND(pl.line, :line) = pl.line');
             $qb = $qb->setParameter('line', $line );
         }
         if( $maxRows !== null ) {

@@ -7,6 +7,7 @@ namespace SuperElf\Formation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sports\Person;
 use SuperElf\Formation as FormationBase;
+use SuperElf\GameRound;
 use SuperElf\Period\View\Person as ViewPeriodPerson;
 use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 
@@ -104,5 +105,15 @@ class Line
             $persons[] = $this->getSubstitute()->getViewPeriodPerson()->getPerson();
         }
         return $persons;
+    }
+
+    public function needSubstitute( GameRound $gameRound ): bool {
+        foreach( $this->getViewPeriodPersons() as $viewPeriodPerson ) {
+            $gameRoundScore = $viewPeriodPerson->getGameRoundScore($gameRound);
+            if ($gameRoundScore !== null && !$gameRoundScore->participated()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

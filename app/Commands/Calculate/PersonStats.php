@@ -50,6 +50,7 @@ class PersonStats extends Command
     {
         $this->initLogger($input, 'command-personstats-calculate');
         $this->logger->info('starting command app:calculate-personstats');
+        $this->calculator->setLogger($this->logger);
 
         try {
             $queueService = new QueueService($this->config->getArray('queue'));
@@ -65,12 +66,11 @@ class PersonStats extends Command
     protected function getReceiver(): callable
     {
         return function (Message $message, Consumer $consumer) : void {
-            // process message
-            $this->logger->info('------ EXECUTING ------');
             try {
                 $content = json_decode($message->getBody());
                 $game = null;
                 if (property_exists($content, "gameId")) {
+
                     $game = $this->gameRepos->find((int)$content->gameId);
                 }
                 if ($game !== null) {

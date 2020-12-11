@@ -36,4 +36,8 @@ class GameRoundScore extends BaseGameRoundScore {
     public function setStats(array $stats ) {
         $this->stats = $stats;
     }
+
+    public function participated(): bool {
+        return $this->stats[ViewPeriodPerson::LINEUP] || $this->stats[ViewPeriodPerson::SUBSTITUTE];
+    }
 }

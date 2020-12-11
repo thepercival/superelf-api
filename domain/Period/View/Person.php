@@ -3,8 +3,9 @@
 namespace SuperElf\Period\View;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Sports\Competition;
+use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 use Sports\Person as BasePerson;
+use SuperElf\GameRound;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Period\View\Person\GameRoundScore;
 
@@ -60,12 +61,37 @@ class Person {
         return $this->gameRoundScores;
     }
 
+    public function getGameRoundScore( GameRound $gameRound ): ?GameRoundScore {
+        $filtered = $this->gameRoundScores->filter( function ( GameRoundScore $gameRoundScore ) use( $gameRound): bool {
+            return $gameRoundScore->getGameRound() === $gameRound;
+        });
+        return $filtered->count() > 0 ? $filtered->first() : null;
+    }
+
     public function getTotal(): int {
         return $this->total;
     }
 
     public function setTotal(int $total) {
         $this->total = $total;
+    }
+
+    /**
+     * @param array|SeasonScoreUnit[] $seasonScoreUnits
+     * @return array|int[]
+     */
+    public function calculatePoints($seasonScoreUnits) : array {
+        $totals = [];
+        foreach( $this->getGameRoundScores() as $gameRoundScore ) {
+            $gameRoundScorePoints = $gameRoundScore->getPoints();
+            foreach ($seasonScoreUnits as $seasonScoreUnit) {
+                if (!array_key_exists($seasonScoreUnit->getNumber(), $totals)) {
+                    $totals[$seasonScoreUnit->getNumber()] = 0;
+                }
+                $totals[$seasonScoreUnit->getNumber()] += $gameRoundScorePoints[$seasonScoreUnit->getNumber()];
+            }
+        }
+        return $totals;
     }
 
     /**

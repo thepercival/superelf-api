@@ -18,5 +18,6 @@ SuperElf\Period\View\Person:
       type: integer
       read_only: true
     gameRoundScores:
+      groups: [ scores ]
       type: ArrayCollection<SuperElf\Period\View\Person\GameRoundScore>
       read_only: true

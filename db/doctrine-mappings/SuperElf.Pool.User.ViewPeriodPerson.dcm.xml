@@ -4,7 +4,8 @@
     <id name="id" type="integer" column="id">
       <generator strategy="AUTO"/>
     </id>
-    <field name="totals" column="totals" type="json" nullable="false" unique="false"/>
+    <field name="total" column="total" type="smallint" nullable="false" unique="false"/>
+    <field name="points" column="points" type="json" nullable="false" unique="false"/>
     <many-to-one field="poolUser" target-entity="SuperElf\Pool\User">
       <join-columns>
         <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

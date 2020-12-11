@@ -128,6 +128,23 @@ class Pool
         return $league->getCompetition( $this->getSeason() );
     }
 
+    /**
+     * @param Competition $competition
+     * @return array|Competitor[]
+     */
+    public function getCompetitors(Competition $competition)
+    {
+        $competitors = [];
+        foreach( $this->getUsers() as $poolUser ) {
+            $competitor = $poolUser->getCompetitor($competition);
+            if( $competitor === null ) {
+                continue;
+            }
+            $competitors[] = $competitor;
+        }
+        return $competitors;
+    }
+
     public function getName(): string
     {
         return $this->getCollection()->getAssociation()->getName();

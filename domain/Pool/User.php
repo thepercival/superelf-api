@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\Pool;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Sports\Competition;
 use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Pool;
@@ -14,7 +15,6 @@ use SuperElf\User as BaseUser;
 use SuperElf\Pool\User\GameRoundScore as GameRoundScore;
 
 class User {
-
     protected int $id;
     protected Pool $pool;
     protected BaseUser $user;
@@ -86,6 +86,19 @@ class User {
     public function getCompetitors()
     {
         return $this->competitors;
+    }
+
+    /**
+     * @param Competition $competition
+     * @return Competitor|null
+     */
+    public function getCompetitor(Competition $competition): ?Competitor
+    {
+        $filtered = $this->competitors->filter( function( Competitor $competitor ) use ($competition): bool {
+            return $competitor->getCompetition() === $competition;
+        });
+
+        return $filtered->count() > 0 ? $filtered->first() : null;
     }
 
     /**
