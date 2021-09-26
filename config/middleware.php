@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -20,6 +19,9 @@ use SuperElf\Auth\Token as AuthToken;
 
 return function (App $app) {
     $container = $app->getContainer();
+    if( $container === null ) {
+        return;
+    }
     $config = $container->get(Configuration::class);
 
     $app->add(
@@ -48,10 +50,10 @@ return function (App $app) {
                         ]
                     )
                 ],
-                "error" => function (Response $response, $arguments): UnauthorizedResponse {
+                "error" => function (Response $response, array $arguments): UnauthorizedResponse {
                     return new UnauthorizedResponse($arguments["message"]);
                 },
-                "before" => function (Request $request, $arguments): Request {
+                "before" => function (Request $request, array $arguments): Request {
                     $token = new AuthToken($arguments["decoded"]);
                     return $request->withAttribute("token", $token);
                 }

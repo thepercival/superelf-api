@@ -1,17 +1,12 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
 use Exception;
 use SuperElf\Auth\SyncService as AuthSyncService;
-use SuperElf\Competitor;
-use SuperElf\Role;
-use SuperElf\Pool;
 use SuperElf\User;
 use SuperElf\User\Repository as UserRepository;
-use SuperElf\Pool\Invitation\Repository as PoolInvitationRepository;
 use SuperElf\Pool\Repository as PoolRepository;
 use Firebase\JWT\JWT;
 use Selective\Config\Configuration;
@@ -20,33 +15,15 @@ use App\Mailer;
 
 class Service
 {
-    protected UserRepository $userRepos;
-    protected PoolRepository $poolRepos;
-    protected AuthSyncService $syncService;
-    protected Configuration $config;
-    protected Mailer $mailer;
-
     public function __construct(
-        UserRepository $userRepos,
-        PoolRepository $poolRepos,
-        AuthSyncService $syncService,
-        Configuration $config,
-        Mailer $mailer
+        protected UserRepository $userRepos,
+        protected PoolRepository $poolRepos,
+        protected AuthSyncService $syncService,
+        protected Configuration $config,
+        protected Mailer $mailer
     ) {
-        $this->userRepos = $userRepos;
-        $this->poolRepos = $poolRepos;
-        $this->syncService = $syncService;
-        $this->config = $config;
-        $this->mailer = $mailer;
     }
 
-    /**
-     * @param string $emailaddress
-     * @param string $name
-     * @param string $password
-     * @return User|null
-     * @throws Exception
-     */
     public function register(string $emailaddress, string $name, string $password): ?User
     {
         if (strlen($password) < User::MIN_LENGTH_PASSWORD or strlen($password) > User::MAX_LENGTH_PASSWORD) {
@@ -63,21 +40,15 @@ class Service
         if ($userTmp) {
             throw new Exception("de naam is al in gebruik", E_ERROR);
         }
-
-        $user = new User($emailaddress);
-        $user->setName($name);
-        $user->setSalt(bin2hex(random_bytes(15)));
-        $user->setPassword(password_hash($user->getSalt() . $password, PASSWORD_DEFAULT));
-
+        $salt = bin2hex(random_bytes(15));
+        $password = password_hash($salt . $password, PASSWORD_DEFAULT);
+        $user = new User($emailaddress, $name, $salt, $password);
         $savedUser = $this->userRepos->save($user);
         $this->sendRegisterEmail($emailaddress);
         return $savedUser;
     }
 
-    /**
-     * @param string $emailaddress
-     */
-    protected function sendRegisterEmail(string $emailaddress)
+    protected function sendRegisterEmail(string $emailaddress): void
     {
         $subject = 'welkom bij SuperElf';
         $baseUrl = $this->config->getString("www.wwwurl");
@@ -112,7 +83,7 @@ EOT;
         return $this->userRepos->save($user);
     }
 
-    public function sendPasswordCode($emailAddress)
+    public function sendPasswordCode(string $emailAddress): bool
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailAddress));
         if (!$user) {
@@ -130,11 +101,10 @@ EOT;
             throw $e;
         }
 
-
         return true;
     }
 
-    public function createToken(User $user)
+    public function createToken(User $user): string
     {
         $jti = (new Base62)->encode(random_bytes(16));
 
@@ -152,11 +122,15 @@ EOT;
         return JWT::encode($payload, $this->config->getString("auth.jwtsecret"));
     }
 
-    protected function mailPasswordCode(User $user)
+    protected function mailPasswordCode(User $user): void
     {
         $subject = 'wachtwoord herstellen';
         $forgetpasswordToken = $user->getForgetpasswordToken();
-        $forgetpasswordDeadline = $user->getForgetpasswordDeadline()->modify("-1 days")->format("Y-m-d");
+        $forgetpasswordDeadline = $user->getForgetpasswordDeadline();
+        if ($forgetpasswordDeadline === null) {
+            throw new Exception('je hebt je wachtwoord al gewijzigd, vraag opnieuw een nieuw wachtwoord aan');
+        }
+        $forgetpasswordDeadline = $forgetpasswordDeadline->modify('-1 days')->format('Y-m-d');
         $body = <<<EOT
 <p>Hallo,</p>
 <p>            
@@ -168,13 +142,13 @@ Let op : je kunt deze code gebruiken tot en met $forgetpasswordDeadline
 <p>
 met vriendelijke groet,
 <br>
-FCToernooi
+SuperElf
 </p>
 EOT;
         $this->mailer->send($subject, $body, $user->getEmailaddress());
     }
 
-    public function changePassword($emailAddress, $password, $code)
+    public function changePassword(string $emailAddress, string $password, string $code): User
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailAddress));
         if (!$user) {

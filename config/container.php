@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use JMS\Serializer\SerializerBuilder;
@@ -103,14 +102,14 @@ return [
         foreach ($config->getArray('serializer.yml_dir') as $ymlnamespace => $ymldir) {
             $serializerBuilder->addMetadataDir($ymldir, $ymlnamespace);
         }
-        $serializerBuilder->configureHandlers(
-            function (JMS\Serializer\Handler\HandlerRegistry $registry): void {
-                $registry->registerSubscribingHandler(new StructureSerializationHandler());
-                $registry->registerSubscribingHandler(new RoundNumberSerializationHandler());
-                $registry->registerSubscribingHandler(new RoundSerializationHandler());
-//            $registry->registerSubscribingHandler(new QualifyGroupSerializationHandler());
-            }
-        );
+//        $serializerBuilder->configureHandlers(
+//            function (JMS\Serializer\Handler\HandlerRegistry $registry): void {
+//                $registry->registerSubscribingHandler(new StructureSerializationHandler());
+//                $registry->registerSubscribingHandler(new RoundNumberSerializationHandler());
+//                $registry->registerSubscribingHandler(new RoundSerializationHandler());
+////            $registry->registerSubscribingHandler(new QualifyGroupSerializationHandler());
+//            }
+//        );
 //            $serializerBuilder->configureListeners(function(JMS\Serializer\EventDispatcher\EventDispatcher $dispatcher) {
 //                /*$dispatcher->addListener('serializer.pre_serialize',
 //                    function(JMS\Serializer\EventDispatcher\PreSerializeEvent $event) {

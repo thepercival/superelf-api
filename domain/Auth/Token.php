@@ -1,36 +1,22 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
 class Token
 {
-    protected $decoded;
+    protected string|int $userId;
 
+    /**
+     * @param array<string, string|int> $decoded
+     */
     public function __construct(array $decoded)
     {
-        $this->populate($decoded);
+        $this->userId = $decoded['sub'];
     }
 
-    protected function populate($decoded)
+    public function getUserId(): int|string
     {
-        $this->decoded = $decoded;
-    }
-
-    public function hasScope(array $scope)
-    {
-        $arr = array_intersect($scope, $this->decoded["scope"]);
-        return count($arr) > 0;
-    }
-
-    public function isPopulated()
-    {
-        return $this->decoded !== null;
-    }
-
-    public function getUserId()
-    {
-        return $this->decoded["sub"];
+        return $this->userId;
     }
 }

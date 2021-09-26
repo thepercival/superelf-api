@@ -4,31 +4,20 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool\User\ViewPeriodPerson;
 
+use SportsHelpers\Identifiable;
 use SuperElf\GameRound as BaseGameRound;
 use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 use SuperElf\GameRound;
 
-class Participation {
-    protected int $id;
-    protected BaseGameRound $gameRound;
-    protected PoolUserViewPeriodPerson $poolUserViewPeriodPerson;
-
-    public function __construct(PoolUserViewPeriodPerson $poolUserViewPeriodPerson, GameRound $gameRound )
+class Participation extends Identifiable {
+    public function __construct(
+        protected PoolUserViewPeriodPerson $poolUserViewPeriodPerson,
+        protected GameRound $gameRound )
     {
-        $this->gameRound = $gameRound;
-        $this->setPoolUserViewPeriodPerson( $poolUserViewPeriodPerson );
     }
 
     public function getPoolUserViewPeriodPerson(): PoolUserViewPeriodPerson {
         return $this->poolUserViewPeriodPerson;
-    }
-
-    protected function setPoolUserViewPeriodPerson(PoolUserViewPeriodPerson $poolUserViewPeriodPerson)
-    {
-        if (!$poolUserViewPeriodPerson->getParticipations()->contains($this)) {
-            $poolUserViewPeriodPerson->getParticipations()->add($this) ;
-        }
-        $this->poolUserViewPeriodPerson = $poolUserViewPeriodPerson;
     }
 
     public function getGameRound(): BaseGameRound {

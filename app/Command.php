@@ -28,8 +28,9 @@ use Symfony\Component\Console\Input\InputOption;
 
 class Command extends SymCommand
 {
-    protected LoggerInterface $logger;
-    protected Mailer $mailer;
+    protected LoggerInterface|null $logger = null;
+    protected Mailer|null $mailer = null;
+
     protected Configuration $config;
     protected SportRepository $sportRepos;
     protected AssociationRepository $associationRepos;
@@ -56,6 +57,14 @@ class Command extends SymCommand
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
         $this->addOption('batchNrRange', null, InputOption::VALUE_OPTIONAL, '1-4');
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        if ($this->logger === null) {
+            throw new Exception('define logger first', E_ERROR);
+        }
+        return $this->logger;
     }
 
     protected function initLogger(InputInterface $input, string $name)

@@ -1,32 +1,21 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf;
 
 use DateTimeImmutable;
 use League\Period\Period as BasePeriod;
 use Sports\Competition;
+use SportsHelpers\Identifiable;
 
-abstract class Period {
-    protected int $id;
+abstract class Period extends Identifiable {
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
-    protected Competition $sourceCompetition;
 
-    public function __construct(Competition $competition, BasePeriod $period)
+    public function __construct(protected Competition $sourceCompetition, BasePeriod $period)
     {
-        $this->sourceCompetition = $competition;
         $this->startDateTime = $period->getStartDate();
         $this->endDateTime = $period->getEndDate();
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id)
-    {
-        $this->id = $id;
     }
 
     public function getSourceCompetition(): Competition {

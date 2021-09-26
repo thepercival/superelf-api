@@ -136,7 +136,6 @@ final class PoolAction extends Action
                 throw new \Exception("je bent al ingeschreven voor de pool");
             }
             $poolUser = $this->poolAdministrator->addUser( $pool, $user, false );
-            $competitor = $this->poolAdministrator->addCompetitor( $poolUser );
 
             return $response->withStatus( 200 );
         } catch (\Exception $e) {

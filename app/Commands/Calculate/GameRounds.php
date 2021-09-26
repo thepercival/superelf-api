@@ -64,7 +64,7 @@ class GameRounds extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-gamerounds-calculate');
         $this->logger->info('starting command app:calculate-gamerounds');
@@ -76,7 +76,9 @@ class GameRounds extends Command
             $queueName = QueueService::NAME_UPDATE_GAME_QUEUE;
             $queueService->receive($this->getReceiver($queueService), $timeoutInSeconds, $queueName);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
         return 0;
     }

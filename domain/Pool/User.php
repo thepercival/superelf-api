@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace SuperElf\Pool;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\PersistentCollection;
 use Sports\Competition;
+use SportsHelpers\Identifiable;
 use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Pool;
@@ -14,40 +17,30 @@ use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
 use SuperElf\Pool\User\GameRoundScore as GameRoundScore;
 
-class User {
-    protected int $id;
-    protected Pool $pool;
-    protected BaseUser $user;
+class User extends Identifiable {
     protected bool $admin;
+    protected Formation|null $assembleFormation = null;
+    protected Formation|null $transferFormation = null;
     /**
-     * @var Formation | null
+     * @var ArrayCollection<int|string, Transfer>|PersistentCollection<int|string, Transfer>
      */
-    protected $assembleFormation;
+    protected ArrayCollection|PersistentCollection $transfers;
     /**
-     * @var ArrayCollection | Transfer[]
+     * @var ArrayCollection<int|string, Substitution>|PersistentCollection<int|string, Substitution>
      */
-    protected $transfers;
+    protected ArrayCollection|PersistentCollection $substitutions;
     /**
-     * @var ArrayCollection | Substitution[]
+     * @var ArrayCollection<int|string, Competitor>|PersistentCollection<int|string, Competitor>
      */
-    protected $substitutions;
+    protected ArrayCollection|PersistentCollection $competitors;
     /**
-     * @var Formation | null
+     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
      */
-    protected $transferFormation;
-    /**
-     * @var ArrayCollection|Competitor[]
-     */
-    protected $competitors;
-    /**
-     * @var ArrayCollection|GameRoundScore[]
-     */
-    protected $scores;
+    protected ArrayCollection|PersistentCollection $scores;
 
-    public function __construct(Pool $pool, BaseUser $user )
+    public function __construct(protected Pool $pool, protected BaseUser $user )
     {
-        $this->setPool( $pool );
-        $this->user = $user;
+        $this->admin = false;
         $this->competitors = new ArrayCollection();
         $this->transfers = new ArrayCollection();
         $this->substitutions = new ArrayCollection();
@@ -56,14 +49,6 @@ class User {
 
     public function getPool(): Pool {
         return $this->pool;
-    }
-
-    public function setPool(Pool $pool)
-    {
-        if (!$pool->getUsers()->contains($this)) {
-            $pool->getUsers()->add($this) ;
-        }
-        $this->pool = $pool;
     }
 
     public function getUser(): BaseUser {
@@ -75,36 +60,32 @@ class User {
         return $this->admin;
     }
 
-    public function setAdmin(bool $admin)
+    public function setAdmin(bool $admin): void
     {
         $this->admin = $admin;
     }
 
     /**
-     * @return ArrayCollection|Competitor[]
+     * @return ArrayCollection<int|string, Competitor>|PersistentCollection<int|string, Competitor>
      */
-    public function getCompetitors()
+    public function getCompetitors(): ArrayCollection|PersistentCollection
     {
         return $this->competitors;
     }
 
-    /**
-     * @param Competition $competition
-     * @return Competitor|null
-     */
-    public function getCompetitor(Competition $competition): ?Competitor
+    public function getCompetitor(Competition $competition): Competitor|null
     {
         $filtered = $this->competitors->filter( function( Competitor $competitor ) use ($competition): bool {
             return $competitor->getCompetition() === $competition;
         });
-
-        return $filtered->count() > 0 ? $filtered->first() : null;
+        $firstCompetitor = $filtered->first();
+        return $firstCompetitor === false ? null : $firstCompetitor;
     }
 
     /**
-     * @return ArrayCollection|Transfer[]
+     * @return Collection<string|int, Transfer>
      */
-    public function getTransfers( bool $outHasTeam = null )
+    public function getTransfers( bool $outHasTeam = null ): Collection
     {
         if( $outHasTeam === null ) {
             return $this->transfers;
@@ -115,18 +96,18 @@ class User {
     }
 
     /**
-     * @return ArrayCollection|Substitution[]
+     * @return ArrayCollection<int|string, Substitution>|PersistentCollection<int|string, Substitution>
      */
-    public function getSubstitutions()
+    public function getSubstitutions(): ArrayCollection|PersistentCollection
     {
         return $this->substitutions;
     }
 
-    public function getAssembleFormation(): ?Formation {
+    public function getAssembleFormation(): Formation|null {
         return $this->assembleFormation;
     }
 
-    public function setAssembleFormation( Formation $formation = null ) {
+    public function setAssembleFormation( Formation $formation = null ): void {
         $this->assembleFormation = $formation;
     }
 
@@ -134,7 +115,7 @@ class User {
         return $this->transferFormation;
     }
 
-    public function setTransferFormation( Formation $formation ) {
+    public function setTransferFormation( Formation $formation ): void {
         $this->transferFormation = $formation;
     }
 
@@ -148,9 +129,9 @@ class User {
     }
 
     /**
-     * @return ArrayCollection|GameRoundScore[]
+     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
      */
-    public function getScores()
+    public function getScores(): ArrayCollection|PersistentCollection
     {
         return $this->scores;
     }

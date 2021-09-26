@@ -11,9 +11,12 @@ use App\Command;
 
 use Sports\Association;
 use Sports\League;
+use SportsImport\ExternalSource\Association as ExternalSourceAssociation;
+use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Pool\Administrator as PoolAdministrator;
 use Sports\Season;
-use Sports\Season\Repository as SeasonRepository;
+use SuperElf\CompetitionsCreator;
 use Sports\Sport;
 use SportsImport\ExternalSource\Implementation;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,12 +31,14 @@ use SportsImport\Service as ImportService;
 class CreateCompetitions extends Command
 {
     protected PoolRepository $poolRepos;
+    protected PoolAdministrator $poolAdmin;
     protected CompetitionsCreator $competitionsCreator;
     protected ImportService $importService;
 
     public function __construct(ContainerInterface $container)
     {
         $this->poolRepos = $container->get(PoolRepository::class);
+        $this->poolAdmin = $container->get(PoolAdministrator::class);
         $this->importService = $container->get(ImportService::class);
         parent::__construct($container);
         $this->importService->setEventSender(new QueueService($this->config->getArray('queue')));
@@ -61,7 +66,7 @@ class CreateCompetitions extends Command
         $this->initLogger($input, $name);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // loop door alle pools van een bepaald seizoen
         // per pool de competities verwijderen en weer opnieuw aanmaken
@@ -79,20 +84,24 @@ class CreateCompetitions extends Command
             $pools = $this->getPools( $input, $season );
             foreach( $pools as $pool ) {
                 $this->logger->info("create competitions for pool " . $pool->getName() . "(".$pool->getId().")");
-                $this->competitionsCreator->create( $pool );
+                $this->competitionsCreator->recreateDetails( $pool );
             }
-
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage() );
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
-
-
         return 0;
     }
 
-    protected function getPools(InputInterface $input, Season $season)
+    /**
+     * @param InputInterface $input
+     * @param Season $season
+     * @return array|Pool[]
+     */
+    protected function getPools(InputInterface $input, Season $season): array
     {
-        if( $input->getArgument('poolId') ) {
+        if( $input->getArgument('poolId') !== null && strlen($input->getArgument('poolId')) > 0 ) {
             $pools = [];
             $pool = $this->poolRepos->find( (int)$input->getArgument('poolId') );
             if( $pool !== null ) {
@@ -103,9 +112,10 @@ class CreateCompetitions extends Command
         return $this->poolRepos->findByFilter( null, $season->getStartDateTime(), $season->getEndDateTime() );
     }
 
-    protected function importAssociations(Implementation $externalSourceImpl, Sport $sport)
+    protected function importAssociations(ExternalSourceAssociation $externalSourceAssociation, Sport $sport)
     {
-        $this->importService->importAssociations($externalSourceImpl, $sport);
+        $this->importService->importAssociations(
+            $externalSourceAssociation, $externalSourceAssociation->getExternalSource(), $sport);
     }
 
     protected function importSeasons(Implementation $externalSourceImpl)

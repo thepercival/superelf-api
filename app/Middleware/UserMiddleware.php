@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Middleware;
@@ -15,15 +14,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 class UserMiddleware implements MiddlewareInterface
 {
-    /**
-     * @var UserRepository
-     */
-    protected $userRepos;
-
-    public function __construct(
-        UserRepository $userRepos
-    ) {
-        $this->userRepos = $userRepos;
+    public function __construct(protected UserRepository $userRepos) {
     }
 
     public function process(Request $request, RequestHandler $handler): Response
@@ -34,7 +25,7 @@ class UserMiddleware implements MiddlewareInterface
 
         /** @var AuthToken|null $token */
         $token = $request->getAttribute('token');
-        if ($token === null || !$token->isPopulated()) {
+        if ($token === null) {
             return $handler->handle($request);
         }
         $user = $this->getUser($token);
@@ -46,9 +37,6 @@ class UserMiddleware implements MiddlewareInterface
 
     protected function getUser(AuthToken $token): ?User
     {
-        if ($token->getUserId() === null) {
-            return null;
-        }
         return $this->userRepos->find($token->getUserId());
     }
 }

@@ -3,41 +3,30 @@
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
 use Sports\Person;
 use Sports\Team;
 use Sports\Team\Player;
+use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line;
+use SuperElf\Period\View\Person as ViewPeriodPerson;
 
-class Formation
+class Formation extends Identifiable
 {
     /**
-     * @var int
+     * @var ArrayCollection<int|string, Line>|PersistentCollection<int|string, Line>
      */
-    protected $id;
-    /**
-     * @var ArrayCollection|Line[]
-     */
-    protected $lines;
+    protected ArrayCollection|PersistentCollection $lines;
 
     public function __construct()
     {
         $this->lines = new ArrayCollection();
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id)
-    {
-        $this->id = $id;
-    }
-
     /**
-     * @return ArrayCollection|Line[]
+     * @return ArrayCollection<int|string, Line>|PersistentCollection<int|string, Line>
      */
-    public function getLines()
+    public function getLines(): ArrayCollection|PersistentCollection
     {
         return $this->lines;
     }
@@ -47,7 +36,8 @@ class Formation
         $filtered = $this->lines->filter( function( Line $line ) use ($lineNumber): bool {
             return $line->getNumber() === $lineNumber;
         });
-        return $filtered->count() > 0 ? $filtered->first() : 0;
+        $firstLine = $filtered->first();
+        return $firstLine === false ? null : $firstLine;
     }
 
     public function getName(): string {
@@ -65,14 +55,14 @@ class Formation
     }
 
     /**
-     * @return array | Person[]
+     * @return list<Person>
      */
     public function getPersons(): array {
         $persons = [];
         foreach( $this->lines as $line ) {
             $persons = array_merge( $persons, $line->getAllPersons() );
         }
-        return $persons;
+        return array_values($persons);
     }
 
     public function getPerson(Team $team, \DateTimeImmutable $date = null): ?Person {
@@ -82,7 +72,8 @@ class Formation
         $filtered = array_filter( $this->getPersons(), function(Person $person) use ($team, $date): bool {
             return $person->getPlayer($team, $date) !== null;
         });
-        return count($filtered) > 0 ? reset($filtered) : null;
+        $firstPerson = reset($filtered);
+        return $firstPerson === false ? null : $firstPerson;
     }
 
     public function getPlayer(Person $person, \DateTimeImmutable $dateTime = null): ?Player {
@@ -90,6 +81,7 @@ class Formation
         $filtered = $person->getPlayers()->filter( function(Player $player) use ($checkDateTime): bool {
             return $player->getPeriod()->contains( $checkDateTime );
         });
-        return $filtered->count() === 0 ? null : $filtered->first();
+        $firstPlayer = $filtered->first();
+        return $firstPlayer === false ? null : $firstPlayer;
     }
 }

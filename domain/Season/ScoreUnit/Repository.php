@@ -1,17 +1,19 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Season\ScoreUnit;
 
-use Sports\Season;
 use SuperElf\Season\ScoreUnit as BaseScoreUnit;
-use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
+use SportsHelpers\Repository as BaseRepository;
+use Doctrine\ORM\EntityRepository;
 
-class Repository extends \Sports\Repository
+/**
+ * @template-extends EntityRepository<BaseScoreUnit>
+ */
+class Repository extends EntityRepository
 {
-    public function find($id, $lockMode = null, $lockVersion = null): ?BaseScoreUnit
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<BaseScoreUnit>
+     */
+    use BaseRepository;
 }

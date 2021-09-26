@@ -10,7 +10,7 @@ use SuperElf\User;
 
 class PoolUserMiddleware extends AuthorizationMiddleware
 {
-    protected function isAuthorized(Request $request )
+    protected function isAuthorized(Request $request ): void
     {
         $poolUser = $request->getAttribute('poolUser');
         if ($poolUser === null) {

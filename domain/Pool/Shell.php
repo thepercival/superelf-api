@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Pool;
@@ -10,27 +9,15 @@ use SuperElf\Role;
 
 class Shell
 {
-    /**
-     * @var int
-     */
-    private $poolId;
-    /**
-     * @var string
-     */
-    private $name;
-    /**
-     * @var string
-     */
-    private $seasonName;
-    /**
-     * @var int
-     */
-    private $roles;
+    private int|string $poolId;
+    private string $name;
+    private string $seasonName;
+    private int $roles;
 
     public function __construct(Pool $pool, User $user = null)
     {
-        $this->poolId = $pool->getId();
-        $this->name = $pool->getCollection()->getName();
+        $this->poolId = (string)$pool->getId();
+        $this->name = $pool->getName();
         $this->seasonName = $pool->getSeason()->getName();
 
         $this->roles = 0;
@@ -45,7 +32,7 @@ class Shell
         }
     }
 
-    public function getPoolId(): int
+    public function getPoolId(): int|string
     {
         return $this->poolId;
     }

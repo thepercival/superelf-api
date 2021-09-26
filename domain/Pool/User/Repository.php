@@ -1,22 +1,19 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Pool\User;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Pool\User as PoolUser;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<PoolUser>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?PoolUser
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<PoolUser>
+     */
+    use BaseRepository;
 }

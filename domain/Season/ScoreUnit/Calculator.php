@@ -1,10 +1,9 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Season\ScoreUnit;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use SportsHelpers\Against\Result as AgainstResult;
 use Sports\Game;
 use SuperElf\Period\View\Person;
 use SuperElf\ScoreUnit;
@@ -14,7 +13,7 @@ use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 class Calculator
 {
     /**
-     * @var array
+     * @var array<int, callable>
      */
     private array $calculators = [];
 
@@ -24,9 +23,9 @@ class Calculator
     }
 
     /**
-     * @param array $stats
-     * @param array|SeasonScoreUnit[] $seasonScoreUnits
-     * @return array|int[]
+     * @param array<int,int|bool> $stats
+     * @param list<SeasonScoreUnit> $seasonScoreUnits
+     * @return array<int,int>
      */
     public function getPoints( array $stats, array $seasonScoreUnits ): array
     {
@@ -37,12 +36,12 @@ class Calculator
         return $points;
     }
 
-    protected function initCalculators() {
+    protected function initCalculators(): void {
         $this->calculators[ScoreUnit::POINTS_WIN] = function( SeasonScoreUnit $seasonScoreUnit, array $stats ): int {
-            return $stats[Person::RESULT] === Game::RESULT_WIN ? $seasonScoreUnit->getPoints() : 0;
+            return $stats[Person::RESULT] === AgainstResult::WIN ? $seasonScoreUnit->getPoints() : 0;
         };
         $this->calculators[ScoreUnit::POINTS_DRAW] = function( SeasonScoreUnit $seasonScoreUnit, array $stats ): int {
-            return $stats[Person::RESULT] === Game::RESULT_DRAW ? $seasonScoreUnit->getPoints() : 0;
+            return $stats[Person::RESULT] === AgainstResult::DRAW ? $seasonScoreUnit->getPoints() : 0;
         };
         $fieldGoalsAssistsCalculator = function( SeasonScoreUnit $seasonScoreUnit, array $stats, int $line, int $stat ): int {
             if( $stats[Person::LINE] !== $line ) {

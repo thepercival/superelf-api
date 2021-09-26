@@ -1,31 +1,23 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Period\View\Person;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
 use SuperElf\Period\View as ViewPeriod;
 use Sports\Team;
 use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SportsHelpers\Repository as BaseRepository;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<ViewPeriodPerson>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?ViewPeriodPerson
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
-
-    public function findOneBy(array $criteria, array $orderBy = null): ?ViewPeriodPerson
-    {
-        return parent::findOneBy($criteria, $orderBy);
-    }
+    /**
+     * @use BaseRepository<ViewPeriodPerson>
+     */
+    use BaseRepository;
 
     /**
      * @param ViewPeriod $viewPeriod

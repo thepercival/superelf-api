@@ -5,23 +5,22 @@ declare(strict_types=1);
 namespace SuperElf\Pool;
 
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Pool;
 use SuperElf\Role;
 use SuperElf\User;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<Pool>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
+    /**
+     * @use BaseRepository<Pool>
+     */
+    use BaseRepository;
 
-    public function find($id, $lockMode = null, $lockVersion = null): ?Pool
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
 
 //    public function customPersist(Tournament $tournament, bool $flush)
 //    {
@@ -35,11 +34,17 @@ class Repository extends \SportsHelpers\Repository
 //        }
 //    }
 
+    /**
+     * @param string|null $name
+     * @param DateTimeImmutable|null $startDateTime
+     * @param DateTimeImmutable|null $endDateTime
+     * @return list<Pool>
+     */
     public function findByFilter(
         string $name = null,
         DateTimeImmutable $startDateTime = null,
         DateTimeImmutable $endDateTime = null
-    ) {
+    ): array {
         $query = $this->createQueryBuilder('p')
             ->join("p.collection", "pc")
             ->join("pc.association", "a")
@@ -69,7 +74,12 @@ class Repository extends \SportsHelpers\Repository
         return $query->getQuery()->getResult();
     }
 
-    public function findByRoles(User $user, int $roles)
+    /**
+     * @param User $user
+     * @param int $roles
+     * @return list<Pool>
+     */
+    public function findByRoles(User $user, int $roles): array
     {
         $exprExists = $this->getEM()->getExpressionBuilder();
 

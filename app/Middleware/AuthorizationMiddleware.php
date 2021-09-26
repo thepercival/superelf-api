@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Middleware;
@@ -28,9 +27,5 @@ abstract class AuthorizationMiddleware implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    /**
-     * @param Request $request
-     * @throws Exception
-     */
-    abstract protected function isAuthorized(Request $request);
+    abstract protected function isAuthorized(Request $request): void;
 }

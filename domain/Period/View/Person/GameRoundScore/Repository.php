@@ -1,28 +1,25 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Period\View\Person\GameRoundScore;
 
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
 use Sports\Competition;
 use Sports\Person;
 use Sports\Team;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Period\View\Person\GameRoundScore as BaseGameRoundScore;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<BaseGameRoundScore>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?BaseGameRoundScore
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<BaseGameRoundScore>
+     */
+    use BaseRepository;
 
     public function findOneByCustom(Competition $competition, Person $person, int $gameRound): ?BaseGameRoundScore
     {

@@ -31,7 +31,7 @@ class AuthenticationMiddleware implements MiddlewareInterface
 
         /** @var AuthToken|null $token */
         $token = $request->getAttribute('token');
-        if ($token === null || !$token->isPopulated()) {
+        if ($token === null) {
             return new ForbiddenResponse("lege of ongeldige token");
         }
 

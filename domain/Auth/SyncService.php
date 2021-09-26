@@ -28,7 +28,7 @@ class SyncService
         $this->config = $config;
     }
 
-    public function add(Pool $pool, int $roles, string $emailaddress = null, bool $sendMail = false)
+    public function add(Pool $pool, int $roles, string $emailaddress = null, bool $sendMail = false): void
     {
 //        if (strlen($emailaddress) === 0) {
 //            return;
@@ -68,7 +68,7 @@ class SyncService
 //        return $invitation;
     }
 
-    public function remove(Pool $pool, int $roles, string $emailaddress = null)
+    public function remove(Pool $pool, int $roles, string $emailaddress = null): void
     {
 //        if (strlen($emailaddress) === 0) {
 //            return;

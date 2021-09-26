@@ -5,62 +5,32 @@ declare(strict_types=1);
 namespace SuperElf\Formation;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
 use Sports\Person;
+use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
 use SuperElf\GameRound;
 use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Pool;
 use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 
-class Line
+class Line extends Identifiable
 {
     /**
-     * @var int
+     * @var ArrayCollection<int|string, ViewPeriodPerson>|PersistentCollection<int|string, ViewPeriodPerson>
      */
-    protected $id;
-    protected int $number;
-    protected int $maxNrOfPersons;
-    protected FormationBase $formation;
-    /**
-     * @var ArrayCollection | ViewPeriodPerson[]
-     */
-    protected $viewPeriodPersons;
-    /**
-     * @var PoolUserViewPeriodPerson|null
-     */
-    protected $substitute;
+    protected ArrayCollection|PersistentCollection $viewPeriodPersons;
+    protected PoolUserViewPeriodPerson|null $substitute = null;
 
-    public function __construct(FormationBase $formation, int $number, int $maxNrOfPersons)
+    public function __construct(
+        protected FormationBase $formation, protected  int $number, protected  int $maxNrOfPersons)
     {
-        $this->setFormation($formation);
-        $this->number = $number;
-        $this->maxNrOfPersons = $maxNrOfPersons;
         $this->viewPeriodPersons = new ArrayCollection();
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id)
-    {
-        $this->id = $id;
     }
 
     public function getFormation(): FormationBase
     {
         return $this->formation;
-    }
-
-    /**
-     * @param FormationBase $formation
-     */
-    protected function setFormation(FormationBase $formation)
-    {
-        if (!$formation->getLines()->contains($this)) {
-            $formation->getLines()->add($this) ;
-        }
-        $this->formation = $formation;
     }
 
     public function getNumber(): int
@@ -69,15 +39,15 @@ class Line
     }
 
 
-    public function getMaxNrOfPersons()
+    public function getMaxNrOfPersons(): int
     {
         return $this->maxNrOfPersons;
     }
 
     /**
-     * @return ArrayCollection|ViewPeriodPerson[]
+     * @return ArrayCollection<int|string, ViewPeriodPerson>|PersistentCollection<int|string, ViewPeriodPerson>
      */
-    public function getViewPeriodPersons()
+    public function getViewPeriodPersons(): ArrayCollection|PersistentCollection
     {
         return $this->viewPeriodPersons;
     }
@@ -87,13 +57,13 @@ class Line
         return $this->substitute;
     }
 
-    public function setSubstitute( PoolUserViewPeriodPerson $substitute = null )
+    public function setSubstitute( PoolUserViewPeriodPerson $substitute = null ): void
     {
         $this->substitute = $substitute;
     }
 
     /**
-     * @return array|Person[]
+     * @return list<Person>
      */
     public function getAllPersons(): array
     {
@@ -101,8 +71,9 @@ class Line
         foreach( $this->getViewPeriodPersons() as $viewPeriodPerson ) {
             $persons[] = $viewPeriodPerson->getPerson();
         }
-        if( $this->getSubstitute() !== null ) {
-            $persons[] = $this->getSubstitute()->getViewPeriodPerson()->getPerson();
+        $substitute = $this->getSubstitute();
+        if( $substitute !== null ) {
+            $persons[] = $substitute->getViewPeriodPerson()->getPerson();
         }
         return $persons;
     }

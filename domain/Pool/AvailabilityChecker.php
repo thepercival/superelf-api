@@ -23,7 +23,7 @@ class AvailabilityChecker
         $this->poolCollectionRepos = $poolCollectionRepos;
     }
 
-    public function check(Season $season, string $name, User $user)
+    public function check(Season $season, string $name, User $user): void
     {
         $association = $this->associationRepos->findOneBy( ["name" => $name ] );
         if( $association === null ) {
@@ -42,7 +42,7 @@ class AvailabilityChecker
             throw new \Exception("de pool met naam ".$name." en seizoen ".$season->getName()." bestaat al", E_ERROR );
         }
         $poolUser = $latestPool->getUser( $user );
-        if( !$poolUser->getAdmin() ) {
+        if( $poolUser === null || !$poolUser->getAdmin() ) {
             throw new \Exception("alleen de beheerder van het vorige seizoen van pool ".$name." kan de nieuwe pool aanmaken", E_ERROR );
         }
     }

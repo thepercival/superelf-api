@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf\Period\View\Person;
 
@@ -6,27 +7,13 @@ use DateTimeImmutable;
 
 class Filter
 {
-    protected int $viewPeriodId;
-    protected DateTimeImmutable $end;
-    /**
-     * @var int|string|null
-     */
-    protected $teamId;
-    /**
-     * @var int|null
-     */
-    protected $line;
+    // protected DateTimeImmutable|null $end = null;
 
-    /**
-     * @param int $viewPeriodId
-     * @param int|string|null $teamId
-     * @param int|null $line
-     */
-    public function __construct(int $viewPeriodId, $teamId = null, int $line = null)
+    public function __construct(
+        protected int $viewPeriodId,
+        protected int|string|null $teamId = null,
+        protected int|null $line = null)
     {
-        $this->viewPeriodId = $viewPeriodId;
-        $this->teamId = $teamId;
-        $this->line = $line;
     }
 
     public function getViewPeriodId(): int
@@ -34,10 +21,7 @@ class Filter
         return $this->viewPeriodId;
     }
 
-    /**
-     * @return int|string|null
-     */
-    public function getTeamId()
+    public function getTeamId(): int|string|null
     {
         return $this->teamId;
     }

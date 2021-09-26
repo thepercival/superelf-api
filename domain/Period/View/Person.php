@@ -1,15 +1,19 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf\Period\View;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
+use SportsHelpers\Identifiable;
+use SuperElf\Pool;
 use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 use Sports\Person as BasePerson;
 use SuperElf\GameRound;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Period\View\Person\GameRoundScore;
 
-class Person {
+class Person extends Identifiable {
     public const SHEET_SPOTTY_THRESHOLD = 4;
 
     public const RESULT = 1;
@@ -26,23 +30,18 @@ class Person {
     public const SUBSTITUTE = 2048;
     public const LINE = 4096;
 
-    protected int $id;
-    protected BasePerson $person;
     protected int $total = 0;
     /**
-     * @var array | int[]
+     * @var array<int,int>
      */
     protected array $points = [];
-    protected ViewPeriod $viewPeriod;
     /**
-     * @var ArrayCollection | GameRoundScore[]
+     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
      */
-    protected $gameRoundScores;
+    protected ArrayCollection|PersistentCollection $gameRoundScores;
 
-    public function __construct( ViewPeriod $viewPeriod, BasePerson $person )
+    public function __construct( protected ViewPeriod $viewPeriod, protected BasePerson $person )
     {
-        $this->viewPeriod = $viewPeriod;
-        $this->person = $person;
         $this->gameRoundScores = new ArrayCollection();
     }
 
@@ -55,9 +54,9 @@ class Person {
     }
 
     /**
-     * @return ArrayCollection | GameRoundScore[]
+     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
      */
-    public function getGameRoundScores() {
+    public function getGameRoundScores(): ArrayCollection|PersistentCollection {
         return $this->gameRoundScores;
     }
 
@@ -65,22 +64,23 @@ class Person {
         $filtered = $this->gameRoundScores->filter( function ( GameRoundScore $gameRoundScore ) use( $gameRound): bool {
             return $gameRoundScore->getGameRound() === $gameRound;
         });
-        return $filtered->count() > 0 ? $filtered->first() : null;
+        $firstScore = $filtered->first();
+        return $firstScore === false ? null : $firstScore;
     }
 
     public function getTotal(): int {
         return $this->total;
     }
 
-    public function setTotal(int $total) {
+    public function setTotal(int $total): void {
         $this->total = $total;
     }
 
     /**
-     * @param array|SeasonScoreUnit[] $seasonScoreUnits
-     * @return array|int[]
+     * @param list<SeasonScoreUnit> $seasonScoreUnits
+     * @return array<int,int>
      */
-    public function calculatePoints($seasonScoreUnits) : array {
+    public function calculatePoints(array $seasonScoreUnits) : array {
         $totals = [];
         foreach( $this->getGameRoundScores() as $gameRoundScore ) {
             $gameRoundScorePoints = $gameRoundScore->getPoints();
@@ -95,16 +95,16 @@ class Person {
     }
 
     /**
-     * @return array|int[]
+     * @return array<int,int>
      */
     public function getPoints(): array {
         return $this->points;
     }
 
     /**
-     * @param array|int[] $points
+     * @param array<int,int> $points
      */
-    public function setPoints(array $points ) {
+    public function setPoints(array $points ): void {
         $this->points = $points;
     }
 }

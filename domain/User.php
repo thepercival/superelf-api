@@ -4,44 +4,16 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
-use Sports\Referee;
+use DateTimeImmutable;
+use Sports\Competition\Referee;
+use SportsHelpers\Identifiable;
 
-class User
+class User extends Identifiable
 {
-    /**
-     * @var int
-     */
-    private $id;
-
-    /**
-     * @var string
-     */
-    private $emailaddress;
-
-    /**
-     * @var string
-     */
-    private $password;
-
-    /**
-     * @var string
-     */
-    private $salt;
-
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $forgetpassword;
-
-    /**
-     * @var bool
-     */
-    private $validated;
+    private string $emailaddress;
+    private string $name;
+    private string|null $forgetpassword = null;
+    private bool $validated;
 
     const MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
     const MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
@@ -50,41 +22,20 @@ class User
     const MIN_LENGTH_NAME = 2;
     const MAX_LENGTH_NAME = 15;
 
-    public function __construct($emailaddress)
+    public function __construct(
+        string $emailaddress, string $name, protected string $salt, protected string $password)
     {
         $this->validated = false;
         $this->setEmailaddress($emailaddress);
+        $this->setName($name);
     }
 
-    /**
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param int $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getEmailaddress()
+    public function getEmailaddress(): string
     {
         return $this->emailaddress;
     }
 
-    /**
-     * @param string $emailaddress
-     */
-    public function setEmailaddress($emailaddress)
+    final public function setEmailaddress(string $emailaddress): void
     {
         if (strlen($emailaddress) < static::MIN_LENGTH_EMAIL or strlen($emailaddress) > static::MAX_LENGTH_EMAIL) {
             throw new \InvalidArgumentException(
@@ -99,18 +50,12 @@ class User
         $this->emailaddress = $emailaddress;
     }
 
-    /**
-     * @return string
-     */
-    public function getPassword()
+    public function getPassword(): string
     {
         return $this->password;
     }
 
-    /**
-     * @param string $password
-     */
-    public function setPassword($password)
+    public function setPassword(string $password): void
     {
         if (strlen($password) === 0) {
             throw new \InvalidArgumentException("de wachtwoord-hash mag niet leeg zijn", E_ERROR);
@@ -118,34 +63,22 @@ class User
         $this->password = $password;
     }
 
-    /**
-     * @return string
-     */
-    public function getSalt()
+    public function getSalt(): string
     {
         return $this->salt;
     }
 
-    /**
-     * @param string $salt
-     */
-    public function setSalt($salt)
+    public function setSalt(string $salt): void
     {
         $this->salt = $salt;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name)
+    final public function setName(string $name): void
     {
         if (strlen($name) < static::MIN_LENGTH_NAME or strlen($name) > static::MAX_LENGTH_NAME) {
             throw new \InvalidArgumentException(
@@ -160,26 +93,17 @@ class User
         $this->name = $name;
     }
 
-    /**
-     * @return string
-     */
-    public function getForgetpassword()
+    public function getForgetpassword(): string|null
     {
         return $this->forgetpassword;
     }
 
-    /**
-     * @param string $forgetpassword
-     */
-    public function setForgetpassword($forgetpassword)
+    public function setForgetpassword(string|null $forgetpassword): void
     {
         $this->forgetpassword = $forgetpassword;
     }
 
-    /**
-     * return string
-     */
-    public function resetForgetpassword()
+    public function resetForgetpassword(): void
     {
         $forgetpassword = rand(100000, 999999);
         $tomorrow = date("Y-m-d", strtotime('tomorrow'));
@@ -188,16 +112,11 @@ class User
         $this->setForgetpassword($forgetpassword . ":" . $tomorrow->format("Y-m-d"));
     }
 
-    /**
-     * first 6 characters
-     *
-     * @return string
-     */
-    public function getForgetpasswordToken()
+    public function getForgetpasswordToken(): string
     {
         $forgetpassword = $this->getForgetpassword();
-        if (strlen($forgetpassword) === 0) {
-            return "";
+        if ($forgetpassword === null || strlen($forgetpassword) === 0) {
+            return '';
         }
         $arrForgetPassword = explode(":", $forgetpassword);
         return $arrForgetPassword[0];
@@ -206,13 +125,12 @@ class User
     /**
      * last 10 characters
      *
-     * @return \DateTimeImmutable|null
      * @throws \Exception
      */
-    public function getForgetpasswordDeadline()
+    public function getForgetpasswordDeadline(): DateTimeImmutable|null
     {
         $forgetpassword = $this->getForgetpassword();
-        if (strlen($forgetpassword) === 0) {
+        if ($forgetpassword === null || strlen($forgetpassword) === 0) {
             return null;
         }
         $arrForgetPassword = explode(":", $forgetpassword);
@@ -224,7 +142,7 @@ class User
         return $this->validated;
     }
 
-    public function setValidated(bool $validated)
+    public function setValidated(bool $validated): void
     {
         $this->validated = $validated;
     }

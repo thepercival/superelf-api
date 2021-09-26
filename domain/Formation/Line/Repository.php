@@ -1,28 +1,22 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf\Formation\Line;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Period\View\Person as ViewPeriodPerson;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<FormationLine>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?FormationLine
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
-
-    public function findOneBy(array $criteria, array $orderBy = null): ?FormationLine
-    {
-        return parent::findOneBy($criteria, $orderBy);
-    }
+    /**
+     * @use BaseRepository<FormationLine>
+     */
+    use BaseRepository;
 
     /**
      * @param int $line

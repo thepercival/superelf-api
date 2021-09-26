@@ -1,12 +1,12 @@
 <?php
-
+declare(strict_types=1);
 namespace SuperElf;
 
+use SportsHelpers\Identifiable;
 use SuperElf\Period\View as ViewPeriod;
 
-class GameRound {
+class GameRound extends Identifiable {
 
-    protected int $id;
     protected ViewPeriod $viewPeriod;
     protected int $number;
 

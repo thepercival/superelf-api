@@ -1,15 +1,19 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\User;
 
+use SportsHelpers\Repository as BaseRepository;
+use Doctrine\ORM\EntityRepository;
 use SuperElf\User;
 
-class Repository extends \Sports\Repository
+/**
+ * @template-extends EntityRepository<User>
+ */
+class Repository extends EntityRepository
 {
-    public function find($id, $lockMode = null, $lockVersion = null): ?User
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<User>
+     */
+    use BaseRepository;
 }

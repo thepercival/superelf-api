@@ -14,7 +14,7 @@ use App\Middleware\AuthorizationMiddleware;
 
 class AdminMiddleware extends AuthorizationMiddleware
 {
-    protected function isAuthorized(Request $request)
+    protected function isAuthorized(Request $request): void
     {
         $user = $request->getAttribute('user');
         if ($user === null) {

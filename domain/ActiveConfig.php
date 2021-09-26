@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf;
 
@@ -11,7 +12,7 @@ class ActiveConfig
     protected DateTimeImmutable $createAndJoinEnd;
     protected array $sourceCompetitions;
     /**
-     * @var array | Formation[]
+     * @var list<array<string, string|array<int,int>>>
      */
     protected array $availableFormations = [];
 
@@ -36,15 +37,17 @@ class ActiveConfig
     }
 
     /**
-     * @return array|Formation[]
+     * @return list<array<string, string|array<int,int>>>
      */
     public function getAvailableFormations(): array
     {
         return $this->availableFormations;
     }
 
-
-    public function setAvailableFormations( array $availableFormations )
+    /**
+     * @param list<array<string, string|array<int,int>>> $availableFormations
+     */
+    public function setAvailableFormations( array $availableFormations ): void
     {
         $this->availableFormations = $availableFormations;
     }

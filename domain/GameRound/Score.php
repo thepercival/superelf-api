@@ -2,14 +2,14 @@
 
 namespace SuperElf\GameRound;
 
+use SportsHelpers\Identifiable;
 use SuperElf\GameRound as BaseGameRound;
 
-abstract class Score {
-    protected int $id;
+abstract class Score extends Identifiable {
     protected BaseGameRound $gameRound;
     protected int $total = 0;
     /**
-     * @var array | int[]
+     * @var array<int, int>
      */
     protected array $points = [];
 
@@ -30,21 +30,21 @@ abstract class Score {
         return $this->total;
     }
 
-    public function setTotal(int $total) {
+    public function setTotal(int $total): void {
         $this->total = $total;
     }
 
     /**
-     * @return array|int[]
+     * @return array<int, int>
      */
     public function getPoints(): array {
         return $this->points;
     }
 
     /**
-     * @param array|int[] $points
+     * @param array<int, int> $points
      */
-    public function setPoints(array $points ) {
+    public function setPoints(array $points ): void {
         $this->points = $points;
     }
 }

@@ -46,7 +46,7 @@ class PersonStats extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-personstats-calculate');
         $this->logger->info('starting command app:calculate-personstats');
@@ -58,7 +58,9 @@ class PersonStats extends Command
             $queueName = QueueService::NAME_UPDATE_GAMEDETAILS_QUEUE;
             $queueService->receive($this->getReceiver(), $timeoutInSeconds, $queueName);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
         return 0;
     }

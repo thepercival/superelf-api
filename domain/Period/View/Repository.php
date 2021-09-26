@@ -1,27 +1,24 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Period\View;
 
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityRepository;
 use Sports\Competition;
 use Sports\Poule;
-use Sports\Sport\Config as SportConfig;
+use SportsHelpers\Sport\Variant\Against as AgainstSportVariant;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Period\View as ViewPeriod;
 
-class Repository extends \SportsHelpers\Repository
+/**
+ * @template-extends EntityRepository<ViewPeriod>
+ */
+class Repository extends EntityRepository
 {
-    public function __construct(EntityManagerInterface $em, ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?ViewPeriod
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<ViewPeriod>
+     */
+    use BaseRepository;
 
     public function findOneByDate(Competition $competition, \DateTimeImmutable $dateTime ): ?ViewPeriod
     {
@@ -69,9 +66,10 @@ class Repository extends \SportsHelpers\Repository
 
 //    select * from viewPeriods vp
 //    where (select count(*) from games where startDateTime > vp.startDateTime and startDateTime < vp.endDateTime and resourceBatch = 1 )  > 4.5
-    public function findGameRoundOwner(Poule $poule, SportConfig $sportConfig, int $gameRoundNumber): ?ViewPeriod
+    public function findGameRoundOwner(Poule $poule, AgainstSportVariant $sportVariant , int $gameRoundNumber): ?ViewPeriod
     {
-        $halfNrOfGameRounds = $poule->getNrOfGamesPerRoundNumber( $sportConfig ) > 2;
+        $nrOfGamesPerRound = $sportVariant->getNrOfGamesOneGameRound($poule->getPlaces()->count());
+        $halfNrOfGamesPerRound = (int)floor($nrOfGamesPerRound / 2);
 
         $exprCount = $this->getEM()->getExpressionBuilder();
 
@@ -87,7 +85,7 @@ class Repository extends \SportsHelpers\Repository
             ->andWhere(
                 "(" .
                     $gamesQb->getDQL()
-                . ") > " . $halfNrOfGameRounds
+                . ") > " . $halfNrOfGamesPerRound
             );
 
         $qb = $qb->setParameter('gameRoundNumber', $gameRoundNumber);

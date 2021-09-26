@@ -17,7 +17,7 @@ class UpdateSitemap extends Command
         parent::__construct($container->get(Configuration::class));
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             // the name of the command (the part after "bin/console")
@@ -30,7 +30,7 @@ class UpdateSitemap extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'cron-update-sitemap');
         try {
@@ -57,7 +57,9 @@ class UpdateSitemap extends Command
 //            chown($distPath . "sitemap.txt", "coen");
 //            chgrp($distPath . "sitemap.txt", "coen");
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if( $this->logger !== null ) {
+                $this->logger->error($e->getMessage());
+            }
         }
         return 0;
     }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf\Period;
 
@@ -29,7 +30,7 @@ class Transfer extends S11Period {
         return $this->maxNrOfTransfers;
     }
 
-    public function setMaxNrOfTransfers(int $maxNrOfTransfers)
+    public function setMaxNrOfTransfers(int $maxNrOfTransfers): void
     {
         $this->maxNrOfTransfers = $maxNrOfTransfers;
     }

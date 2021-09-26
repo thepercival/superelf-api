@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf\Period\View\Person;
 
@@ -21,7 +22,7 @@ class GameRoundScore extends BaseGameRoundScore {
         return $this->viewPeriodPerson;
     }
 
-    protected function setViewPeriodPerson(ViewPeriodPerson $viewPeriodPerson)
+    protected function setViewPeriodPerson(ViewPeriodPerson $viewPeriodPerson): void
     {
         if (!$viewPeriodPerson->getGameRoundScores()->contains($this)) {
             $viewPeriodPerson->getGameRoundScores()->add($this) ;
@@ -29,11 +30,17 @@ class GameRoundScore extends BaseGameRoundScore {
         $this->viewPeriodPerson = $viewPeriodPerson;
     }
 
+    /**
+     * @return array<int,int|bool>
+     */
     public function getStats(): array {
         return $this->stats;
     }
 
-    public function setStats(array $stats ) {
+    /**
+     * @param array<int,int|bool> $stats
+     */
+    public function setStats(array $stats ): void {
         $this->stats = $stats;
     }
 

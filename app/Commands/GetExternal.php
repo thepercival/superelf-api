@@ -63,14 +63,17 @@ class GetExternal extends Command
         $this->initLogger($input, $name);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->init($input, 'cron-getexternal');
 
         $externalSourceName = $input->getArgument('externalSource');
         $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
         if ($externalSourceImpl === null) {
-            echo "voor \"" . $externalSourceName . "\" kan er geen externe bron worden gevonden" . PHP_EOL;
+            if( $this->logger !== null) {
+                $message = "voor \"" . $externalSourceName . "\" kan er geen externe bron worden gevonden";
+                $this->logger->error($message);
+            }
             return -1;
         }
 
@@ -121,14 +124,19 @@ class GetExternal extends Command
                                     $this->getIdFromInput($input)
                                 );
                             } else {
-                                echo "objectType \"" . $objectType . "\" kan niet worden opgehaald uit externe bronnen" . PHP_EOL;
+                                if( $this->logger !== null) {
+                                    $message = "objectType \"" . $objectType . "\" kan niet worden opgehaald uit externe bronnen";
+                                    $this->logger->error($message);
+                                }
                             }
                         }
                     }
                 }
             }
         } catch (\Exception $e) {
-            echo $e->getMessage() . PHP_EOL;
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
 
 //        if ($input->getOption("structures")) {

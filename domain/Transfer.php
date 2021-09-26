@@ -1,13 +1,14 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf;
 
 use Sports\Person;
+use SportsHelpers\Identifiable;
 use SuperElf\Pool\User as PoolUser;
 
-class Transfer {
+class Transfer extends Identifiable {
 
-    protected int $id;
     protected PoolUser $poolUser;
     protected Person $out;
     protected Person $in;
@@ -20,17 +21,7 @@ class Transfer {
         $this->out = $out;
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id)
-    {
-        $this->id = $id;
-    }
-
-    public function setPoolUser(PoolUser $poolUser)
+    public function setPoolUser(PoolUser $poolUser): void
     {
         if (!$poolUser->getTransfers()->contains($this)) {
             $poolUser->getTransfers()->add($this) ;

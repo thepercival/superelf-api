@@ -1,30 +1,27 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Season;
 
 use Sports\Season;
+use SportsHelpers\Identifiable;
 use SuperElf\ScoreUnit as ScoreUnitBase;
 
-class ScoreUnit {
-    protected int $id;
+class ScoreUnit extends Identifiable {
     protected Season $season;
     protected int $number;
-    protected $points;
 
-    public function __construct(Season $season, ScoreUnitBase $scoreUnit, int $points )
+    public function __construct(Season $season, ScoreUnitBase $scoreUnit, protected int $points )
     {
         $this->setSeason( $season );
         $this->number = $scoreUnit->getNumber();
-        $this->points = $points;
     }
 
     public function getSeason(): Season {
         return $this->season;
     }
 
-    protected function setSeason(Season $season)
+    protected function setSeason(Season $season): void
     {
 //        if (!$season->getScoreUnits()->contains($this)) {
 //            $season->getScoreUnits()->add($this) ;

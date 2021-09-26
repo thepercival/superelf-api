@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Period;
@@ -19,24 +18,13 @@ use SuperElf\ActiveConfig\Service as ActiveConfigService;
 
 class Administrator
 {
-    protected PoolRepository $poolRepos;
-    protected ViewPeriodRepository $viewPeriodRepos;
-    protected AssemblePeriodRepository $assemblePeriodRepos;
-    protected TransferPeriodRepository $transferPeriodRepos;
-    protected Configuration $config;
-    protected ActiveConfigService $activeConfigService;
-
     public function __construct(
-        ViewPeriodRepository $viewPeriodRepos,
-        AssemblePeriodRepository $assemblePeriodRepos,
-        TransferPeriodRepository $transferPeriodRepos,
-        ActiveConfigService $activeConfigService,
-        Configuration $config) {
-        $this->viewPeriodRepos = $viewPeriodRepos;
-        $this->assemblePeriodRepos = $assemblePeriodRepos;
-        $this->transferPeriodRepos = $transferPeriodRepos;
-        $this->activeConfigService = $activeConfigService;
-        $this->config = $config;
+        protected PoolRepository $poolRepos,
+        protected ViewPeriodRepository $viewPeriodRepos,
+        protected AssemblePeriodRepository $assemblePeriodRepos,
+        protected TransferPeriodRepository $transferPeriodRepos,
+        protected ActiveConfigService $activeConfigService,
+        protected Configuration $config) {
     }
 
     public function getCreateAndJoinPeriod(Competition $sourceCompetition): ViewPeriod

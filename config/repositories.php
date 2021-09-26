@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
@@ -57,10 +56,14 @@ use Sports\Team\Repository as TeamRepository;
 use Sports\Team;
 use Sports\Competitor\Team\Repository as TeamCompetitorRepository;
 use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Game\Repository as GameRepository;
-use Sports\Game;
-use Sports\Game\Score\Repository as GameScoreRepository;
-use Sports\Game\Score as GameScore;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\Game\Together as TogetherGame;
+use Sports\Score\Against\Repository as AgainstScoreRepository;
+use Sports\Score\Against as AgainstScore;
+use Sports\Score\Together\Repository as TogetherScoreRepository;
+use Sports\Score\Together as TogetherScore;
 use Sports\Person\Repository as PersonRepository;
 use Sports\Person;
 use Sports\Team\Player\Repository as PlayerRepository;
@@ -80,8 +83,8 @@ use SportsImport\Attacher\Team\Repository as TeamAttacherRepository;
 use SportsImport\Attacher\Team as TeamAttacher;
 use SportsImport\Attacher\Competitor\Team\Repository as TeamCompetitorAttacherRepository;
 use SportsImport\Attacher\Competitor\Team as TeamCompetitorAttacher;
-use SportsImport\Attacher\Game\Repository as GameAttacherRepository;
-use SportsImport\Attacher\Game as GameAttacher;
+use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
+use SportsImport\Attacher\Game\Against as AgainstGameAttacher;
 use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
 use SportsImport\Attacher\Person as PersonAttacher;
 
@@ -218,18 +221,25 @@ return [
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
         return new CacheItemDbRepository($entityManager, $entityManager->getClassMetaData(CacheItemDb::class));
     },
-
-    GameRepository::class => function (ContainerInterface $container): GameRepository {
+    AgainstGameRepository::class => function (ContainerInterface $container): AgainstGameRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new GameRepository($entityManager, $entityManager->getClassMetaData(Game::class));
+        return new AgainstGameRepository($entityManager, $entityManager->getClassMetaData(AgainstGame::class));
     },
-    GameAttacherRepository::class => function (ContainerInterface $container): GameAttacherRepository {
+    TogetherGameRepository::class => function (ContainerInterface $container): TogetherGameRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new GameAttacherRepository($entityManager, $entityManager->getClassMetaData(GameAttacher::class));
+        return new TogetherGameRepository($entityManager, $entityManager->getClassMetaData(TogetherGame::class));
     },
-    GameScoreRepository::class => function (ContainerInterface $container): GameScoreRepository {
+    AgainstGameAttacherRepository::class => function (ContainerInterface $container): AgainstGameAttacherRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
-        return new GameScoreRepository($entityManager, $entityManager->getClassMetaData(GameScore::class));
+        return new AgainstGameAttacherRepository($entityManager, $entityManager->getClassMetaData(AgainstGameAttacher::class));
+    },
+    AgainstScoreRepository::class => function (ContainerInterface $container): AgainstScoreRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new AgainstScoreRepository($entityManager, $entityManager->getClassMetaData(AgainstScore::class));
+    },
+    TogetherScoreRepository::class => function (ContainerInterface $container): TogetherScoreRepository {
+        $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);
+        return new TogetherScoreRepository($entityManager, $entityManager->getClassMetaData(TogetherScore::class));
     },
     PersonRepository::class => function (ContainerInterface $container): PersonRepository {
         $entityManager = $container->get(\Doctrine\ORM\EntityManager::class);

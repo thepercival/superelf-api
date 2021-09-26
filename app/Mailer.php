@@ -10,48 +10,29 @@ use Psr\Log\LoggerInterface;
 final class Mailer
 {
     /**
-     * @var LoggerInterface
+     * @param LoggerInterface $logger
+     * @param string $fromEmailaddress
+     * @param string $fromName
+     * @param string $adminEmailaddress
+     * @param array<string, string|int>|null $smtpConfig
      */
-    protected $logger;
-    /**
-     * @var string
-     */
-    private $fromEmailaddress;
-    /**
-     * @var string
-     */
-    private $fromName;
-    /**
-     * @var string
-     */
-    protected $adminEmailaddress;
-    /**
-     * @var array
-     */
-    protected $smtpConfig;
-
     public function __construct(
-        LoggerInterface $logger,
-        string $fromEmailaddress,
-        string $fromName,
-        string $adminEmailaddress,
-        array $smtpConfig = null
+        protected LoggerInterface $logger,
+        protected string $fromEmailaddress,
+        protected string $fromName,
+        protected string $adminEmailaddress,
+        protected array|null $smtpConfig
     ) {
-        $this->logger = $logger;
-        $this->fromEmailaddress = $fromEmailaddress;
-        $this->fromName = $fromName;
-        $this->adminEmailaddress = $adminEmailaddress;
-        $this->smtpConfig = $smtpConfig;
     }
 
-    public function sendToAdmin(string $subject, string $body, bool $text = null)
+    public function sendToAdmin(string $subject, string $body, bool $text = null): void
     {
         $this->send($subject, $body, $this->adminEmailaddress, $text);
     }
 
-    public function send(string $subject, string $body, string $toEmailaddress, bool $text = null)
+    public function send(string $subject, string $body, string $toEmailaddress, bool $text = null): void
     {
-        $mailer = $this->smtpConfig === null ? $this->sendInitMail() : $this->sendInitSmtp();
+        $mailer = $this->smtpConfig === null ? $this->sendInitMail() : $this->sendInitSmtp($this->smtpConfig);
         // $mailer->'MIME-Version' = '1.0';
         $mailer->ContentType = PHPMailer::CONTENT_TYPE_TEXT_HTML;
         $mailer->CharSet = PHPMailer::CHARSET_UTF8;
@@ -81,15 +62,19 @@ final class Mailer
         return $mail;
     }
 
-    protected function sendInitSmtp(): PHPMailer
+    /**
+     * @param array<string, string|int> $smtpConfig
+     * @return PHPMailer
+     */
+    protected function sendInitSmtp(array $smtpConfig): PHPMailer
     {
         $mail = new PHPMailer();
         $mail->isSMTP();
-        $mail->Host = $this->smtpConfig["smtp_host"];
-        $mail->Port = $this->smtpConfig["smtp_port"];
+        $mail->Host = (string)$smtpConfig["smtp_host"];
+        $mail->Port = (int)$smtpConfig["smtp_port"];
         $mail->SMTPAuth = true;
-        $mail->Username = $this->smtpConfig["smtp_user"];
-        $mail->Password = $this->smtpConfig["smtp_pass"];
+        $mail->Username = (string)$smtpConfig["smtp_user"];
+        $mail->Password = (string)$smtpConfig["smtp_pass"];
         return $mail;
     }
 

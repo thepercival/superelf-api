@@ -26,14 +26,8 @@ use Interop\Queue\Consumer;
  */
 class QueueService implements ImportGameEvent, ImportGameDetailsEvent
 {
-    /**
-     * @var array
-     */
-    protected $options;
-    /**
-     * @var string
-     */
-    protected $queueSuffix;
+    protected array $options;
+    protected string $queueSuffix = '';
 
     public const NAME_UPDATE_GAME_QUEUE = 'update-gamedetails-queue';
     public const NAME_UPDATE_GAMEDETAILS_QUEUE = 'update-gamedetails-queue';
@@ -47,7 +41,7 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         $this->options = $options;
     }
 
-    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null) {
+    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null): void {
         $content = ["gameId" => $game->getId() ];
         if( $oldStartDateTime !== null ) {
             $content["oldTimestamp"] = $oldStartDateTime->getTimestamp();
@@ -55,15 +49,16 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         $this->sendEventHelper( self::NAME_UPDATE_GAME_QUEUE, $content );
     }
 
-    public function sendUpdateGameDetailsEvent(Game $game) {
+    public function sendUpdateGameDetailsEvent(Game $game): void {
         $content = ["gameId" => $game->getId()];
         $this->sendEventHelper( self::NAME_UPDATE_GAMEDETAILS_QUEUE, $content );
     }
 
-    protected function sendEventHelper(string $queueName, array $content) {
+    protected function sendEventHelper(string $queueName, array $content): void {
 
         $context = $this->getContext();
 
+        /** @var AmqpTopic $exchange */
         $exchange = $context->createTopic('amq.direct');
         // $topic->setType(AmqpTopic::TYPE_DIRECT);
         $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
@@ -78,7 +73,7 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         $context->createProducer()->send($queue, $message);
     }
 
-    public function receive(callable $callable, int $timeoutInSeconds, string $queueName)
+    public function receive(callable $callable, int $timeoutInSeconds, string $queueName): void
     {
         $context = $this->getContext();
         $consumer = $context->createConsumer($this->getQueue( $queueName ));
@@ -97,6 +92,7 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
 
     protected function getQueue( string $name ): AmqpQueue
     {
+        /** @var AmqpQueue $queue */
         $queue = $this->getContext()->createQueue( $name . '-' . $this->queueSuffix);
         $queue->addFlag(AmqpQueue::FLAG_DURABLE);
         return $queue;

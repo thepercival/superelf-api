@@ -23,7 +23,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource\SofaScore;
+use SportsImport\ExternalSource\Game\Against as AgainstGameExternalSource;
+use SportsImport\ExternalSource\Structure as StructureExternalSource;
 use SportsImport\Service as ImportService;
 
 class Import extends Command
@@ -39,7 +40,7 @@ class Import extends Command
         $this->importService->setEventSender( new QueueService( $this->config->getArray('queue') ) );
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             // the name of the command (the part after "bin/console")
@@ -56,19 +57,22 @@ class Import extends Command
         parent::configure();
     }
 
-    protected function init(InputInterface $input, string $name)
+    protected function init(InputInterface $input, string $name): void
     {
         $this->initLogger($input, $name);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->init($input, 'cron-import');
 
         $externalSourceName = $input->getArgument('externalSource');
         $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
         if( $externalSourceImpl === null ) {
-            echo "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden" . PHP_EOL;
+            if( $this->logger !== null) {
+                $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
+                $this->logger->error($message);
+            }
             return -1;
         }
         $objectType = $input->getArgument('objectType');
@@ -96,79 +100,93 @@ class Import extends Command
                         } elseif ( $objectType === "teamcompetitors" ) {
                             $this->importTeamCompetitors($externalSourceImpl, $sport, $association, $league, $season);
                         } elseif ( $objectType === "structure" ) {
-                            $this->importStructure($externalSourceImpl, $sport, $association, $league, $season);
+                            $this->importStructure(
+                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
                         } elseif ( $objectType === "schedule" ) {
-                            $this->importSchedule($externalSourceImpl, $sport, $association, $league, $season);
+                            $this->importSchedule(
+                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
                         } elseif ( $objectType === "gamedetails" ) {
-                            $this->importGameDetails($externalSourceImpl, $sport, $association, $league, $season);
+                            $this->importAgainstGameDetails(
+                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
                         } elseif ( $objectType === "images" ) {
                             $this->importImages($externalSourceImpl, $league, $season);
                         } else {
-                            echo "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen" . PHP_EOL;
+                            if( $this->logger !== null) {
+                                $message = "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen";
+                                $this->logger->error($message);
+                            }
                         }
                     }
                 }
             }
         } catch( \Exception $e ) {
-            echo $e->getMessage() . PHP_EOL;
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
-
-
         return 0;
     }
 
-    protected function importSports(Implementation $externalSourceImpl)
+    protected function importSports(Implementation $externalSourceImpl): void
     {
         $this->importService->importSports($externalSourceImpl);
     }
 
-    protected function importAssociations(Implementation $externalSourceImpl, Sport $sport)
+    protected function importAssociations(Implementation $externalSourceImpl, Sport $sport): void
     {
         $this->importService->importAssociations($externalSourceImpl, $sport);
     }
 
-    protected function importSeasons(Implementation $externalSourceImpl)
+    protected function importSeasons(Implementation $externalSourceImpl): void
     {
         $this->importService->importSeasons($externalSourceImpl);
     }
 
-    protected function importLeagues(Implementation $externalSourceImpl, Association $association)
+    protected function importLeagues(Implementation $externalSourceImpl, Association $association): void
     {
         $this->importService->importLeagues($externalSourceImpl, $association);
     }
 
     protected function importCompetition(Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season)
+        Sport $sport, Association $association, League $league, Season $season): void
     {
         $this->importService->importCompetition($externalSourceImpl, $sport, $association, $league, $season );
     }
 
     protected function importTeams(Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season)
+        Sport $sport, Association $association, League $league, Season $season): void
     {
         $this->importService->importTeams($externalSourceImpl, $sport, $association, $league, $season);
     }
 
     protected function importTeamCompetitors(Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season)
+        Sport $sport, Association $association, League $league, Season $season): void
     {
         $this->importService->importTeamCompetitors($externalSourceImpl, $sport, $association, $league, $season);
     }
 
-    protected function importStructure(Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season)
+    protected function importStructure(
+        StructureExternalSource $structureExternalSource, Implementation $externalSourceImpl,
+        Sport $sport, Association $association, League $league, Season $season): void
     {
-        $this->importService->importStructure($externalSourceImpl, $sport, $association, $league, $season);
+        $this->importService->importStructure(
+            $structureExternalSource, $externalSourceImpl->getExternalSource(),
+            $sport, $association, $league, $season);
     }
 
-    protected function importSchedule(Implementation $externalSourceImpl,
+    protected function importSchedule(
+        AgainstGameExternalSource $againstGameExternalSource, Implementation $externalSourceImpl,
         Sport $sport, Association $association, League $league, Season $season)
     {
-        $this->importService->importSchedule($externalSourceImpl, $sport, $association, $league, $season);
+        $this->importService->importSchedule(
+            $againstGameExternalSource, $externalSourceImpl->getExternalSource(),
+            $sport, $association, $league, $season);
     }
 
-    protected function importGameDetails(Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season)
+    protected function importAgainstGameDetails(
+        AgainstGameExternalSource $againstGameExternalSource,
+        Implementation $externalSourceImpl,
+        Sport $sport, Association $association, League $league, Season $season): void
     {
         // bepaal de period waarin gezocht moet worden
         // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
@@ -190,10 +208,12 @@ class Import extends Command
         $period = new Period(
             new \DateTimeImmutable('2020-10-19 08:00'),
             new \DateTimeImmutable('2020-12-11 08:00') );
-        $this->importService->importGameDetails($externalSourceImpl, $sport, $association, $league, $season, $period );
+        $this->importService->importAgainstGameDetails(
+            $againstGameExternalSource, $externalSourceImpl->getExternalSource(),
+            $sport, $association, $league, $season, $period );
     }
 
-    protected function importImages(Implementation $externalSourceImpl, League $league, Season $season)
+    protected function importImages(Implementation $externalSourceImpl, League $league, Season $season): void
     {
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.personsSuffix');

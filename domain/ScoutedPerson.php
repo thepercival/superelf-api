@@ -1,25 +1,20 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf;
 
 use Sports\Competition;
 use Sports\Person;
 use Sports\Season;
+use SportsHelpers\Identifiable;
 
-class ScoutedPerson {
-
-    protected int $id;
-    protected User $user;
-    protected Competition $sourceCompetition;
-    protected Person $person;
-    protected int $nrOfStars;
-
-    public function __construct(User $user, Competition $sourceCompetition, Person $person, int $nrOfStars )
+class ScoutedPerson extends Identifiable {
+    public function __construct(
+        protected User $user,
+        protected Competition $sourceCompetition,
+        protected Person $person,
+        protected int $nrOfStars )
     {
-        $this->user = $user;
-        $this->sourceCompetition = $sourceCompetition;
-        $this->person = $person;
-        $this->nrOfStars = $nrOfStars;
     }
 
     public function getUser(): User {
@@ -38,7 +33,7 @@ class ScoutedPerson {
         return $this->nrOfStars;
     }
 
-    public function setNrOfStars(int $nrOfStars) {
+    public function setNrOfStars(int $nrOfStars): void {
         $this->nrOfStars = $nrOfStars;
     }
 }

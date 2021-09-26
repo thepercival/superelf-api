@@ -59,7 +59,7 @@ class Get extends Command
         $this->initLogger($input, $name);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->init($input, 'cron-get');
 
@@ -90,11 +90,16 @@ class Get extends Command
                 } elseif ( $objectType === "game" ) {
                     $this->showGame($league, $season, $this->getIdFromInput($input) );
                 } else {
-                    echo "objectType \"" . $objectType . "\" kan niet worden opgehaald uit bronnen" . PHP_EOL;
+                    if( $this->logger !== null) {
+                        $message = "objectType \"" . $objectType . "\" kan niet worden opgehaald uit bronnen";
+                        $this->logger->error($message);
+                    }
                 }
             }
         } catch( \Exception $e ) {
-            echo $e->getMessage() . PHP_EOL;
+            if( $this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
 
 

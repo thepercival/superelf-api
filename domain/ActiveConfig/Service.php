@@ -18,20 +18,12 @@ use Sports\Sport\Repository as SportRepository;
 
 class Service
 {
-    protected CompetitionRepository $competitionRepos;
-    protected SeasonRepository $seasonRepos;
-    protected SportRepository $sportRepos;
-    protected Configuration $config;
 
     public function __construct(
-        CompetitionRepository $competitionRepos,
-        SeasonRepository $seasonRepos,
-        SportRepository $sportRepos,
-        Configuration $config) {
-        $this->competitionRepos = $competitionRepos;
-        $this->seasonRepos = $seasonRepos;
-        $this->sportRepos = $sportRepos;
-        $this->config = $config;
+        protected CompetitionRepository $competitionRepos,
+        protected SeasonRepository $seasonRepos,
+        protected SportRepository $sportRepos,
+        protected Configuration $config) {
     }
 
     public function getConfig(): ActiveConfig {
@@ -92,9 +84,6 @@ class Service
 
     protected function getSourceCompetitions(): array {
         $season = $this->getSeason();
-        if( $season === null ) {
-            return [];
-        }
         $sport = $this->sportRepos->findOneBy( ["customId" => SportCustom::Football ] );
         if( $sport === null ) {
             return [];
@@ -105,7 +94,12 @@ class Service
         }, $competitions );
     }
 
-    public function getSeason(): ?Season {
-        return $this->seasonRepos->findOneByPeriod( $this->getAssembleViewPeriod() );
+    public function getSeason(): Season {
+
+        $season =  $this->seasonRepos->findOneByPeriod( $this->getAssembleViewPeriod() );
+        if( $season === null ) {
+            throw new \Exception('assembleviewperiod is not in a season', E_ERROR);
+        }
+        return $season;
     }
 }

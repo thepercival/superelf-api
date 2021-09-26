@@ -1,10 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace SuperElf;
 
 use Sports\Sport\Custom as SportCustom;
+use SportsHelpers\Identifiable;
 
-class ScoreUnit
+class ScoreUnit extends Identifiable
 {
     public const POINTS_WIN = 1;
     public const POINTS_DRAW = 2;
@@ -25,10 +27,7 @@ class ScoreUnit
     public const CARD_YELLOW = 65536;
     public const CARD_RED = 131072;
 
-    protected int $id;
-    protected int $number;
-
-    public function __construct(int $number)
+    public function __construct(protected int $number)
     {
         $this->number = $number;
     }

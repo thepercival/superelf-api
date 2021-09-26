@@ -1,11 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Calculator;
 
 use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
 use SuperElf\Pool\User\ViewPeriodPerson\Participation;
+use SuperElf\Pool\User\ViewPeriodPerson\Participation\Repository as ParticipationRepository;
 use SuperElf\GameRound;
 use SuperElf\Formation\Line\Repository as FormationLineRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
@@ -17,44 +17,41 @@ use SuperElf\Season\ScoreUnit as SeasonScoreUnit;
 
 class Substitute
 {
-    protected FormationLineRepository $formationLineRepos;
-    protected GameRoundRepository $gameRoundRepos;
-    protected ViewPeriodPersonGameRoundScoreRepository $gameRoundScoreRepos;
-    protected ViewPeriodPersonRepository $viewPeriodPersonRepos;
-    protected ViewPeriodRepository $viewPeriodRepos;
-
     public function __construct(
-        FormationLineRepository $formationLineRepos,
-        GameRoundRepository $gameRoundRepos,
-        ViewPeriodPersonGameRoundScoreRepository $gameRoundScoreRepos,
-        ViewPeriodPersonRepository $viewPeriodPersonRepos,
-        ViewPeriodRepository $viewPeriodRepos
+        protected FormationLineRepository $formationLineRepos,
+        protected GameRoundRepository $gameRoundRepos,
+        protected ViewPeriodPersonGameRoundScoreRepository $gameRoundScoreRepos,
+        protected ViewPeriodPersonRepository $viewPeriodPersonRepos,
+        protected ParticipationRepository $participationRepos,
+        protected ViewPeriodRepository $viewPeriodRepos
     ) {
-        $this->formationLineRepos = $formationLineRepos;
-        $this->gameRoundRepos = $gameRoundRepos;
-        $this->gameRoundScoreRepos = $gameRoundScoreRepos;
-        $this->viewPeriodPersonRepos = $viewPeriodPersonRepos;
-        $this->viewPeriodRepos = $viewPeriodRepos;
     }
 
     /**
      * @param ViewPeriodPerson $viewperiodperson
      * @param int $lineNumber
      * @param GameRound $gameRound
-     * @param array|SeasonScoreUnit[] $seasonScoreUnits
+     * @param list<SeasonScoreUnit> $seasonScoreUnits
      */
-    public function calculate( ViewPeriodPerson $viewperiodperson, int $lineNumber, GameRound $gameRound, array $seasonScoreUnits )
+    public function calculate(
+        ViewPeriodPerson $viewperiodperson,
+        int $lineNumber,
+        GameRound $gameRound, array $seasonScoreUnits ): void
     {
         $lines = $this->formationLineRepos->findByExt( $lineNumber, $viewperiodperson );
         foreach( $lines as $line ) {
-            $removed = $this->removeParticipation( $line->getSubstitute(), $gameRound);
+            $substitute = $line->getSubstitute();
+            if( $substitute === null ) {
+                continue;
+            }
+            $removed = $this->removeParticipation( $substitute, $gameRound);
             $needSubstitute = $line->needSubstitute( $gameRound );
-            if( $needSubstitute ) {
-                $this->addParticipation( $line->getSubstitute(), $gameRound );
+            if( !$needSubstitute ) {
+                $this->addParticipation( $substitute, $gameRound );
             }
             if( $removed || $needSubstitute ) {
-                $line->getSubstitute()->calculatePoints( $seasonScoreUnits );
-                $this->viewPeriodPersonRepos->save($line->getSubstitute());
+                $substitute->calculatePoints( $seasonScoreUnits );
+                $this->viewPeriodPersonRepos->save($substitute);
             }
         }
      }
@@ -65,13 +62,13 @@ class Substitute
             return false;
         }
         $substiute->getParticipations()->removeElement( $participation );
-        $this->formationLineRepos->remove($participation);
+        $this->participationRepos->remove($participation);
         return true;
      }
 
-    protected function addParticipation( PoolUserViewPeriodPerson $substiute, GameRound $gameRound) {
+    protected function addParticipation( PoolUserViewPeriodPerson $substiute, GameRound $gameRound): void {
 
         $participation = new Participation( $substiute, $gameRound );
-        $this->formationLineRepos->save($participation);
+        $this->participationRepos->save($participation);
     }
 }

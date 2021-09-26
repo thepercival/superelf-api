@@ -1,15 +1,19 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Competitor;
 
+use Doctrine\ORM\EntityRepository;
+use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Competitor;
 
-class Repository extends \Sports\Repository
+/**
+ * @template-extends EntityRepository<Competitor>
+ */
+class Repository extends EntityRepository
 {
-    public function find($id, $lockMode = null, $lockVersion = null): ?Competitor
-    {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
-    }
+    /**
+     * @use BaseRepository<Competitor>
+     */
+    use BaseRepository;
 }
