@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Substitution" table="substitutions" repository-class="SuperElf\Substitution\Repository">
+    <many-to-one field="line" target-entity="SuperElf\Formation\Line" inversed-by="substitutions">
+      <join-columns>
+        <join-column name="formationLineId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="gameRound" target-entity="SuperElf\GameRound">
+      <join-columns>
+        <join-column name="gameRoundId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <unique-constraints>
+      <unique-constraint columns="substitutionId,gameRoundId" name="main_u_idx"/>
+    </unique-constraints>
+  </entity>
+</doctrine-mapping>
