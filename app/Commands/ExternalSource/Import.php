@@ -1,8 +1,7 @@
 <?php
-
 declare(strict_types=1);
 
-namespace App\Commands;
+namespace App\Commands\ExternalSource;
 
 use App\QueueService;
 use App\Commands\ExternalSource as ExternalSourceCommand;
@@ -17,6 +16,8 @@ use Sports\League\Repository as LeagueRepository;
 use Sports\Season;
 use Sports\Season\Repository as SeasonRepository;
 use Sports\Sport;
+use SportsImport\Entity;
+use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Implementation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -24,28 +25,21 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource\Game\Against as AgainstGameExternalSource;
-use SportsImport\ExternalSource\Structure as StructureExternalSource;
-use SportsImport\ExternalSource\Competitor\Team as TeamCompetitorExternalSource;
-use SportsImport\ExternalSource\Competition as CompetitionExternalSource;
-use SportsImport\ExternalSource\Team as TeamExternalSource;
-use SportsImport\ExternalSource\League as LeagueExternalSource;
-use SportsImport\ExternalSource\Association as AssociationExternalSource;
-use SportsImport\ExternalSource\Season as SeasonExternalSource;
-use SportsImport\ExternalSource\Sport as SportExternalSource;
-use SportsImport\Service as ImportService;
+use SportsImport\ExternalSource\Competitions;
+use SportsImport\ExternalSource\CompetitionStructure;
+use SportsImport\ExternalSource\CompetitionDetails;
+use SportsImport\Importer;
 
 class Import extends ExternalSourceCommand
 {
-    protected ExternalSourceFactory $externalSourceFactory;
-    protected ImportService $importService;
+    protected Importer $importer;
 
     public function __construct(ContainerInterface $container)
     {
-        $this->externalSourceFactory = $container->get(ExternalSourceFactory::class);
-        $this->importService = $container->get(ImportService::class);
-        parent::__construct($container);
-        $this->importService->setEventSender( new QueueService( $this->config->getArray('queue') ) );
+        /** @var Importer importer */
+        $this->importer = $container->get(Importer::class);
+        parent::__construct($container, 'command-import');
+        $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
     }
 
     protected function configure(): void
@@ -65,149 +59,246 @@ class Import extends ExternalSourceCommand
         parent::configure();
     }
 
-    protected function init(InputInterface $input, string $name): void
-    {
-        $this->initLogger($input, $name);
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->init($input, 'cron-import');
-
-        $externalSourceName = $input->getArgument('externalSource');
+        $this->initLoggerFromInput($input);
+        $externalSourceName = (string)$input->getArgument('externalSource');
         $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        if( $externalSourceImpl === null ) {
-            if( $this->logger !== null) {
-                $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
-                $this->logger->error($message);
-            }
+        if ($externalSourceImpl === null) {
+            $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
+            $this->logger->error($message);
             return -1;
         }
-        $objectType = $input->getArgument('objectType');
+
+        $entity = $this->getEntityFromInput($input);
 
         try {
-            if ( $objectType === "sports" and $externalSourceImpl instanceof SportExternalSource) {
-                $this->importService->importSports($externalSourceImpl, $externalSourceImpl->getExternalSource());
-            } elseif ( $objectType === "seasons" and $externalSourceImpl instanceof SeasonExternalSource) {
-                $this->importService->importSeasons($externalSourceImpl, $externalSourceImpl->getExternalSource());
-            } else {
-                $sport = $this->getSportFromInput($input);
-                if ( $objectType === "associations" and $externalSourceImpl instanceof AssociationExternalSource ) {
-                    $this->importService->importAssociations($externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport);
-                } else {
-                    $association = $this->getAssociationFromInput($input);
-                    if ( $objectType === "leagues" and $externalSourceImpl instanceof LeagueExternalSource) {
-                        $this->importService->importLeagues($externalSourceImpl, $externalSourceImpl->getExternalSource(), $association);
-                    } else {
+            if ($externalSourceImpl instanceof Competitions) {
+                switch ($entity) {
+                    case Entity::SPORTS:
+                        $this->importer->importSports($externalSourceImpl, $externalSourceImpl->getExternalSource());
+                        return 0;
+                    case Entity::SEASONS:
+                        $this->importer->importSeasons($externalSourceImpl, $externalSourceImpl->getExternalSource());
+                        return 0;
+                    case Entity::ASSOCIATIONS:
+                        $sport = $this->getSportFromInput($input);
+                        $this->importer->importAssociations($externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport);
+                        return 0;
+                    case Entity::LEAGUES:
+                        $sport = $this->getSportFromInput($input);
+                        $association = $this->getAssociationFromInput($input);
+                        $this->importer->importLeagues(
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $association
+                        );
+                        return 0;
+                    case Entity::COMPETITIONS:
+                        $sport = $this->getSportFromInput($input);
                         $league = $this->getLeagueFromInput($input);
                         $season = $this->getSeasonFromInput($input);
-                        if ( $objectType === "competition" and $externalSourceImpl instanceof CompetitionExternalSource) {
-                            $this->importService->importCompetition(
-                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
-                        } elseif ( $objectType === "teams" and $externalSourceImpl instanceof TeamExternalSource) {
-                            $this->importService->importTeams(
-                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
-                        } elseif ( $objectType === "teamcompetitors" and $externalSourceImpl instanceof TeamCompetitorExternalSource) {
-                            $this->importService->importTeamCompetitors(
-                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
-                        } elseif ( $objectType === "structure"  and $externalSourceImpl instanceof StructureExternalSource) {
-                            $this->importService->importStructure(
-                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
-                        } elseif ( $objectType === "schedule"  and $externalSourceImpl instanceof AgainstGameExternalSource) {
-                            $this->importService->importSchedule(
-                                $externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport, $association, $league, $season);
-                        } elseif ( $objectType === "gamedetails" and $externalSourceImpl instanceof AgainstGameExternalSource) {
-                            $this->importAgainstGameDetails(
-                                $externalSourceImpl, $externalSourceImpl, $sport, $association, $league, $season);
-                        } elseif ( $objectType === "images" ) {
-                            $this->importImages($externalSourceImpl, $league, $season);
-                        } else {
-                            if( $this->logger !== null) {
-                                $message = "objectType \"" . $objectType . "\" kan niet worden geimporteerd uit externe bronnen";
-                                $this->logger->error($message);
-                            }
-                        }
-                    }
+                        $this->importer->importCompetition(
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
                 }
             }
-        } catch( \Exception $e ) {
-            if( $this->logger !== null) {
-                $this->logger->error($e->getMessage());
+            if ($externalSourceImpl instanceof Competitions &&
+                $externalSourceImpl instanceof CompetitionStructure) {
+                $sport = $this->getSportFromInput($input);
+                $league = $this->getLeagueFromInput($input);
+                $season = $this->getSeasonFromInput($input);
+                switch ($entity) {
+                    case Entity::TEAMS:
+                        $this->importer->importTeams(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
+                    case Entity::TEAMCOMPETITORS:
+                        $this->importer->importTeamCompetitors(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
+                    case Entity::STRUCTURE:
+                        $this->importer->importStructure(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
+                }
             }
+            if ($externalSourceImpl instanceof Competitions &&
+                $externalSourceImpl instanceof CompetitionStructure &&
+                $externalSourceImpl instanceof CompetitionDetails) {
+                $sport = $this->getSportFromInput($input);
+                $league = $this->getLeagueFromInput($input);
+                $season = $this->getSeasonFromInput($input);
+                switch ($entity) {
+                    case Entity::GAMES:
+                        $this->importer->importSchedule(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
+                    case Entity::GAMEDETAILS:
+                        $this->importAgainstGameDetails(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season
+                        );
+                        return 0;
+                    case Entity::IMAGES:
+                        $this->importImages(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $league,
+                            $season
+                        );
+                        return 0;
+                }
+            }
+            throw new \Exception('objectType "' . $entity . '" kan niet worden opgehaald uit externe bronnen', E_ERROR);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
         }
         return 0;
     }
 
 //    protected function importSports(Implementation $externalSourceImpl): void
 //    {
-//        $this->importService->importSports($externalSourceImpl);
+//        $this->importer->importSports($externalSourceImpl);
 //    }
 //
 //    protected function importAssociations(Implementation $externalSourceImpl, Sport $sport): void
 //    {
-//        $this->importService->importAssociations($externalSourceImpl, $sport);
+//        $this->importer->importAssociations($externalSourceImpl, $sport);
 //    }
 //
 //    protected function importSeasons(Implementation $externalSourceImpl): void
 //    {
-//        $this->importService->importSeasons($externalSourceImpl);
+//        $this->importer->importSeasons($externalSourceImpl);
 //    }
 //
 //    protected function importLeagues(Implementation $externalSourceImpl, Association $association): void
 //    {
-//        $this->importService->importLeagues($externalSourceImpl, $association);
+//        $this->importer->importLeagues($externalSourceImpl, $association);
 //    }
 //
 //    protected function importCompetition(Implementation $externalSourceImpl,
 //        Sport $sport, Association $association, League $league, Season $season): void
 //    {
-//        $this->importService->importCompetition($externalSourceImpl, $sport, $association, $league, $season );
+//        $this->importer->importCompetition($externalSourceImpl, $sport, $association, $league, $season );
 //    }
 
     protected function importAgainstGameDetails(
-        AgainstGameExternalSource $againstGameExternalSource,
-        Implementation $externalSourceImpl,
-        Sport $sport, Association $association, League $league, Season $season): void
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        CompetitionDetails $externalSourceCompetitionDetails,
+        ExternalSource $externalSource,
+        Sport $sport,
+        League $league,
+        Season $season
+    ): void
     {
         // bepaal de period waarin gezocht moet worden
         // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
 
 
-        $period = new Period(
-            new \DateTimeImmutable('2020-10-18 12:29'),
-            new \DateTimeImmutable('2020-10-18 12:31') ); // klaiber
-        // HIER VERDER
-        /*$period = new Period(
-            new \DateTimeImmutable('2020-09-01 08:00'),
-            new \DateTimeImmutable('2020-09-21 08:00') );
-        $period = new Period(
-            new \DateTimeImmutable('2020-09-21 08:00'),
-            new \DateTimeImmutable('2020-10-16 08:00') );
-        $period = new Period(
-            new \DateTimeImmutable('2020-10-16 08:00'),
-            new \DateTimeImmutable('2020-10-19 08:00') );*/
+//        $period = new Period(
+//            new \DateTimeImmutable('2020-10-18 12:29'),
+//            new \DateTimeImmutable('2020-10-18 12:31') ); // klaiber
+//        // HIER VERDER
+//        /*$period = new Period(
+//            new \DateTimeImmutable('2020-09-01 08:00'),
+//            new \DateTimeImmutable('2020-09-21 08:00') );
+//        $period = new Period(
+//            new \DateTimeImmutable('2020-09-21 08:00'),
+//            new \DateTimeImmutable('2020-10-16 08:00') );
+//        $period = new Period(
+//            new \DateTimeImmutable('2020-10-16 08:00'),
+//            new \DateTimeImmutable('2020-10-19 08:00') );*/
         $period = new Period(
             new \DateTimeImmutable('2020-10-19 08:00'),
-            new \DateTimeImmutable('2020-12-11 08:00') );
-        $this->importService->importAgainstGameDetails(
-            $againstGameExternalSource, $externalSourceImpl->getExternalSource(),
-            $sport, $association, $league, $season, $period );
+            new \DateTimeImmutable('2020-12-11 08:00')
+        );
+        $this->importer->importAgainstGameDetails(
+            $externalSourceCompetitions,
+            $externalSourceCompetitionStructure,
+            $externalSourceCompetitionDetails,
+            $externalSource,
+            $sport,
+            $league,
+            $season,
+            $period
+        );
     }
 
-    protected function importImages(Implementation $externalSourceImpl, League $league, Season $season): void
+    protected function importImages(
+        CompetitionStructure $externalSourceCompetitionStructure,
+        CompetitionDetails $externalSourceCompetitionDetails,
+        ExternalSource $externalSource,
+        League $league,
+        Season $season
+    ): void
     {
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.personsSuffix');
         $publicPath = $this->config->getString('www.apiurl');
         $publicPath .= $this->config->getString('images.personsSuffix');
         $maxWidth = 150;
-        $this->importService->importPersonImages($externalSourceImpl, $league, $season, $localPath, $publicPath, $maxWidth );
+        $this->importer->importPersonImages(
+            $externalSourceCompetitionDetails,
+            $externalSource,
+            $league,
+            $season,
+            $localPath,
+            $publicPath,
+            $maxWidth
+        );
 
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.teamsSuffix');
         $publicPath = $this->config->getString('www.apiurl');
         $publicPath .= $this->config->getString('images.teamsSuffix');
         $maxWidth = 150;
-        $this->importService->importTeamImages($externalSourceImpl, $league, $season, $localPath, $publicPath, $maxWidth );
+        $this->importer->importTeamImages(
+            $externalSourceCompetitionStructure,
+            $externalSource,
+            $league,
+            $season,
+            $localPath,
+            $publicPath,
+            $maxWidth
+        );
     }
 }

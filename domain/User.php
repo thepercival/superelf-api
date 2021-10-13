@@ -37,9 +37,9 @@ class User extends Identifiable
 
     final public function setEmailaddress(string $emailaddress): void
     {
-        if (strlen($emailaddress) < static::MIN_LENGTH_EMAIL or strlen($emailaddress) > static::MAX_LENGTH_EMAIL) {
+        if (strlen($emailaddress) < self::MIN_LENGTH_EMAIL or strlen($emailaddress) > self::MAX_LENGTH_EMAIL) {
             throw new \InvalidArgumentException(
-                "het emailadres moet minimaal " . static::MIN_LENGTH_EMAIL . " karakters bevatten en mag maximaal " . static::MAX_LENGTH_EMAIL . " karakters bevatten",
+                "het emailadres moet minimaal " . self::MIN_LENGTH_EMAIL . " karakters bevatten en mag maximaal " . self::MAX_LENGTH_EMAIL . " karakters bevatten",
                 E_ERROR
             );
         }
@@ -80,9 +80,9 @@ class User extends Identifiable
 
     final public function setName(string $name): void
     {
-        if (strlen($name) < static::MIN_LENGTH_NAME or strlen($name) > static::MAX_LENGTH_NAME) {
+        if (strlen($name) < self::MIN_LENGTH_NAME or strlen($name) > self::MAX_LENGTH_NAME) {
             throw new \InvalidArgumentException(
-                "de naam moet minimaal " . static::MIN_LENGTH_NAME . " karakters bevatten en mag maximaal " . static::MAX_LENGTH_NAME . " karakters bevatten",
+                "de naam moet minimaal " . self::MIN_LENGTH_NAME . " karakters bevatten en mag maximaal " . self::MAX_LENGTH_NAME . " karakters bevatten",
                 E_ERROR
             );
         }

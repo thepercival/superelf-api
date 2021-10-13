@@ -31,19 +31,32 @@ final class AuthAction extends Action
         UserRepository $userRepository,
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        Configuration $config) {
+        Configuration $config
+    ) {
         parent::__construct($logger, $serializer);
         $this->authService = $authService;
         $this->userRepos = $userRepository;
         $this->config = $config;
     }
 
-    public function validateToken(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function validateToken(Request $request, Response $response, array $args): Response
     {
         return $response->withStatus(200);
     }
 
-    public function register(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function register(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var stdClass $registerData */
@@ -57,9 +70,9 @@ final class AuthAction extends Action
             if (property_exists($registerData, "password") === false) {
                 throw new \Exception("geen wachtwoord ingevoerd");
             }
-            $emailAddress = strtolower(trim($registerData->emailaddress));
-            $name = strtolower(trim($registerData->name));
-            $password = $registerData->password;
+            $emailAddress = strtolower(trim((string)$registerData->emailaddress));
+            $name = strtolower(trim((string)$registerData->name));
+            $password = (string)$registerData->password;
 
             $user = $this->authService->register($emailAddress, $name, $password);
             if ($user === null) {
@@ -72,7 +85,13 @@ final class AuthAction extends Action
         }
     }
 
-    public function validate(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function validate(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var stdClass $registerData */
@@ -83,52 +102,67 @@ final class AuthAction extends Action
             if (property_exists($registerData, "key") === false) {
                 throw new \Exception("geen sleutel ingevoerd");
             }
-            $user = $this->authService->validate($registerData->emailaddress, $registerData->key);
+            $emailaddress = (string)$registerData->emailaddress;
+            $key = (string)$registerData->key;
+            $user = $this->authService->validate($emailaddress, $key);
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user );
+            $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
     }
 
-    public function login(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function login(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var stdClass $authData */
             $authData = $this->getFormData($request);
-            if (!property_exists($authData, "emailaddress") || strlen($authData->emailaddress) === 0) {
-                throw new \Exception("het emailadres is niet opgegeven");
+            if (!property_exists($authData, "emailaddress")) {
+                throw new \Exception("het emailadres is niet opgegeven", E_ERROR);
             }
-            $emailaddress = filter_var($authData->emailaddress, FILTER_VALIDATE_EMAIL);
+            $emailaddress = (string)$authData->emailaddress;
+            if (strlen($emailaddress) === 0) {
+                throw new \Exception("het emailadres is niet opgegeven", E_ERROR);
+            }
+            $emailaddress = filter_var(strtolower(trim($emailaddress)), FILTER_VALIDATE_EMAIL);
             if ($emailaddress === false) {
-                throw new \Exception("het emailadres \"" . $authData->emailaddress . "\" is onjuist");
+                throw new \Exception('het emailadres is onjuist', E_ERROR);
             }
-            $emailAddress = strtolower(trim($emailaddress));
-            if (!property_exists($authData, "password") || strlen($authData->password) === 0) {
+            if (!property_exists($authData, "password")) {
                 throw new \Exception("het wachtwoord is niet opgegeven");
             }
+            $password = (string)$authData->password;
+            $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
 
-            $user = $this->userRepos->findOneBy(
-                array('emailaddress' => $emailaddress)
-            );
-
-            if (!$user or !password_verify($user->getSalt() . $authData->password, $user->getPassword())) {
-                throw new \Exception("ongeldige emailadres en wachtwoord combinatie");
+            if (!$user or !password_verify($user->getSalt() . $password, $user->getPassword())) {
+                throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
             }
 
-            /*if ( !$user->getActive() ) {
-             throw new \Exception( "activeer eerst je account met behulp van de link in je ontvangen email", E_ERROR );
-             }*/
+            if (!$user->getValidated()) {
+                throw new \Exception("valideer eerst je emailadres met behulp van de link in je ontvangen email", E_ERROR);
+            }
 
-            $authItem = new AuthItem($this->authService->createToken($user), $user );
+            $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
     }
 
-    public function passwordreset(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function passwordreset(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var stdClass $paswordResetData */
@@ -136,7 +170,7 @@ final class AuthAction extends Action
             if (property_exists($paswordResetData, "emailaddress") === false) {
                 throw new \Exception("geen emailadres ingevoerd");
             }
-            $emailAddress = strtolower(trim($paswordResetData->emailaddress));
+            $emailAddress = strtolower(trim((string)$paswordResetData->emailaddress));
 
             $retVal = $this->authService->sendPasswordCode($emailAddress);
 
@@ -148,7 +182,13 @@ final class AuthAction extends Action
         }
     }
 
-    public function passwordchange(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function passwordchange(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var stdClass $paswordChangeData */
@@ -162,8 +202,8 @@ final class AuthAction extends Action
             if (property_exists($paswordChangeData, "code") === false) {
                 throw new \Exception("geen code ingevoerd");
             }
-            $emailAddress = $emailAddress = strtolower(trim($paswordChangeData->emailaddress));
-            $password = $paswordChangeData->password;
+            $emailAddress = strtolower(trim((string)$paswordChangeData->emailaddress));
+            $password = (string)$paswordChangeData->password;
             $code = (string)$paswordChangeData->code;
 
             $user = $this->authService->changePassword($emailAddress, $password, $code);
@@ -175,12 +215,18 @@ final class AuthAction extends Action
         }
     }
 
-    public function extendToken(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function extendToken(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $user */
             $user = $request->getAttribute("user");
-            $authItem = new AuthItem($this->authService->createToken($user), $user );
+            $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);

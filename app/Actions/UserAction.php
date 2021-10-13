@@ -39,19 +39,25 @@ final class UserAction extends Action
         $this->serializer = $serializer;
     }
 
-    protected function getDeserializationContext()
+    protected function getDeserializationContext(): DeserializationContext
     {
         $serGroups = ['Default', 'admin'];
         return DeserializationContext::create()->setGroups($serGroups);
     }
 
-    protected function getSerializationContext()
+    protected function getSerializationContext(): SerializationContext
     {
         $serGroups = ['Default', 'admin'];
         return SerializationContext::create()->setGroups($serGroups);
     }
 
-    public function fetchOne(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $user */
@@ -67,13 +73,18 @@ final class UserAction extends Action
         }
     }
 
-    public function edit(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function edit(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $userAuth */
             $userAuth = $request->getAttribute("user");
 
-            /** @var User $userSer */
             $userSer = $this->serializer->deserialize(
                 $this->getRawData(),
                 User::class,
@@ -100,20 +111,27 @@ final class UserAction extends Action
         }
     }
 
-    public function remove(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function remove(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $userAuth */
             $userAuth = $request->getAttribute("user");
 
             $user = $this->userRepos->find((int)$args['userId']);
-            if ($userAuth->getId() !== $user->getId()) {
+            if ($user === null || $userAuth->getId() !== $user->getId()) {
                 throw new \Exception(
-                    "de ingelogde gebruiker en de te verwijderen gebruiker zijn verschillend", E_ERROR
+                    'de ingelogde gebruiker en de te verwijderen gebruiker zijn verschillend',
+                    E_ERROR
                 );
             }
 
-            $invitations = $this->syncService->revertPoolUsers($userAuth);
+            $this->syncService->revertPoolUsers($userAuth);
 
             $this->userRepos->remove($user);
             return $response->withStatus(200);

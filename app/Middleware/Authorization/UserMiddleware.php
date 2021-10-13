@@ -13,6 +13,7 @@ class UserMiddleware extends AuthorizationMiddleware
 {
     protected function isAuthorized(Request $request ): void
     {
+        /** @var User|null $user */
         $user = $request->getAttribute('user');
         if ($user === null) {
             throw new \Exception("je moet ingelogd zijn voor dit toernooi", E_ERROR);

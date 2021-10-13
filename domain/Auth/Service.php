@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
+use Doctrine\ORM\EntityManager;
 use Exception;
 use SuperElf\Auth\SyncService as AuthSyncService;
 use SuperElf\User;
@@ -17,6 +18,7 @@ class Service
 {
     public function __construct(
         protected UserRepository $userRepos,
+        protected EntityManager $entityManager,
         protected PoolRepository $poolRepos,
         protected AuthSyncService $syncService,
         protected Configuration $config,
@@ -87,9 +89,9 @@ EOT;
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailAddress));
         if (!$user) {
-            throw new \Exception("kan geen code versturen");
+            throw new \Exception('kan geen code versturen', E_ERROR);
         }
-        $conn = $this->userRepos->getEM()->getConnection();
+        $conn = $this->entityManager->getConnection();
         $conn->beginTransaction();
         try {
             $user->resetForgetpassword();

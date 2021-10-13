@@ -30,7 +30,13 @@ final class CompetitionAction extends Action
         $this->config = $config;
     }
 
-    public function fetchOne(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
             $competition = $this->competitionRepos->find( (int)$args["competitionId"] );
@@ -45,9 +51,9 @@ final class CompetitionAction extends Action
         }
     }
 
-    protected function getSerializationContext()
+    protected function getSerializationContext(): SerializationContext
     {
-        $serGroups = ['Default', 'teamCompetitors'];
+        $serGroups = ['Default', 'teamCompetitors','noReference'];
         return SerializationContext::create()->setGroups($serGroups);
     }
 }

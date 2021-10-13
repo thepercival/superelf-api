@@ -31,7 +31,13 @@ final class ActiveConfigAction extends Action
         $this->activeConfigService = $activeConfigService;
     }
 
-    public function fetchOne(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
             $activeConfig = $this->activeConfigService->getConfig();

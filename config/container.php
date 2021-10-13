@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Doctrine\Common\Cache\Cache;
 use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\SerializerInterface;
 use Psr\Container\ContainerInterface;
@@ -16,11 +17,8 @@ use App\Mailer;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
-use Sports\SerializationHandler\Round\Number as RoundNumberSerializationHandler;
-use Sports\SerializationHandler\Structure as StructureSerializationHandler;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\DeserializationContext;
-use Sports\SerializationHandler\Round as RoundSerializationHandler;
 use Selective\Config\Configuration;
 use Slim\App;
 use Slim\Factory\AppFactory;
@@ -33,6 +31,7 @@ return [
     App::class => function (ContainerInterface $container): App {
         AppFactory::setContainer($container);
         $app = AppFactory::create();
+        /** @var Configuration $config */
         $config = $container->get(Configuration::class);
         if ($config->getString("environment") === "production") {
             $routeCacheFile = $config->getString('router.cache_file');
@@ -43,6 +42,7 @@ return [
         return $app;
     },
     LoggerInterface::class => function (ContainerInterface $container): LoggerInterface {
+        /** @var Configuration $config */
         $config = $container->get(Configuration::class);
 
         $loggerSettings = $config->getArray('logger');
@@ -52,32 +52,36 @@ return [
         $processor = new UidProcessor();
         $logger->pushProcessor($processor);
 
-        $path = $config->getString(
-            "environment"
-        ) === "development" ? 'php://stdout' : ($loggerSettings['path'] . $name . '.log');
-
+        $loggerPath = $config->getString('logger.path') . $name . '.log';
+        $path = $config->getString('environment') === 'development' ? 'php://stdout' : $loggerPath;
         $handler = new StreamHandler($path, $loggerSettings['level']);
         $logger->pushHandler($handler);
 
         return $logger;
     },
     EntityManager::class => function (ContainerInterface $container): EntityManager {
-        $config = $container->get(Configuration::class)->getArray('doctrine');
-        $doctrineBaseConfig = $container->get(Configuration::class)->getArray('doctrine');
-        // $settings = $container->get('settings')['doctrine'];
-        $doctrineMetaConfig = $config['meta'];
-        $doctrineConfig = Doctrine\ORM\Tools\Setup::createConfiguration(
-            $doctrineMetaConfig['dev_mode'],
-            $doctrineMetaConfig['proxy_dir'],
-            $doctrineMetaConfig['cache']
-        );
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $doctrineAppConfig = $config->getArray('doctrine');
+        /** @var array<string, string|bool|null> $doctrineMetaConfig */
+        $doctrineMetaConfig = $doctrineAppConfig['meta'];
+        /** @var bool $devMode */
+        $devMode = $doctrineMetaConfig['dev_mode'];
+        /** @var string|null $proxyDir */
+        $proxyDir = $doctrineMetaConfig['proxy_dir'];
+        /** @var Cache|null $cache */
+        $cache = $doctrineMetaConfig['cache'];
+        $doctrineConfig = Doctrine\ORM\Tools\Setup::createConfiguration($devMode, $proxyDir, $cache);
         $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($doctrineMetaConfig['entity_path']);
         $doctrineConfig->setMetadataDriverImpl($driver);
-        $em = Doctrine\ORM\EntityManager::create($config['connection'], $doctrineConfig);
+        /** @var array<string, mixed> $connectionParams */
+        $connectionParams = $doctrineAppConfig['connection'];
+        $em = Doctrine\ORM\EntityManager::create($connectionParams, $doctrineConfig);
         // $em->getConnection()->setAutoCommit(false);
         return $em;
     },
     SerializerInterface::class => function (ContainerInterface $container): SerializerInterface {
+        /** @var Configuration $config */
         $config = $container->get(Configuration::class);
         $env = $config->getString("environment");
         $serializerBuilder = SerializerBuilder::create()->setDebug($env === "development");
@@ -99,7 +103,9 @@ return [
                 return DeserializationContext::create()->setGroups(['Default']);
             }
         );
-        foreach ($config->getArray('serializer.yml_dir') as $ymlnamespace => $ymldir) {
+        /** @var array<string, string> $ymlDirs */
+        $ymlDirs = $config->getArray('serializer.yml_dir');
+        foreach ($ymlDirs as $ymlnamespace => $ymldir) {
             $serializerBuilder->addMetadataDir($ymldir, $ymlnamespace);
         }
 //        $serializerBuilder->configureHandlers(
@@ -107,7 +113,7 @@ return [
 //                $registry->registerSubscribingHandler(new StructureSerializationHandler());
 //                $registry->registerSubscribingHandler(new RoundNumberSerializationHandler());
 //                $registry->registerSubscribingHandler(new RoundSerializationHandler());
-////            $registry->registerSubscribingHandler(new QualifyGroupSerializationHandler());
+        ////            $registry->registerSubscribingHandler(new QualifyGroupSerializationHandler());
 //            }
 //        );
 //            $serializerBuilder->configureListeners(function(JMS\Serializer\EventDispatcher\EventDispatcher $dispatcher) {
@@ -124,10 +130,14 @@ return [
         return $serializerBuilder->build();
     },
     Mailer::class => function (ContainerInterface $container): Mailer {
+        /** @var Configuration $config */
         $config = $container->get(Configuration::class);
+        /** @var LoggerInterface $logger */
+        $logger = $container->get(LoggerInterface::class);
+        /** @var array<string, string|int>|null|null $smtpForDev */
         $smtpForDev = $config->getString("environment") === "development" ? $config->getArray("email.mailtrap") : null;
         return new Mailer(
-            $container->get(LoggerInterface::class),
+            $logger,
             $config->getString('email.from'),
             $config->getString('email.fromname'),
             $config->getString('email.admin'),
@@ -135,13 +145,18 @@ return [
         );
     },
     ExternalSourceFactory::class => function (ContainerInterface $container): ExternalSourceFactory {
-        $externalSourceFactory = new ExternalSourceFactory(
-            $container->get(ExternalSourceRepository::class),
-            $container->get(CacheItemDbRepository::class),
-            $container->get(LoggerInterface::class)
-        );
+        /** @var ExternalSourceRepository $externalSourceRepos */
+        $externalSourceRepos = $container->get(ExternalSourceRepository::class);
+        /** @var CacheItemDbRepository $cacheItemDbRepos */
+        $cacheItemDbRepos = $container->get(CacheItemDbRepository::class);
+        /** @var LoggerInterface $logger */
+        $logger = $container->get(LoggerInterface::class);
+        $externalSourceFactory = new ExternalSourceFactory($externalSourceRepos, $cacheItemDbRepos, $logger);
+        /** @var Configuration $config */
         $config = $container->get(Configuration::class);
-        $externalSourceFactory->setProxy( $config->getArray('proxy') );
+        /** @var array<string, string> $proxyConfig */
+        $proxyConfig = $config->getArray('proxy');
+        $externalSourceFactory->setProxy($proxyConfig);
         return $externalSourceFactory;
     }
 

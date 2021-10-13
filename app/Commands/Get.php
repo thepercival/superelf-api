@@ -1,42 +1,54 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Commands;
 
+use Sports\Association;
 use Sports\Game;
 use Sports\Season;
 use Sports\Team;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\League;
 use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Game\Repository as GameRepository;
 use Sports\Structure\Repository as StructureRepository;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Team\Repository as TeamRepository;
 use Psr\Container\ContainerInterface;
 use App\Command;
 use Sports\Output\ConsoleTable;
 
+use SportsImport\Entity;
+use stdClass;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Get extends Command
-{
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\Together as TogetherGame;
 
+class Get extends ExternalSource
+{
     protected CompetitionRepository $competitionRepos;
     protected StructureRepository $structureRepos;
-    protected GameRepository $gameRepos;
+    protected AgainstGameRepository $againstGameRepos;
+    protected TeamRepository $teamRepos;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var CompetitionRepository competitionRepos */
         $this->competitionRepos = $container->get(CompetitionRepository::class);
+        /** @var AgainstGameRepository againstGameRepos */
+        $this->againstGameRepos = $container->get(AgainstGameRepository::class);
+        /** @var StructureRepository structureRepos */
         $this->structureRepos = $container->get(StructureRepository::class);
-        $this->gameRepos = $container->get(GameRepository::class);
-        parent::__construct($container);
+        /** @var TeamRepository teamRepos */
+        $this->teamRepos = $container->get(TeamRepository::class);
+
+        parent::__construct($container, 'command-get');
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             // the name of the command (the part after "bin/console")
@@ -54,54 +66,48 @@ class Get extends Command
         parent::configure();
     }
 
-    protected function init(InputInterface $input, string $name)
-    {
-        $this->initLogger($input, $name);
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->init($input, 'cron-get');
+        $this->initLoggerFromInput($input);
 
-        $objectType = $input->getArgument('objectType');
+        $entity = $this->getEntityFromInput($input);
 
         try {
-            if ( $objectType === "sports" ) {
-                $this->getSports($input);
-            } elseif ( $objectType === "associations" ) {
-                $this->getAssociations($input);
-            } else if ( $objectType === "seasons" ) {
+            if ($entity === Entity::SPORTS) {
+                $this->showSports($input);
+            } elseif ($entity === Entity::ASSOCIATIONS) {
+                $this->showAssociations($input);
+            } elseif ($entity === Entity::SEASONS) {
                 $this->showSeasons($input);
-            } elseif ( $objectType === "leagues" ) {
+            } elseif ($entity === Entity::LEAGUES) {
                 $this->showLeagues($input);
-            } elseif ( $objectType === "competitions" ) {
+            } elseif ($entity === Entity::COMPETITIONS) {
                 $this->showCompetitions($input);
+            } elseif ($entity === Entity::TEAMS) {
+                $association = $this->getAssociationFromInput($input);
+                $this->showTeams($association);
             } else {
                 $league = $this->getLeagueFromInput($input);
                 $season = $this->getSeasonFromInput($input);
-                if ( $objectType === "teams" ) {
-                    $this->showTeams($league, $season );
-                } elseif ( $objectType === "teamcompetitors" ) {
+                if ($entity === Entity::TEAMCOMPETITORS) {
                     $this->showTeamCompetitors($league, $season);
-                } elseif ( $objectType === "structure" ) {
+                } elseif ($entity === Entity::STRUCTURE) {
                     $this->showStructure($league, $season);
-                } elseif ( $objectType === "games" ) {
-                    $this->showGames($league, $season);
-                } elseif ( $objectType === "game" ) {
-                    $this->showGame($league, $season, $this->getIdFromInput($input) );
-                } else {
-                    if( $this->logger !== null) {
-                        $message = "objectType \"" . $objectType . "\" kan niet worden opgehaald uit bronnen";
-                        $this->logger->error($message);
+                } elseif ($entity === Entity::GAMES) {
+                    $plural = $this->getPluralFromInput($input);
+                    if ($plural) {
+                        $this->showAgainstGames($league, $season);
+                    } else {
+                        $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
                     }
+                } else {
+                    $message = 'objectType "'. $entity . '" kan niet worden opgehaald uit bronnen';
+                    $this->logger->error($message);
                 }
             }
-        } catch( \Exception $e ) {
-            if( $this->logger !== null) {
-                $this->logger->error($e->getMessage());
-            }
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
         }
-
 
 //        if ($input->getOption("structures")) {
 //            $this->importStructures(SofaScore::NAME);
@@ -115,179 +121,129 @@ class Get extends Command
     
 
 
-    protected function getSports(InputInterface $input)
+    protected function showSports(InputInterface $input): void
     {
         $table = new ConsoleTable\Sports();
-        $table->display( $this->sportRepos->findAll() );
+        $table->display($this->sportRepos->findAll());
     }
 
-    protected function getAssociations(InputInterface $input)
+    protected function showAssociations(InputInterface $input): void
     {
-        $associations = $this->associationRepos->findBy( $this->getAssociationFilter($input) );
+        $associations = $this->associationRepos->findBy($this->getInputFilter($input));
 
         $table = new ConsoleTable\Associations();
-        $table->display( $associations );
+        $table->display($associations);
     }
 
-    protected function getAssociationFilter( InputInterface $input ): array {
-        if( strlen( $input->getOption("filter") ) === 0 ) {
-            return [];
-        }
-        $filterAsStdClass = json_decode( $input->getOption("filter") );
-        if( $filterAsStdClass === null ) {
-            return [];
-        }
-
-        if( property_exists($filterAsStdClass,"name") ) {
-            return ["name" => $filterAsStdClass->name ];
-        }
-        return [];
-    }
-
-    protected function showSeasons(InputInterface $input )
+    protected function showSeasons(InputInterface $input): void
     {
-        $seasons = $this->seasonRepos->findBy( $this->getSeasonFilter($input) );
+        $seasons = $this->seasonRepos->findBy($this->getInputFilter($input));
 
         $table = new ConsoleTable\Seasons();
-        $table->display( $seasons );
+        $table->display($seasons);
     }
 
-    protected function getSeasonFilter( InputInterface $input ): array {
-        if( strlen( $input->getOption("filter") ) === 0 ) {
-            return [];
-        }
-        $filterAsStdClass = json_decode( $input->getOption("filter") );
-        if( $filterAsStdClass === null ) {
-            return [];
-        }
-
-        if( property_exists($filterAsStdClass,"name") ) {
-            return ["name" => $filterAsStdClass->name ];
-        }
-        return [];
-    }
-
-    protected function showLeagues(InputInterface $input)
+    protected function showLeagues(InputInterface $input): void
     {
-        $leagues = $this->leagueRepos->findBy( $this->getLeagueFilter($input) );
+        $leagues = $this->leagueRepos->findBy($this->getInputFilter($input));
 
         $table = new ConsoleTable\Leagues();
-        $table->display( $leagues );
+        $table->display($leagues);
     }
 
-    protected function getLeagueFilter( InputInterface $input ): array {
-        if( strlen( $input->getOption("filter") ) === 0 ) {
-            return [];
-        }
-        $filterAsStdClass = json_decode( $input->getOption("filter") );
-        if( $filterAsStdClass === null ) {
-            return [];
-        }
-
-        if( property_exists($filterAsStdClass,"name") ) {
-            return ["name" => $filterAsStdClass->name ];
-        }
-        return [];
-    }
-
-    protected function showCompetitions(InputInterface $input)
+    protected function showCompetitions(InputInterface $input): void
     {
-        $competitions = $this->competitionRepos->findBy( $this->getCompetitionFilter($input) );
+        $competitions = $this->competitionRepos->findBy($this->getInputFilter($input));
 
         $table = new ConsoleTable\Competitions();
-        $table->display( $competitions );
+        $table->display($competitions);
     }
 
-    protected function getCompetitionFilter( InputInterface $input ): array {
-        if( strlen( $input->getOption("filter") ) === 0 ) {
-            return [];
-        }
-        $filterAsStdClass = json_decode( $input->getOption("filter") );
-        if( $filterAsStdClass === null ) {
-            return [];
-        }
-        return [];
-    }
-
-    protected function showTeams(League $league, Season $season)
+    /**
+     * @param InputInterface $input
+     * @return array<string, mixed>
+     */
+    protected function getInputFilter(InputInterface $input): array
     {
-        $competition = $this->competitionRepos->findOneExt( $league, $season );
-        if( $competition === null ) {
-            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+        $inputFilterAsArray = [];
+
+        /** @var string|null $competitionFilter */
+        $inputFilter = $input->getOption("filter");
+        if (!is_string($inputFilter) || strlen($inputFilter) === 0) {
+            return $inputFilterAsArray;
         }
-        $teamCompetitors = $competition->getTeamCompetitors();
-        if( $teamCompetitors->count() === 0 ) {
-            echo "no teamcompetitors yet, first fill teamcompetitors" . PHP_EOL;
-            return;
+        /** @var stdClass|null $inputFilterClass */
+        $inputFilterClass = json_decode($inputFilter);
+        if ($inputFilterClass === null) {
+            return $inputFilterAsArray;
         }
-        $teams = $competition->getTeamCompetitors()->map( function ( TeamCompetitor $teamCompetitor ): Team {
-            return $teamCompetitor->getTeam();
-        })->toArray();
+
+        if (property_exists($inputFilterClass, "name")) {
+            $inputFilterAsArray["name"] = (string)$inputFilterClass->name;
+        }
+        return $inputFilterAsArray;
+    }
+
+    protected function showTeams(Association $association): void
+    {
+        $teams = $this->teamRepos->findBy(['association' => $association]);
         $table = new ConsoleTable\Teams();
-        $table->display( $teams );
+        $table->display(array_values($teams));
     }
 
-    protected function showTeamCompetitors(League $league, Season $season)
+    protected function showTeamCompetitors(League $league, Season $season): void
     {
-        $competition = $this->competitionRepos->findOneExt( $league, $season );
-        if( $competition === null ) {
+        $competition = $this->competitionRepos->findOneExt($league, $season);
+        if ($competition === null) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
-        $teamCompetitors = $competition->getTeamCompetitors()->toArray();
+        $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
 
         $table = new ConsoleTable\TeamCompetitors();
-        $table->display( $teamCompetitors );
+        $table->display($teamCompetitors);
     }
 
-    protected function showStructure(League $league, Season $season)
+    protected function showStructure(League $league, Season $season): void
     {
-        $competition = $this->competitionRepos->findOneExt( $league, $season );
-        if( $competition === null ) {
+        $competition = $this->competitionRepos->findOneExt($league, $season);
+        if ($competition === null) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
-        $structure = $this->structureRepos->getStructure( $competition );
-        if( $structure === null ) {
-            throw new \Exception("no structure found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
-        }
-        $teamCompetitors = $competition->getTeamCompetitors()->toArray();
+        $structure = $this->structureRepos->getStructure($competition);
+        $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
         $table = new ConsoleTable\Structure();
-        $table->display( $competition, $structure, $teamCompetitors );
+        $table->display($competition, $structure, $teamCompetitors);
     }
 
-    protected function showGames(League $league, Season $season)
+    protected function showAgainstGames(League $league, Season $season): void
     {
-        $competition = $this->competitionRepos->findOneExt( $league, $season );
-        if( $competition === null ) {
+        $competition = $this->competitionRepos->findOneExt($league, $season);
+        if ($competition === null) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
-        $structure = $this->structureRepos->getStructure( $competition );
-        if( $structure === null ) {
-            throw new \Exception("no structure found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
-        }
-        $games = $structure->getFirstRoundNumber()->getGames( Game::ORDER_BY_BATCH );
+        $structure = $this->structureRepos->getStructure($competition);
+        $games = array_values($structure->getFirstRoundNumber()->getGames(Game\Order::ByBatch));
+        $againstGames = array_filter($games, fn (AgainstGame|TogetherGame $game) => $game instanceof AgainstGame);
 
-        $teamCompetitors = $competition->getTeamCompetitors()->toArray();
-        $table = new ConsoleTable\Games();
-        $table->display( $competition, $games, $teamCompetitors );
+        $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
+        $table = new ConsoleTable\AgainstGames();
+        $table->display($competition, array_values($againstGames), $teamCompetitors);
     }
 
-    protected function showGame(League $league, Season $season, $id )
+    protected function showAgainstGame(League $league, Season $season, string|int $id): void
     {
-        $competition = $this->competitionRepos->findOneExt( $league, $season );
-        if( $competition === null ) {
+        $competition = $this->competitionRepos->findOneExt($league, $season);
+        if ($competition === null) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
-        $structure = $this->structureRepos->getStructure( $competition );
-        if( $structure === null ) {
-            throw new \Exception("no structure found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
-        }
-        $game = $this->gameRepos->find( $id );
-        if( $game === null ) {
-            throw new \Exception("no game found for league '".$league->getName()."' and season '".$season->getName()."' and id " . $id , E_ERROR);
+        $this->structureRepos->getStructure($competition);
+        $againstGame = $this->againstGameRepos->find($id);
+        if ($againstGame === null) {
+            throw new \Exception("no game found for league '".$league->getName()."' and season '".$season->getName()."' and id " . $id, E_ERROR);
         }
 
-        $teamCompetitors = $competition->getTeamCompetitors()->toArray();
-        $table = new ConsoleTable\Game();
-        $table->display( $competition, $game, $teamCompetitors );
+        $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
+        $table = new ConsoleTable\AgainstGame();
+        $table->display($competition, $againstGame, $teamCompetitors);
     }
 }

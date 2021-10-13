@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use Sports\Competition;
 use Sports\Sport;
 use Sports\Sport\Config\Service as SportConfigService;
 use SuperElf\CompetitionCreator\DefaultCreator;
+use SportsHelpers\Sport\PersistVariant as SportPersistVariant;
 
 class CompetitionsCreator
 {
@@ -15,15 +17,20 @@ class CompetitionsCreator
 
     /**
      * @param Pool $pool
-     * @param array<int, Sport> $competitionTypes
+     * @param SportPersistVariant $sportPersistVariant
+     * @param list<int> $competitionTypes
+     * @return list<Competition>
      */
-    public function createCompetitions( Pool $pool, array $competitionTypes ): void {
+    public function createCompetitions(
+        Pool $pool,
+        Sport $sport,
+        array $competitionTypes): array {
         $defaultCreator = new DefaultCreator();
-        foreach( $competitionTypes as $competitionType => $sport) {
-            $defaultCreator->createCompetition( $pool, $competitionType, $sport );
+        $competitions = [];
+        foreach( $competitionTypes as $competitionType) {
+            $competitions[] = $defaultCreator->createCompetition( $pool, $sport, $competitionType );
         }
-        //$this->createCup( $sport, $pool );
-        //$this->createSuperCup( $sport, $pool );
+        return $competitions;
     }
 
     public function recreateDetails( Pool $pool ): void {

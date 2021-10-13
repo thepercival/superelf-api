@@ -24,7 +24,7 @@ class Repository extends EntityRepository
      * @param Team|null $team
      * @param int|null $line
      * @param int|null $maxRows
-     * @return list<ViewPeriodPerson>
+     * @return list<S11Player>
      */
     public function findByExt(ViewPeriod $viewPeriod, Team $team = null, int $line = null, int $maxRows = null): array
     {
@@ -48,8 +48,8 @@ class Repository extends EntityRepository
             $qb = $qb->setMaxResults($maxRows);
         }
         // $sql = $qb->getQuery()->getSQL();
-        /** @var list<ViewPeriodPerson> $viewPeriodPersons */
-        $viewPeriodPersons = $qb->getQuery()->getResult();
-        return $viewPeriodPersons;
+        /** @var list<S11Player> $players */
+        $players = $qb->getQuery()->getResult();
+        return $players;
     }
 }

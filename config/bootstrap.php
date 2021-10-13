@@ -24,6 +24,7 @@ if (isset($_SERVER['REQUEST_METHOD']) === false) {
 // Build PHP-DI Container instance
 $container = $containerBuilder->build();
 // Create App instance
+/** @var App $app */
 $app = $container->get(App::class);
 // Register routes
 (require __DIR__ . '/routes.php')($app);

@@ -35,36 +35,39 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
     public function __construct(array $options)
     {
         if (array_key_exists("queueSuffix", $options)) {
+            /** @var string queueSuffix */
             $this->queueSuffix = $options["queueSuffix"];
             unset($options["queueSuffix"]);
         }
         $this->options = $options;
     }
 
-    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null): void {
+    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null): void
+    {
         $content = ["gameId" => $game->getId() ];
-        if( $oldStartDateTime !== null ) {
+        if ($oldStartDateTime !== null) {
             $content["oldTimestamp"] = $oldStartDateTime->getTimestamp();
         }
-        $this->sendEventHelper( self::NAME_UPDATE_GAME_QUEUE, $content );
+        $this->sendEventHelper(self::NAME_UPDATE_GAME_QUEUE, $content);
     }
 
-    public function sendUpdateGameDetailsEvent(Game $game): void {
+    public function sendUpdateGameDetailsEvent(Game $game): void
+    {
         $content = ["gameId" => $game->getId()];
-        $this->sendEventHelper( self::NAME_UPDATE_GAMEDETAILS_QUEUE, $content );
+        $this->sendEventHelper(self::NAME_UPDATE_GAMEDETAILS_QUEUE, $content);
     }
 
-    protected function sendEventHelper(string $queueName, array $content): void {
-
+    protected function sendEventHelper(string $queueName, array $content): void
+    {
         $context = $this->getContext();
 
         /** @var AmqpTopic $exchange */
         $exchange = $context->createTopic('amq.direct');
         // $topic->setType(AmqpTopic::TYPE_DIRECT);
         $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
-////$topic->setArguments(['alternate-exchange' => 'foo']);
+        ////$topic->setArguments(['alternate-exchange' => 'foo']);
 
-        $queue = $this->getQueue( $queueName );
+        $queue = $this->getQueue($queueName);
         $context->declareQueue($queue);
 
         $context->bind(new AmqpBind($exchange, $queue));
@@ -76,7 +79,7 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
     public function receive(callable $callable, int $timeoutInSeconds, string $queueName): void
     {
         $context = $this->getContext();
-        $consumer = $context->createConsumer($this->getQueue( $queueName ));
+        $consumer = $context->createConsumer($this->getQueue($queueName));
 
         $subscriptionConsumer = $context->createSubscriptionConsumer();
         $subscriptionConsumer->subscribe($consumer, $callable);
@@ -90,12 +93,11 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         return $factory->createContext();
     }
 
-    protected function getQueue( string $name ): AmqpQueue
+    protected function getQueue(string $name): AmqpQueue
     {
         /** @var AmqpQueue $queue */
-        $queue = $this->getContext()->createQueue( $name . '-' . $this->queueSuffix);
+        $queue = $this->getContext()->createQueue($name . '-' . $this->queueSuffix);
         $queue->addFlag(AmqpQueue::FLAG_DURABLE);
         return $queue;
     }
 }
-

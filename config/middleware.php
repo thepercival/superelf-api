@@ -16,12 +16,13 @@ use Slim\App;
 use SuperElf\Auth\Token as AuthToken;
 
 // middleware is executed by LIFO
-
+/** @psalm-suppress UnusedClosureParam */
 return function (App $app) {
     $container = $app->getContainer();
-    if( $container === null ) {
+    if ($container === null) {
         return;
     }
+    /** @var Configuration $config */
     $config = $container->get(Configuration::class);
 
     $app->add(
@@ -50,12 +51,19 @@ return function (App $app) {
                         ]
                     )
                 ],
-                "error" => function (Response $response, array $arguments): UnauthorizedResponse {
-                    return new UnauthorizedResponse($arguments["message"]);
+                "error" => function (Response $response, array $args): UnauthorizedResponse {
+                    /** @var string $message */
+                    $message = $args['message'];
+                    return new UnauthorizedResponse($message);
                 },
-                "before" => function (Request $request, array $arguments): Request {
-                    $token = new AuthToken($arguments["decoded"]);
-                    return $request->withAttribute("token", $token);
+                "before" => function (Request $request, array $args): Request {
+                    if (is_array($args['decoded']) && count($args['decoded']) > 0) {
+                        /** @var array<string, string|int> $decoded */
+                        $decoded = $args['decoded'];
+                        $token = new AuthToken($decoded);
+                        return $request->withAttribute('token', $token);
+                    }
+                    return $request;
                 }
             ]
         )
@@ -74,6 +82,7 @@ return function (App $app) {
     $errorMiddleware = $app->addErrorMiddleware($config->getString('environment') === "development", true, true);
 
     // Set the Not Found Handler
+    /** @psalm-suppress UnusedClosureParam */
     $errorMiddleware->setErrorHandler(
         HttpNotFoundException::class,
         function (Request $request, Throwable $exception, bool $displayErrorDetails): ErrorResponse {
@@ -82,6 +91,7 @@ return function (App $app) {
     );
 
     // Set the Not Allowed Handler
+    /** @psalm-suppress UnusedClosureParam */
     $errorMiddleware->setErrorHandler(
         HttpMethodNotAllowedException::class,
         function (Request $request, Throwable $exception, bool $displayErrorDetails): ErrorResponse {

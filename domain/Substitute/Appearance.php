@@ -5,25 +5,30 @@ namespace SuperElf\Substitute;
 
 use SportsHelpers\Identifiable;
 use SuperElf\GameRound as BaseGameRound;
-use SuperElf\Substitute;
+use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
 
-class Participation extends Identifiable {
+class Appearance extends Identifiable
+{
     public function __construct(
-        protected Substitute $substitute,
-        protected GameRound $gameRound )
+        protected FormationLine $formationLine,
+        protected GameRound $gameRound
+    )
     {
     }
 
-    public function getSubstitute(): Substitute {
-        return $this->substitute;
+    public function getFormationLine(): FormationLine
+    {
+        return $this->formationLine;
     }
 
-    public function getGameRound(): BaseGameRound {
+    public function getGameRound(): BaseGameRound
+    {
         return $this->gameRound;
     }
 
-    public function getGameRoundNumber(): int {
+    public function getGameRoundNumber(): int
+    {
         return $this->gameRound->getNumber();
     }
 }

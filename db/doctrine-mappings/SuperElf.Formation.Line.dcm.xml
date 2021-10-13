@@ -8,19 +8,27 @@
         <join-column name="formationId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
-    <one-to-one field="substitute" target-entity="SuperElf\Pool\User\ViewPeriodPerson">
+    <one-to-one field="substitute" target-entity="SuperElf\Player">
       <cascade>
         <cascade-persist/>
       </cascade>
       <join-columns>
-        <join-column name="substituteId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+        <join-column name="substituteId" referenced-column-name="id" nullable="true" on-delete="RESTRICT"/>
       </join-columns>
     </one-to-one>
-    <many-to-many field="viewPeriodPersons" target-entity="SuperElf\Period\View\Person">
+    <many-to-many field="players" target-entity="SuperElf\Player">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
+      <join-table name="playersPerFormationLine">
+        <join-columns>
+          <join-column name="formationLineId"/>
+        </join-columns>
+        <inverse-join-columns>
+          <join-column name="playerId"/>
+        </inverse-join-columns>
+      </join-table>
     </many-to-many>
     <unique-constraints>
       <unique-constraint columns="formationId,number" name="main_u_idx"/>

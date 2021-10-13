@@ -13,10 +13,12 @@ class UserMiddleware extends AuthorizationMiddleware
 {
     protected function isAuthorized(Request $request): void
     {
+        /** @var User|null $user */
         $user = $request->getAttribute('user');
         if ($user === null) {
             throw new \Exception("je moet ingelogd 2 zijn voor deze pool", E_ERROR);
         }
+        /** @var Pool|null $pool */
         $pool = $request->getAttribute('pool');
         if ($pool === null) {
             throw new \Exception("de pool is onbekend", E_ERROR);

@@ -5,7 +5,7 @@ namespace SuperElf\GameRound;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use Sports\Competition;
+use SuperElf\Period\View as ViewPeriod;
 use SuperElf\GameRound as BaseGameRound;
 
 /**
@@ -18,23 +18,21 @@ class Repository extends EntityRepository
      */
     use BaseRepository;
 
-    public function findOneByNumber( Competition $competition, int $gameRoundNumber): ?BaseGameRound
+    public function findOneByNumber(ViewPeriod $viewPeriod, int $gameRoundNumber): BaseGameRound|null
     {
         $query = $this->createQueryBuilder('gr')
             ->join('gr.viewPeriod', 'vp')
             ->where('vp.sourceCompetition = :competition')
             ->andWhere('gr.number = :gameRound')
         ;
-        $query = $query->setParameter('competition', $competition );
-        $query = $query->setParameter('gameRound', $gameRoundNumber );
-
+        $query = $query->setParameter('competition', $viewPeriod->getSourceCompetition());
+        $query = $query->setParameter('gameRound', $gameRoundNumber);
+        /** @var list<BaseGameRound> $gameRounds */
         $gameRounds = $query->getQuery()->getResult();
-        if (count($gameRounds) === 0) {
-            return null;
+        if (count($gameRounds) > 2) {
+            throw new \Exception('gameround should only be in one viewperiod', E_ERROR);
         }
-        if (count($gameRounds) > 1) {
-            throw new \Exception("gameround should only be in one viewperiod", E_ERROR );
-        }
-        return reset($gameRounds);
+        $gameRound = reset($gameRounds);
+        return $gameRound === false ? null : $gameRound;
     }
 }

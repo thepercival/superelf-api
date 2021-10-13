@@ -6,7 +6,7 @@ use App\Actions\ActiveConfigAction;
 use App\Actions\AuthAction;
 use App\Actions\Pool\ShellAction;
 use App\Actions\Sports\CompetitionAction;
-use App\Actions\ViewPeriodPersonAction;
+use App\Actions\PlayerAction;
 use App\Actions\FormationAction;
 use App\Actions\UserAction;
 use App\Actions\PoolAction;
@@ -39,6 +39,8 @@ return function (App $app): void {
                 $group->options('/passwordchange', AuthAction::class . ':options');
                 $group->post('/passwordchange', AuthAction::class . ':passwordchange');
             });
+            $group->options('/cancreate', ShellAction::class . ':options');
+            $group->get('/cancreate', PoolAction::class . ':canCreate')->add(VersionMiddleware::class);
             $group->options('/shells', ShellAction::class . ':options');
             $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
     });
@@ -127,12 +129,12 @@ return function (App $app): void {
 //                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/substitute' { poolUserViewPeriodPerson }
 
                     $group->group(
-                        '/{formationId}/lines/{lineNumber}/viewperiodpersons',
+                        '/{formationId}/lines/{lineNumber}/players',
                         function (Group $group): void {
                             $group->options('', FormationAction::class . ':options');
-                            $group->post('', FormationAction::class . ':addViewPeriodPerson');
-                            $group->options('/{viewPeriodPersonId}', FormationAction::class . ':options');
-                            $group->delete('/{viewPeriodPersonId}', FormationAction::class . ':removeViewPeriodPerson');
+                            $group->post('', FormationAction::class . ':addPlayer');
+                            $group->options('/{playerId}', FormationAction::class . ':options');
+                            $group->delete('/{playerId}', FormationAction::class . ':removePlayer');
                         }
                     )->add(PoolUserAuthMiddleware::class);
 
@@ -151,10 +153,10 @@ return function (App $app): void {
     )->add(UserAuthMiddleware::class)->add(PoolUserMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
-        '/viewperiodpersons',
+        '/players',
         function (Group $group): void {
-            $group->options('', ViewPeriodPersonAction::class . ':options');
-            $group->post('', ViewPeriodPersonAction::class . ':fetch');
+            $group->options('', PlayerAction::class . ':options');
+            $group->post('', PlayerAction::class . ':fetch');
         }
     )->add(VersionMiddleware::class);
 

@@ -1,9 +1,9 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Commands;
 
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use App\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,7 +14,7 @@ class UpdateSitemap extends Command
 {
     public function __construct(ContainerInterface $container)
     {
-        parent::__construct($container->get(Configuration::class));
+        parent::__construct($container, 'command-update-sitemap');
     }
 
     protected function configure(): void
@@ -32,7 +32,7 @@ class UpdateSitemap extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLogger($input, 'cron-update-sitemap');
+        $this->initLoggerFromInput($input);
         try {
             $url = $this->config->getString('www.wwwurl');
             $distPath = $this->config->getString('www.wwwurl-localpath');

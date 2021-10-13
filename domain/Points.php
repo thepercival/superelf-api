@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Season;
+use Sports\Sport;
 use SportsHelpers\Identifiable;
 
 class Points extends Identifiable
@@ -12,16 +13,16 @@ class Points extends Identifiable
         protected Season $season,
         protected int $resultWin,
         protected int $resultDraw,
-        protected int $goalGoalkeeper,
-        protected int $goalDefender,
-        protected int $goalMidfielder,
-        protected int $goalForward,
+        protected int $fieldGoalGoalkeeper,
+        protected int $fieldGoalDefender,
+        protected int $fieldGoalMidfielder,
+        protected int $fieldGoalForward,
         protected int $assistGoalkeeper,
         protected int $assistDefender,
         protected int $assistMidfielder,
         protected int $assistForward,
-        protected int $goalPenalty,
-        protected int $goalOwn,
+        protected int $penalty,
+        protected int $ownGoal,
         protected int $cleanSheetGoalkeeper,
         protected int $cleanSheetDefender,
         protected int $spottySheetGoalkeeper,
@@ -41,24 +42,39 @@ class Points extends Identifiable
         return $this->resultDraw;
     }
 
-    public function getGoalGoalkeeper(): int
+    public function getFieldGoalGoalkeeper(): int
     {
-        return $this->goalGoalkeeper;
+        return $this->fieldGoalGoalkeeper;
     }
 
-    public function getGoalDefender(): int
+    public function getFieldGoalDefender(): int
     {
-        return $this->goalDefender;
+        return $this->fieldGoalDefender;
     }
 
-    public function getGoalMidfielder(): int
+    public function getFieldGoalMidfielder(): int
     {
-        return $this->goalMidfielder;
+        return $this->fieldGoalMidfielder;
     }
 
-    public function getGoalForward(): int
+    public function getFieldGoalForward(): int
     {
-        return $this->goalForward;
+        return $this->fieldGoalForward;
+    }
+
+    public function getFieldGoal(int $line): int
+    {
+        switch ($line) {
+            case Sport\Custom::Football_Line_GoalKepeer:
+                return $this->getFieldGoalGoalkeeper();
+            case Sport\Custom::Football_Line_Defense:
+                return $this->getFieldGoalDefender();
+            case Sport\Custom::Football_Line_Midfield:
+                return $this->getFieldGoalMidfielder();
+            case Sport\Custom::Football_Line_Forward:
+                return $this->getFieldGoalForward();
+        }
+        throw new \Exception('line is incorrect ', E_ERROR);
     }
 
     public function getAssistGoalkeeper(): int
@@ -66,9 +82,6 @@ class Points extends Identifiable
         return $this->assistGoalkeeper;
     }
 
-    /**
-     * @return int
-     */
     public function getAssistDefender(): int
     {
         return $this->assistDefender;
@@ -84,14 +97,29 @@ class Points extends Identifiable
         return $this->assistForward;
     }
 
-    public function getGoalPenalty(): int
+    public function getAssist(int $line): int
     {
-        return $this->goalPenalty;
+        switch ($line) {
+            case Sport\Custom::Football_Line_GoalKepeer:
+                return $this->getAssistGoalkeeper();
+            case Sport\Custom::Football_Line_Defense:
+                return $this->getAssistDefender();
+            case Sport\Custom::Football_Line_Midfield:
+                return $this->getAssistMidfielder();
+            case Sport\Custom::Football_Line_Forward:
+                return $this->getAssistForward();
+        }
+        throw new \Exception('line is incorrect ', E_ERROR);
     }
 
-    public function getGoalOwn(): int
+    public function getPenalty(): int
     {
-        return $this->goalOwn;
+        return $this->penalty;
+    }
+
+    public function getOwnGoal(): int
+    {
+        return $this->ownGoal;
     }
 
     public function getCleanSheetGoalkeeper(): int
@@ -104,6 +132,16 @@ class Points extends Identifiable
         return $this->cleanSheetDefender;
     }
 
+    public function getCleanSheet(int $line): int
+    {
+        if ($line === Sport\Custom::Football_Line_GoalKepeer) {
+            return $this->getCleanSheetGoalkeeper();
+        } elseif ($line === Sport\Custom::Football_Line_Defense) {
+            return $this->getCleanSheetDefender();
+        }
+        throw new \Exception('line is incorrect ', E_ERROR);
+    }
+
     public function getSpottySheetGoalkeeper(): int
     {
         return $this->spottySheetGoalkeeper;
@@ -112,6 +150,16 @@ class Points extends Identifiable
     public function getSpottySheetDefender(): int
     {
         return $this->spottySheetDefender;
+    }
+
+    public function getSpottySheet(int $line): int
+    {
+        if ($line === Sport\Custom::Football_Line_GoalKepeer) {
+            return $this->getSpottySheetGoalkeeper();
+        } elseif ($line === Sport\Custom::Football_Line_Defense) {
+            return $this->getSpottySheetDefender();
+        }
+        throw new \Exception('line is incorrect ', E_ERROR);
     }
 
     public function getCardYellow(): int

@@ -1,10 +1,15 @@
 -- PRE PRE PRE doctrine-update =============================================================
 
 -- POST POST POST doctrine-update ===========================================================
-INSERT INTO externalsystems (name,website,username,password,apiurl,apikey) VALUES ('SofaScore','https://www.sofascore.com/',null,null,'https://www.sofascore.com/',null);
+INSERT INTO externalSystems (name,website,username,password,apiurl,apikey) VALUES ('SofaScore','https://www.sofascore.com/',null,null,'https://api.sofascore.com/api/v1/',null);
 
-INSERT INTO sports()
-INSERT INTO formations(name, sportId)
+
+INSERT INTO sports(name,team,defaultGameMode,defaultNrOfSidePlaces, customId) values('superelf', false, 3, 0, 0);
+
+-- ONE TIME AFTER IMPORT SPORTS
+update sports set customId = 11 where name = 'football';
+
+-- INSERT INTO formations(name, sportId)
 -- php bin/console.php app:create-default-planning-input --placesRange=2-4 --sendCreatePlanningMessage=true
 
 -- CUSTOM IMPORT =============================

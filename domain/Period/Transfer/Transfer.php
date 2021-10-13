@@ -4,44 +4,25 @@ declare(strict_types=1);
 namespace SuperElf\Period\Transfer;
 
 use Sports\Person;
-use SportsHelpers\Identifiable;
+use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Player as S11Player;
 use SuperElf\Pool\User as PoolUser;
 
-class Transfer extends Identifiable {
+class Transfer extends Action {
 
-    protected PoolUser $poolUser;
-    protected Person $out;
-    protected Person $in;
-    protected bool $outHasTeam = true;
-
-    public function __construct(PoolUser $poolUser, Person $out, Person $in )
+    public function __construct(
+        PoolUser $poolUser,
+        TransferPeriod $transferPeriod,
+        S11Player $playerOut,
+        protected Person $personIn )
     {
-        $this->setPoolUser($poolUser);
-        $this->in = $in;
-        $this->out = $out;
-    }
-
-    public function setPoolUser(PoolUser $poolUser): void
-    {
+        parent::__construct($poolUser, $transferPeriod, $playerOut);
         if (!$poolUser->getTransfers()->contains($this)) {
-            $poolUser->getTransfers()->add($this) ;
+            $poolUser->getTransfers()->add($this);
         }
-        $this->poolUser = $poolUser;
     }
 
-    public function getPoolUser(): Pooluser {
-        return $this->poolUser;
-    }
-
-    public function getOut(): Person {
-        return $this->out;
-    }
-
-    public function getIn(): Person {
-        return $this->in;
-    }
-
-    public function outHasTeam(): bool {
-        return $this->outHasTeam;
+    public function getPersonIn(): Person {
+        return $this->personIn;
     }
 }

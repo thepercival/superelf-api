@@ -3,33 +3,25 @@ declare(strict_types=1);
 
 namespace SuperElf\Player;
 
-use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Player as S11Player;
 use SuperElf\GameRound;
 use SuperElf\GameRound\Score as BaseGameRoundScore;
-use SuperElf\Pool;
 
 class GameRoundScore extends BaseGameRoundScore
 {
-    protected ViewPeriodPerson $viewPeriodPerson;
     protected array $stats = [];
 
-    public function __construct(ViewPeriodPerson $viewPeriodPerson, GameRound $gameRound)
+    public function __construct(protected S11Player $player, GameRound $gameRound)
     {
         parent::__construct($gameRound);
-        $this->setViewPeriodPerson($viewPeriodPerson);
-    }
-
-    public function getViewPeriodPerson(): ViewPeriodPerson
-    {
-        return $this->viewPeriodPerson;
-    }
-
-    protected function setViewPeriodPerson(ViewPeriodPerson $viewPeriodPerson): void
-    {
-//        if (!$viewPeriodPerson->getGameRoundScores()->contains($this)) {
-//            $viewPeriodPerson->getGameRoundScores()->add($this) ;
+        //        if (!$player->getGameRoundScores()->contains($this)) {
+//            $player->getGameRoundScores()->add($this) ;
 //        }
-        $this->viewPeriodPerson = $viewPeriodPerson;
+    }
+
+    public function getPlayer(): S11Player
+    {
+        return $this->player;
     }
 
 //    /**

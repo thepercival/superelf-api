@@ -6,126 +6,30 @@ namespace SuperElf;
 use Sports\Season;
 use SportsHelpers\Identifiable;
 
-class Points extends Identifiable
+class Defaults
 {
+    public const MAXNROFTRANSFERS = 2;
+    public const SPOTTY_SHEET_THRESHOLD = 3;
+    public const POINTS_WIN = 3;
+    public const POINTS_DRAW = 1;
+    public const GOAL_GOALKEEPER = 10;
+    public const GOAL_DEFENDER = 5;
+    public const GOAL_MIDFIELDER = 4;
+    public const GOAL_FORWARD = 3;
+    public const ASSIST_GOALKEEPER = 3;
+    public const ASSIST_DEFENDER = 2;
+    public const ASSIST_MIDFIELDER = 1;
+    public const ASSIST_FORWARD = 1;
+    public const GOAL_PENALTY = 1;
+    public const GOAL_OWN = -4;
+    public const CLEAN_SHEET_GOALKEEPER = 4;
+    public const CLEAN_SHEET_DEFENDER = 2;
+    public const SPOTTY_SHEET_GOALKEEPER = -2;
+    public const SPOTTY_SHEET_DEFENDER = -1;
+    public const CARD_YELLOW = -1;
+    public const CARD_RED = -4;
+
     public function __construct(
-        protected Season $season,
-        protected int $resultWin,
-        protected int $resultDraw,
-        protected int $goalGoalkeeper,
-        protected int $goalDefender,
-        protected int $goalMidfielder,
-        protected int $goalForward,
-        protected int $assistGoalkeeper,
-        protected int $assistDefender,
-        protected int $assistMidfielder,
-        protected int $assistForward,
-        protected int $goalPenalty,
-        protected int $goalOwn,
-        protected int $cleanSheetGoalkeeper,
-        protected int $cleanSheetDefender,
-        protected int $spottySheetGoalkeeper,
-        protected int $spottySheetDefender,
-        protected int $cardYellow,
-        protected int $cardRed
     ) {
-    }
-
-    public function getResultWin(): int
-    {
-        return $this->resultWin;
-    }
-
-    public function getResultDraw(): int
-    {
-        return $this->resultDraw;
-    }
-
-    public function getGoalGoalkeeper(): int
-    {
-        return $this->goalGoalkeeper;
-    }
-
-    public function getGoalDefender(): int
-    {
-        return $this->goalDefender;
-    }
-
-    public function getGoalMidfielder(): int
-    {
-        return $this->goalMidfielder;
-    }
-
-    public function getGoalForward(): int
-    {
-        return $this->goalForward;
-    }
-
-    public function getAssistGoalkeeper(): int
-    {
-        return $this->assistGoalkeeper;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAssistDefender(): int
-    {
-        return $this->assistDefender;
-    }
-
-    public function getAssistMidfielder(): int
-    {
-        return $this->assistMidfielder;
-    }
-
-    public function getAssistForward(): int
-    {
-        return $this->assistForward;
-    }
-
-    public function getGoalPenalty(): int
-    {
-        return $this->goalPenalty;
-    }
-
-    public function getGoalOwn(): int
-    {
-        return $this->goalOwn;
-    }
-
-    public function getCleanSheetGoalkeeper(): int
-    {
-        return $this->cleanSheetGoalkeeper;
-    }
-
-    public function getCleanSheetDefender(): int
-    {
-        return $this->cleanSheetDefender;
-    }
-
-    public function getSpottySheetGoalkeeper(): int
-    {
-        return $this->spottySheetGoalkeeper;
-    }
-
-    public function getSpottySheetDefender(): int
-    {
-        return $this->spottySheetDefender;
-    }
-
-    public function getCardYellow(): int
-    {
-        return $this->cardYellow;
-    }
-
-    public function getCardRed(): int
-    {
-        return $this->cardRed;
-    }
-
-    public function getSeason(): Season
-    {
-        return $this->season;
     }
 }

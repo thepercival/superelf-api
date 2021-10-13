@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Points" table="points" repository-class="SuperElf\Points\Repository">
-    <field name="resultWin" column="resultWin" type="smallint" nullable="false" unique="false"/>
-    <field name="resultDraw" column="resultDraw" type="smallint" nullable="false" unique="false"/>
-    <field name="fieldGoalGoalkeeper" column="fieldGoalGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="fieldGoalDefender" column="fieldGoalDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="fieldGoalMidfielder" column="fieldGoalMidfielder" type="smallint" nullable="false" unique="false"/>
-    <field name="fieldGoalForward" column="fieldGoalForward" type="smallint" nullable="false" unique="false"/>
-    <field name="assistGoalkeeper" column="assistGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="assistDefender" column="assistDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="assistMidfielder" column="assistMidfielder" type="smallint" nullable="false" unique="false"/>
-    <field name="assistForward" column="assistForward" type="smallint" nullable="false" unique="false"/>
-    <field name="penalty" column="penalty" type="smallint" nullable="false" unique="false"/>
-    <field name="ownGoal" column="ownGoal" type="smallint" nullable="false" unique="false"/>
-    <field name="cleanSheetGoalkeeper" column="cleanSheetGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="cleanSheetDefender" column="cleanSheetDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="spottySheetGoalkeeper" column="spottySheetGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="spottySheetDefender" column="spottySheetDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="cardYellow" column="cardYellow" type="smallint" nullable="false" unique="false"/>
-    <field name="cardRed" column="cardRed" type="smallint" nullable="false" unique="false"/>
-    <many-to-one field="season" target-entity="Sports\Season">
+  <entity name="SuperElf\Statistics" table="statistics" repository-class="SuperElf\Statistics\Repository">
+    <field name="result" column="result" type="smallint" nullable="false" unique="false"/>
+    <field name="beginMinute" column="beginMinute" type="smallint" nullable="false" unique="false"/>
+    <field name="endMinute" column="endMinute" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfFieldGoals" column="nrOfFieldGoals" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfAssists" column="nrOfAssists" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfPenalties" column="nrOfPenalties" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfOwnGoals" column="nrOfOwnGoals" type="smallint" nullable="false" unique="false"/>
+    <field name="sheet" column="sheet" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfYellowCards" column="nrOfYellowCards" type="smallint" nullable="false" unique="false"/>
+    <field name="directRedCard" column="directRedCard" type="boolean" nullable="false" unique="false"/>
+    <field name="playerLine" column="playerLine" type="smallint" nullable="false" unique="false"/>
+    <field name="gameStartDateTime" column="gameStartDateTime" type="datetime_immutable" nullable="false" unique="false"/>
+    <field name="updatedAt" column="updatedAt" type="datetime_immutable" nullable="false" unique="false"/>
+    <many-to-one field="player" target-entity="SuperElf\Player">
       <join-columns>
-        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+        <join-column name="playerId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="gameRound" target-entity="SuperElf\GameRound">
+      <join-columns>
+        <join-column name="gameRoundId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
     <unique-constraints>
-      <unique-constraint columns="seasonId" name="main_u_idx"/>
+      <unique-constraint columns="playerId,gameRoundId" name="main_u_idx"/>
     </unique-constraints>
   </entity>
 </doctrine-mapping>

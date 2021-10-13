@@ -29,7 +29,6 @@ class AvailabilityChecker
         if( $association === null ) {
             return;
         }
-        /** @var PoolCollection|null $poolCollection */
         $poolCollection = $this->poolCollectionRepos->findOneBy( ["association" => $association ] );
         if( $poolCollection === null ) {
             return;

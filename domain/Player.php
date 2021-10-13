@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SuperElf\Period\View;
+namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
@@ -11,7 +11,7 @@ use SuperElf\GameRound;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Period\View\Person\GameRoundScore;
 
-class Person extends Identifiable
+class Player extends Identifiable
 {
 //    public const SHEET_SPOTTY_THRESHOLD = 4;
 //
@@ -34,15 +34,15 @@ class Person extends Identifiable
 //     * @var array<int,int>
 //     */
 //    protected array $points = [];
-//    /**
-//     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
-//     * @psalm-var ArrayCollection<int|string, GameRoundScore>
-//     */
-//    protected ArrayCollection|PersistentCollection $gameRoundScores;
+    /**
+     * @var ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
+     * @psalm-var ArrayCollection<int|string, Statistics>
+     */
+    protected ArrayCollection|PersistentCollection $statistics;
 
     public function __construct(protected ViewPeriod $viewPeriod, protected BasePerson $person)
     {
-        // $this->gameRoundScores = new ArrayCollection();
+        $this->statistics = new ArrayCollection();
     }
 
     public function getViewPeriod(): ViewPeriod
@@ -55,23 +55,23 @@ class Person extends Identifiable
         return $this->person;
     }
 
-//    /**
-//     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
-//     * @psalm-return ArrayCollection<int|string, GameRoundScore>
-//     */
-//    public function getGameRoundScores(): ArrayCollection|PersistentCollection
-//    {
-//        return $this->gameRoundScores;
-//    }
-//
-//    public function getGameRoundScore(GameRound $gameRound): ?GameRoundScore
-//    {
-//        $filtered = $this->gameRoundScores->filter(function (GameRoundScore $gameRoundScore) use ($gameRound): bool {
-//            return $gameRoundScore->getGameRound() === $gameRound;
-//        });
-//        $firstScore = $filtered->first();
-//        return $firstScore === false ? null : $firstScore;
-//    }
+    /**
+     * @return ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
+     * @psalm-return ArrayCollection<int|string, Statistics>
+     */
+    public function getStatistics(): ArrayCollection|PersistentCollection
+    {
+        return $this->statistics;
+    }
+
+    public function getGameRoundStatistics(GameRound $gameRound): Statistics|null
+    {
+        $filtered = $this->statistics->filter(function (Statistics $statistics) use ($gameRound): bool {
+            return $statistics->getGameRound() === $gameRound;
+        });
+        $firstScore = $filtered->first();
+        return $firstScore === false ? null : $firstScore;
+    }
 
 //    public function getTotal(): int
 //    {

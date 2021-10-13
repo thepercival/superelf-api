@@ -1,19 +1,19 @@
 <?php
 declare(strict_types=1);
 
-namespace SuperElf\Substitute\Participation;
+namespace SuperElf\Substitute\Appearance;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Substitute\Participation;
+use SuperElf\Substitute\Appearance;
 
 /**
- * @template-extends EntityRepository<Participation>
+ * @template-extends EntityRepository<Appearance>
  */
 class Repository extends EntityRepository
 {
     /**
-     * @use BaseRepository<Participation>
+     * @use BaseRepository<Appearance>
      */
     use BaseRepository;
 }

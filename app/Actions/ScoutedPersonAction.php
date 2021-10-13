@@ -39,7 +39,13 @@ final class ScoutedPersonAction extends Action
         $this->serializer = $serializer;
     }
 
-    public function fetch(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetch(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $user */
@@ -59,13 +65,18 @@ final class ScoutedPersonAction extends Action
         }
     }
 
-    public function add(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function add(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $user */
             $user = $request->getAttribute("user");
 
-            /** @var ScoutedPerson $serScoutedPerson */
             $serScoutedPerson = $this->serializer->deserialize(
                 $this->getRawData(),
                 ScoutedPerson::class,
@@ -129,7 +140,13 @@ final class ScoutedPersonAction extends Action
 //        }
 //    }
 
-    public function remove(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function remove(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var User $user */
@@ -150,7 +167,7 @@ final class ScoutedPersonAction extends Action
         }
     }
 
-    protected function getSerializationContext()
+    protected function getSerializationContext(): SerializationContext
     {
         $serGroups = ['Default','players'];
         return SerializationContext::create()->setGroups($serGroups);

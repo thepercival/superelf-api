@@ -20,32 +20,31 @@ class Repository extends EntityRepository
      */
     use BaseRepository;
 
-    public function findOneByDate(Competition $competition, \DateTimeImmutable $dateTime ): ?ViewPeriod
+    public function findOneByDate(Competition $competition, \DateTimeImmutable $dateTime): ?ViewPeriod
     {
         $query = $this->createQueryBuilder('vp')
             ->where('vp.startDateTime <= :gameStart')
             ->andWhere('vp.endDateTime >= :gameStart')
             ->andWhere('vp.sourceCompetition = :competition')
             ;
-        $query = $query->setParameter('gameStart', $dateTime );
-        $query = $query->setParameter('competition', $competition );
+        $query = $query->setParameter('gameStart', $dateTime);
+        $query = $query->setParameter('competition', $competition);
 
-        $games = $query->getQuery()->getResult();
-        if (count($games) === 0) {
-            return null;
-        }
-        return reset($games);
+        /** @var list<ViewPeriod> $viewPeriods */
+        $viewPeriods = $query->getQuery()->getResult();
+        $viewPeriod = reset($viewPeriods);
+        return $viewPeriod === false ? null : $viewPeriod;
     }
 
-    public function findOneByGameRoundNumber(Competition $competition, int $gameRoundNumber ): ?ViewPeriod
+    public function findOneByGameRoundNumber(Competition $competition, int $gameRoundNumber): ?ViewPeriod
     {
-        $exprExists = $this->getEM()->getExpressionBuilder();
+        $exprExists = $this->_em->getExpressionBuilder();
 
         $query = $this->createQueryBuilder('vp')
             ->where('vp.sourceCompetition = :competition')
             ->andWhere(
                 $exprExists->exists(
-                    $this->getEM()->createQueryBuilder()
+                    $this->_em->createQueryBuilder()
                         ->select('gr.id')
                         ->from('SuperElf\GameRound', 'gr')
                         ->where('gr.viewPeriod = vp.id')
@@ -54,9 +53,10 @@ class Repository extends EntityRepository
                 )
             )
         ;
-        $query = $query->setParameter('competition', $competition );
-        $query = $query->setParameter('gameRoundNumber', $gameRoundNumber );
+        $query = $query->setParameter('competition', $competition);
+        $query = $query->setParameter('gameRoundNumber', $gameRoundNumber);
 
+        /** @var list<ViewPeriod> $viewPeriods */
         $viewPeriods = $query->getQuery()->getResult();
         if (count($viewPeriods) === 0) {
             return null;
@@ -66,14 +66,14 @@ class Repository extends EntityRepository
 
 //    select * from viewPeriods vp
 //    where (select count(*) from games where startDateTime > vp.startDateTime and startDateTime < vp.endDateTime and resourceBatch = 1 )  > 4.5
-    public function findGameRoundOwner(Poule $poule, AgainstSportVariant $sportVariant , int $gameRoundNumber): ?ViewPeriod
+    public function findGameRoundOwner(Poule $poule, AgainstSportVariant $sportVariant, int $gameRoundNumber): ?ViewPeriod
     {
         $nrOfGamesPerRound = $sportVariant->getNrOfGamesOneGameRound($poule->getPlaces()->count());
         $halfNrOfGamesPerRound = (int)floor($nrOfGamesPerRound / 2);
 
-        $exprCount = $this->getEM()->getExpressionBuilder();
+        $exprCount = $this->_em->getExpressionBuilder();
 
-        $gamesQb = $this->getEM()->createQueryBuilder()
+        $gamesQb = $this->_em->createQueryBuilder()
             ->select($exprCount->count('g.id'))
             ->from('Sports\Game', 'g')
             ->where('g.startDateTime >= vp.startDateTime')
@@ -89,8 +89,9 @@ class Repository extends EntityRepository
             );
 
         $qb = $qb->setParameter('gameRoundNumber', $gameRoundNumber);
-        $qb = $qb->setParameter('competition', $poule->getRound()->getNumber()->getCompetition() );
+        $qb = $qb->setParameter('competition', $poule->getRound()->getNumber()->getCompetition());
 
+        /** @var list<ViewPeriod> $viewPeriods */
         $viewPeriods = $qb->getQuery()->getResult();
         if (count($viewPeriods) === 0) {
             return null;

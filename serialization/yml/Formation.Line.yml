@@ -5,9 +5,11 @@ SuperElf\Formation\Line:
   properties:
     number:
       type: integer
-    viewPeriodPersons:
-      type: ArrayCollection<SuperElf\Period\View\Person>
+    players:
+      type: ArrayCollection<SuperElf\Player>
     maxNrOfPersons:
       type: integer
     substitute:
-      type: SuperElf\Pool\User\Period\View\Person
+      type: SuperElf\Player
+    substitutions:
+      type: array<int>

@@ -33,15 +33,25 @@ final class ShellAction extends Action
         $this->serializer = $serializer;
     }
 
-    public function fetchPublic(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchPublic(Request $request, Response $response, array $args): Response
     {
+        /** @var User $user */
         $user = $request->getAttribute("user");
         try {
             $queryParams = $request->getQueryParams();
 
             $name = null;
-            if (array_key_exists("name", $queryParams) && strlen($queryParams["name"]) > 0) {
-                $name = $queryParams["name"];
+            if (array_key_exists("name", $queryParams)) {
+                $nameParam = (string)$queryParams["name"];
+                if (strlen($nameParam) > 0) {
+                    $name = $nameParam;
+                }
             }
 
             $shells = [];
@@ -57,16 +67,26 @@ final class ShellAction extends Action
         }
     }
 
-    public function fetchWithRole(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchWithRole(Request $request, Response $response, array $args): Response
     {
         try {
             $queryParams = $request->getQueryParams();
             $roles = 0;
-            if (array_key_exists("roles", $queryParams) && strlen($queryParams["roles"]) > 0) {
-                $roles = (int)$queryParams["roles"];
+            if (array_key_exists("roles", $queryParams)) {
+                $rolesParam = (string)$queryParams["roles"];
+                if (strlen($rolesParam) > 0) {
+                    $roles = (int)$rolesParam;
+                }
             }
 
             $shells = [];
+            /** @var User $user */
             $user = $request->getAttribute("user");
             $poolsByRole = $this->poolRepos->findByRoles($user, $roles);
             foreach ($poolsByRole as $pool) {

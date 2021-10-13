@@ -18,12 +18,13 @@ class Pool extends Identifiable
 {
     /**
      * @var ArrayCollection<int|string, PoolUser>|PersistentCollection<int|string, PoolUser>
+     * @psalm-var ArrayCollection<int|string, PoolUser>
      */
     protected $users;
-    /**
-     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
-     */
-    protected $scores;
+//    /**
+//     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
+//     */
+//    protected $scores;
 
     public function __construct(
         protected PoolCollection $collection,
@@ -31,10 +32,9 @@ class Pool extends Identifiable
         protected ViewPeriod $createAndJoinPeriod,
         protected AssemblePeriod $assemblePeriod,
         protected TransferPeriod $transferPeriod
-    )
-    {
+    ) {
         $this->users = new ArrayCollection();
-        $this->scores = new ArrayCollection();
+//        $this->scores = new ArrayCollection();
     }
 
     public function getCreateAndJoinPeriod(): ViewPeriod
@@ -42,43 +42,52 @@ class Pool extends Identifiable
         return $this->createAndJoinPeriod;
     }
 
-    public function getCollection(): PoolCollection {
+    public function getCollection(): PoolCollection
+    {
         return $this->collection;
     }
 
-    public function getSeason(): Season {
+    public function getSeason(): Season
+    {
         return $this->getSourceCompetition()->getSeason();
     }
 
-    public function getSourceCompetition(): Competition {
+    public function getSourceCompetition(): Competition
+    {
         return $this->sourceCompetition;
     }
 
-//    public function getSourceCompetitionId(): int {
-//        return $this->sourceCompetition->getId();
-//    }
+    public function getSourceCompetitionId(): int {
+        return (int)$this->sourceCompetition->getId();
+    }
 
-    public function getAssemblePeriod(): AssemblePeriod {
+    public function getAssemblePeriod(): AssemblePeriod
+    {
         return $this->assemblePeriod;
     }
 
-    public function getTransferPeriod(): TransferPeriod {
+    public function getTransferPeriod(): TransferPeriod
+    {
         return $this->transferPeriod;
     }
 
-    public function isInAssembleOrTransferPeriod(): bool {
+    public function isInAssembleOrTransferPeriod(): bool
+    {
         return $this->getAssemblePeriod()->contains() || $this->getTransferPeriod()->contains();
     }
 
     /**
      * @return ArrayCollection<int|string, PoolUser>|PersistentCollection<int|string, PoolUser>
+     * @psalm-return ArrayCollection<int|string, PoolUser>
      */
-    public function getUsers(): ArrayCollection|PersistentCollection {
+    public function getUsers(): ArrayCollection|PersistentCollection
+    {
         return $this->users;
     }
 
-    public function getUser( User $user ): ?PoolUser {
-        $filtered = $this->getUsers()->filter( function( PoolUser $poolUser ) use ($user) : bool {
+    public function getUser(User $user): ?PoolUser
+    {
+        $filtered = $this->getUsers()->filter(function (PoolUser $poolUser) use ($user) : bool {
             return $poolUser->getUser() === $user;
         });
         $firstPoolUser = $filtered->first();
@@ -88,23 +97,22 @@ class Pool extends Identifiable
     /**
      * @return list<Competition>
      */
-    public function getCompetitions(): array {
+    public function getCompetitions(): array
+    {
         $leagues = $this->getCollection()->getAssociation()->getLeagues();
-        $competitions = $leagues->map( function ( $league ): ?Competition {
-            return $league->getCompetition( $this->getSeason() );
-        } )->toArray();
-        $competitions = $leagues->map( function ( $league ): ?Competition {
-            return $league->getCompetition( $this->getSeason() );
-        } )->toArray();
-        return array_values(array_filter( $competitions, fn( Competition|null $c ) => $c !== null ) );
+        $competitions = $leagues->map(function ($league): ?Competition {
+            return $league->getCompetition($this->getSeason());
+        })->toArray();
+        return array_values(array_filter($competitions, fn (Competition|null $c) => $c !== null));
     }
 
-    public function getCompetition( int $leagueNr ): ?Competition {
-        $league = $this->getCollection()->getLeague( $leagueNr );
-        if ( $league === null ) {
+    public function getCompetition(int $leagueNr): ?Competition
+    {
+        $league = $this->getCollection()->getLeague($leagueNr);
+        if ($league === null) {
             return null;
         }
-        return $league->getCompetition( $this->getSeason() );
+        return $league->getCompetition($this->getSeason());
     }
 
     /**
@@ -114,9 +122,9 @@ class Pool extends Identifiable
     public function getCompetitors(Competition $competition): array
     {
         $competitors = [];
-        foreach( $this->getUsers() as $poolUser ) {
+        foreach ($this->getUsers() as $poolUser) {
             $competitor = $poolUser->getCompetitor($competition);
-            if( $competitor === null ) {
+            if ($competitor === null) {
                 continue;
             }
             $competitors[] = $competitor;
@@ -129,21 +137,22 @@ class Pool extends Identifiable
         return $this->getCollection()->getName();
     }
 
-    /**
-     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
-     */
-    public function getScores(): ArrayCollection|PersistentCollection
-    {
-        return $this->scores;
-    }
+//    /**
+//     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
+//     */
+//    public function getScores(): ArrayCollection|PersistentCollection
+//    {
+//        return $this->scores;
+//    }
 
-    public function getPrevious(): Pool|null {
+    public function getPrevious(): Pool|null
+    {
         $previousEndDateTime = $this->getSeason()->getStartDateTime();
         $previousStartDateTime = $previousEndDateTime->modify('-2 days');
         $endPeriod = new \League\Period\Period($previousStartDateTime, $previousEndDateTime);
 
-        foreach( $this->getSiblings() as $sibling ) {
-            if( $endPeriod->contains($sibling->getSeason()->getEndDateTime() ) ) {
+        foreach ($this->getSiblings() as $sibling) {
+            if ($endPeriod->contains($sibling->getSeason()->getEndDateTime())) {
                 return $sibling;
             }
         }
@@ -152,8 +161,10 @@ class Pool extends Identifiable
 
     /**
      * @return ArrayCollection<int|string, Pool>|PersistentCollection<int|string, Pool>
+     * @psalm-return ArrayCollection<int|string, Pool>
      */
-    public function getSiblings(): ArrayCollection|PersistentCollection {
+    public function getSiblings(): ArrayCollection|PersistentCollection
+    {
         return $this->getCollection()->getPools();
     }
 }

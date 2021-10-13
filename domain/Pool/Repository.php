@@ -71,7 +71,9 @@ class Repository extends EntityRepository
             $query = $query->setParameter('name', '%' . $name . '%');
         }
 
-        return $query->getQuery()->getResult();
+        /** @var list<Pool> $pools */
+        $pools = $query->getQuery()->getResult();
+        return $pools;
     }
 
     /**
@@ -81,9 +83,9 @@ class Repository extends EntityRepository
      */
     public function findByRoles(User $user, int $roles): array
     {
-        $exprExists = $this->getEM()->getExpressionBuilder();
+        $exprExists = $this->_em->getExpressionBuilder();
 
-        $competitorQb = $this->getEM()->createQueryBuilder()
+        $competitorQb = $this->_em->createQueryBuilder()
             ->select('pu.id')
             ->from('SuperElf\Pool\User', 'pu')
             ->where('pu.pool = p')
@@ -102,8 +104,9 @@ class Repository extends EntityRepository
         if( $roles === Role::ADMIN ) {
             $qb = $qb->setParameter('admin', true);
         }
-
-        return $qb->getQuery()->getResult();
+        /** @var list<Pool> $pools */
+        $pools = $qb->getQuery()->getResult();
+        return $pools;
     }
 
 //

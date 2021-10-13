@@ -5,6 +5,7 @@ namespace SuperElf\CompetitionCreator;
 
 use Sports\Competition\Sport\Service as CompetitionSportService;
 use Sports\Planning\Config\Service as PlanningConfigService;
+use SportsHelpers\Sport\PersistVariant as SportPersistVariant;
 use SuperElf\CompetitionType;
 use SuperElf\Competitor;
 use Sports\Sport;
@@ -19,33 +20,34 @@ use SuperElf\PoolCollection;
 
 class DefaultCreator extends MainCreator
 {
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
-    /**
-     * @param array<int, Sport> $competitionTypes
-     * @param Pool $pool
-     */
-    public function createCompetition( Pool $pool, int $competitionType, Sport $sport ): void {
-        $this->createCompetitionHelper( $pool, $competitionType, $sport );
+    public function createCompetition(Pool $pool, Sport $sport, int $competitionType): Competition
+    {
+        return $this->createCompetitionHelper($pool, $sport, $competitionType);
     }
 
-    public function recreateDetails( Pool $pool ): void {
-        $competition = $pool->getCompetition( CompetitionType::COMPETITION );
-        if( $competition === null ) {
+    public function recreateDetails(Pool $pool): void
+    {
+        $competition = $pool->getCompetition(CompetitionType::COMPETITION);
+        if ($competition === null) {
             throw new \Exception('default competition for pool should always exist', E_ERROR);
         }
-        $poule = $this->recreateStructure( $competition, $pool );
-        $competitors = $this->recreateCompetitors( $competition, $pool );
-        $this->recreateGames( $competition, $pool, $poule, $competitors );
+        $poule = $this->recreateStructure($competition, $pool);
+        $competitors = $this->recreateCompetitors($competition, $pool);
+        $this->recreateGames($competition, $pool, $poule, $competitors);
     }
 
-    protected function recreateStructure( Competition $competition, Pool $pool ): Poule {
+    protected function recreateStructure(Competition $competition, Pool $pool): Poule
+    {
         $structureEditor = new StructureEditor(
             new CompetitionSportService(),
-            new PlanningConfigService());
-        $structure = $structureEditor->create($competition, [$pool->getUsers()->count()] );
+            new PlanningConfigService()
+        );
+        $structure = $structureEditor->create($competition, [$pool->getUsers()->count()]);
         return $structure->getRootRound()->getPoule(1);
     }
 
@@ -54,12 +56,12 @@ class DefaultCreator extends MainCreator
      * @param Pool $pool
      * @return list<Competitor>
      */
-    protected function recreateCompetitors( Competition $competition, Pool $pool ): array
+    protected function recreateCompetitors(Competition $competition, Pool $pool): array
     {
         // remove competitors and than create them
-        foreach( $pool->getUsers() as $poolUser ) {
-            $competitor = $poolUser->getCompetitor( $competition );
-            if( $competitor === null ) {
+        foreach ($pool->getUsers() as $poolUser) {
+            $competitor = $poolUser->getCompetitor($competition);
+            if ($competitor === null) {
                 continue;
             }
             $poolUser->getCompetitors()->removeElement($competitor);
@@ -67,7 +69,7 @@ class DefaultCreator extends MainCreator
         }
         $placeNr = 1;
         $competitors = [];
-        foreach( $pool->getUsers() as $poolUser ) {
+        foreach ($pool->getUsers() as $poolUser) {
             $competitors[] = new Competitor($poolUser, $competition, 1, $placeNr++);
             // $this->competitorReps->save($competitor);
         }
@@ -80,11 +82,11 @@ class DefaultCreator extends MainCreator
      * @param Poule $poule
      * @param list<Competitor> $competitors
      */
-    protected function recreateGames( Competition $competition, Pool $pool, Poule $poule, array $competitors): void
+    protected function recreateGames(Competition $competition, Pool $pool, Poule $poule, array $competitors): void
     {
-        $createGames = function ( ViewPeriod $viewPeriod ) use ( $competition, $poule, $competitors ): void {
+        $createGames = function (ViewPeriod $viewPeriod) use ($competition, $poule, $competitors): void {
             $competitionSport = $competition->getSingleSport();
-            foreach( $viewPeriod->getGameRounds() as $gameRound ) {
+            foreach ($viewPeriod->getGameRounds() as $gameRound) {
                 $game = new TogetherGame(
                     $poule,
                     $gameRound->getNumber(),
@@ -93,12 +95,11 @@ class DefaultCreator extends MainCreator
                 );
                 foreach ($competitors as $competitor) {
                     $place = $poule->getPlace($competitor->getPlaceNr());
-                    new TogetherGamePlace( $game, $place, $gameRound->getNumber() );
+                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
                 }
             }
         };
-        $createGames( $pool->getAssemblePeriod()->getViewPeriod() );
-        $createGames( $pool->getTransferPeriod()->getViewPeriod() );
+        $createGames($pool->getAssemblePeriod()->getViewPeriod());
+        $createGames($pool->getTransferPeriod()->getViewPeriod());
     }
 }
-

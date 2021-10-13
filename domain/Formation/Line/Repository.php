@@ -6,7 +6,7 @@ namespace SuperElf\Formation\Line;
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Formation\Line as FormationLine;
-use SuperElf\Period\View\Person as ViewPeriodPerson;
+use SuperElf\Player as Player;
 
 /**
  * @template-extends EntityRepository<FormationLine>
@@ -20,23 +20,23 @@ class Repository extends EntityRepository
 
     /**
      * @param int $line
-     * @param ViewPeriodPerson $viewPeriodPerson
-     * @return array|FormationLine[]
+     * @param Player $player
+     * @return list<FormationLine>
      */
-    public function findByExt(int $line, ViewPeriodPerson $viewPeriodPerson  )
+    public function findByExt(int $line, Player $player): array
     {
-        $exprExists = $this->getEM()->getExpressionBuilder();
+        // $exprExists = $this->_em->getExpressionBuilder();
 
         $query = $this->createQueryBuilder('fl')
             ->distinct()
             ->join('fl.formation', 'f')
-            ->join('fl.viewPeriodPersons', 'vpp')
+            ->join('fl.players', 'pl')
             ->where('fl.number = :line')
-            ->andWhere('vpp = :viewPeriodPerson')
+            ->andWhere('pl = :player')
 
 //            ->andWhere(
 //                $exprExists->exists(
-//                    $this->getEM()->createQueryBuilder()
+//                    $this->_em->createQueryBuilder()
 //                        ->select('gr.id')
 //                        ->from('SuperElf\Formation\Line\ViewPeriodPerson', 'flvpp')
 //                        ->where('flvpp.viewPeriodPerson = :viewPeriodPerson')
@@ -44,9 +44,11 @@ class Repository extends EntityRepository
 //                )
 //            )
         ;
-        $query = $query->setParameter('line', $line );
-        $query = $query->setParameter('viewPeriodPerson', $viewPeriodPerson );
+        $query = $query->setParameter('line', $line);
+        $query = $query->setParameter('player', $player);
 
-        return $query->getQuery()->getResult();
+        /** @var list<FormationLine> $formationLines */
+        $formationLines = $query->getQuery()->getResult();
+        return $formationLines;
     }
 }

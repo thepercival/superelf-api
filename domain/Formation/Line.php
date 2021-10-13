@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace SuperElf\Formation;
@@ -10,22 +9,31 @@ use Sports\Person;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
 use SuperElf\GameRound;
-use SuperElf\Period\View\Person as ViewPeriodPerson;
-use SuperElf\Pool;
-use SuperElf\Pool\User\ViewPeriodPerson as PoolUserViewPeriodPerson;
+use SuperElf\Player as S11Player;
+use SuperElf\Substitute\Appearance;
 
 class Line extends Identifiable
 {
     /**
-     * @var ArrayCollection<int|string, ViewPeriodPerson>|PersistentCollection<int|string, ViewPeriodPerson>
+     * @var ArrayCollection<int|string, S11Player>|PersistentCollection<int|string, S11Player>
+     * @psalm-var ArrayCollection<int|string, S11Player>
      */
-    protected ArrayCollection|PersistentCollection $viewPeriodPersons;
-    protected PoolUserViewPeriodPerson|null $substitute = null;
+    protected ArrayCollection|PersistentCollection $players;
+    protected S11Player|null $substitute = null;
+    /**
+     * @var ArrayCollection<int|string, Appearance>|PersistentCollection<int|string, Appearance>
+     * @psalm-var ArrayCollection<int|string, Appearance>
+     */
+    protected ArrayCollection|PersistentCollection $substituteAppearances;
 
     public function __construct(
-        protected FormationBase $formation, protected  int $number, protected  int $maxNrOfPersons)
+        protected FormationBase $formation,
+        protected  int $number,
+        protected  int $maxNrOfPersons
+    )
     {
-        $this->viewPeriodPersons = new ArrayCollection();
+        $this->players = new ArrayCollection();
+        $this->substituteAppearances = new ArrayCollection();
     }
 
     public function getFormation(): FormationBase
@@ -45,21 +53,22 @@ class Line extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, ViewPeriodPerson>|PersistentCollection<int|string, ViewPeriodPerson>
+     * @return ArrayCollection<int|string, S11Player>|PersistentCollection<int|string, S11Player>
+     * @psalm-return ArrayCollection<int|string, S11Player>
      */
-    public function getViewPeriodPersons(): ArrayCollection|PersistentCollection
+    public function getPlayers(): ArrayCollection|PersistentCollection
     {
-        return $this->viewPeriodPersons;
+        return $this->players;
     }
 
-    public function getSubstitute(): ?PoolUserViewPeriodPerson
+    public function getSubstitute(): S11Player|null
     {
         return $this->substitute;
     }
 
-    public function setSubstitute( PoolUserViewPeriodPerson $substitute = null ): void
+    public function setSubstitute(S11Player $player = null): void
     {
-        $this->substitute = $substitute;
+        $this->substitute = $player;
     }
 
     /**
@@ -68,23 +77,41 @@ class Line extends Identifiable
     public function getAllPersons(): array
     {
         $persons = [];
-        foreach( $this->getViewPeriodPersons() as $viewPeriodPerson ) {
-            $persons[] = $viewPeriodPerson->getPerson();
+        foreach ($this->getPlayers() as $player) {
+            $persons[] = $player->getPerson();
         }
         $substitute = $this->getSubstitute();
-        if( $substitute !== null ) {
-            $persons[] = $substitute->getViewPeriodPerson()->getPerson();
+        if ($substitute !== null) {
+            $persons[] = $substitute->getPerson();
         }
         return $persons;
     }
 
-    public function needSubstitute( GameRound $gameRound ): bool {
-        foreach( $this->getViewPeriodPersons() as $viewPeriodPerson ) {
-            $gameRoundScore = $viewPeriodPerson->getGameRoundScore($gameRound);
-            if ($gameRoundScore !== null && !$gameRoundScore->participated()) {
-                return true;
-            }
-        }
-        return false;
+//    public function needSubstitute( GameRound $gameRound ): bool {
+//        foreach( $this->getPlayers() as $player ) {
+//            $gameRoundScore = $player->getGameRoundScore($gameRound);
+//            if ($gameRoundScore !== null && !$gameRoundScore->participated()) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+
+    /**
+     * @return ArrayCollection<int|string, Appearance>|PersistentCollection<int|string, Appearance>
+     * @psalm-return ArrayCollection<int|string, Appearance>
+     */
+    public function getSubstituteAppearances(): ArrayCollection|PersistentCollection
+    {
+        return $this->substituteAppearances;
+    }
+
+    public function getAppareance(GameRound $gameRound): Appearance|null
+    {
+        $filtered = $this->substituteAppearances->filter(function (Appearance $appareance) use ($gameRound): bool {
+            return $appareance->getGameRound() === $gameRound;
+        });
+        $firstAppareance = $filtered->first();
+        return $firstAppareance === false ? null : $firstAppareance;
     }
 }

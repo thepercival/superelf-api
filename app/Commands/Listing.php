@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Commands;
@@ -17,19 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Listing extends Command
 {
     /**
-     * @var array|string[]
+     * @param ContainerInterface $container
+     * @param array<int, string> $commandKeys
      */
-    protected $commandKeys;
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    public function __construct(ContainerInterface $container, array $commandKeys)
+    public function __construct(protected ContainerInterface $container, protected array $commandKeys)
     {
-        $this->container = $container;
-        $this->commandKeys = $commandKeys;
-        parent::__construct($container->get(Configuration::class));
+        parent::__construct($container, 'command-listing');
     }
 
     protected function configure(): void
@@ -41,17 +33,27 @@ class Listing extends Command
             ->setDescription('list the commands')
             // the full command description shown when running the command with
             // the "--help" option
-            ->setHelp('list the commands');
+            ->setHelp('list the commands')
+            ->addArgument(
+                'commandfilter',
+                InputArgument::OPTIONAL,
+                'show only this command'
+            );
 
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach( $this->commandKeys as $commandKey ) {
+        $this->initLoggerFromInput($input);
+        $commandFilter = $this->getCommandFilterFromInput($input);
 
+        foreach( $this->commandKeys as $commandKey ) {
             /** @var Command $command */
             $command = $this->container->get($commandKey);
+            if( $commandFilter !== null && $command->getName() !== $commandFilter) {
+                continue;
+            }
             echo $commandKey . " (" . $command->getDescription() . ")" . PHP_EOL;
             foreach( $command->getDefinition()->getArguments() as $argument ) {
                 echo "  " . $argument->getName() . " (" . $argument->getDescription() . ")" . PHP_EOL;
@@ -64,4 +66,10 @@ class Listing extends Command
         return 0;
     }
 
+    protected function getCommandFilterFromInput(InputInterface $input): string|null
+    {
+        /** @var string|null $commandFilter */
+        $commandFilter =  $input->getArgument('commandfilter');
+        return $commandFilter;
+    }
 }

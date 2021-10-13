@@ -1,4 +1,4 @@
-SuperElf\Period\View\Person\Filter:
+SuperElf\Player\Filter:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property

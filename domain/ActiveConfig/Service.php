@@ -6,6 +6,7 @@ namespace SuperElf\ActiveConfig;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Exception;
 use League\Period\Period;
 use Selective\Config\Configuration;
 use Sports\Competition;
@@ -18,87 +19,111 @@ use Sports\Sport\Repository as SportRepository;
 
 class Service
 {
-
     public function __construct(
         protected CompetitionRepository $competitionRepos,
         protected SeasonRepository $seasonRepos,
         protected SportRepository $sportRepos,
-        protected Configuration $config) {
+        protected Configuration $config
+    ) {
     }
 
-    public function getConfig(): ActiveConfig {
-        $activeConfig = new ActiveConfig (
+    public function getConfig(): ActiveConfig
+    {
+        $activeConfig = new ActiveConfig(
             $this->getCreateAndJoinPeriod(),
             $this->getSourceCompetitions(),
         );
         $formations = [];
         /** @var string $formationName */
-        foreach( $this->config->getArray('availableFormationNames' ) as $formationName ) {
+        foreach ($this->config->getArray('availableFormationNames') as $formationName) {
             $formations[] = [
                 "name" => $formationName,
                 "lines" => [
-                    SportCustom::Football_Line_GoalKepeer => (int) substr( $formationName,0, 1 ),
-                    SportCustom::Football_Line_Defense => (int) substr( $formationName,2, 1 ),
-                    SportCustom::Football_Line_Midfield => (int) substr( $formationName,4, 1 ),
-                    SportCustom::Football_Line_Forward => (int) substr( $formationName,6, 1 )]
+                    SportCustom::Football_Line_GoalKepeer => (int) substr($formationName, 0, 1),
+                    SportCustom::Football_Line_Defense => (int) substr($formationName, 2, 1),
+                    SportCustom::Football_Line_Midfield => (int) substr($formationName, 4, 1),
+                    SportCustom::Football_Line_Forward => (int) substr($formationName, 6, 1)]
             ];
         }
-        $activeConfig->setAvailableFormations( $formations );
+        $activeConfig->setAvailableFormations($formations);
         return $activeConfig;
     }
 
-    public function getCreateAndJoinPeriod(): Period {
-        return new Period (
-            $this->getSeason()->getStartDateTime(),
-            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) )
+    public function getCreatePeriod(): Period
+    {
+        $createAndJoinPeriod = $this->getCreateAndJoinPeriod();
+        return new Period(
+            $createAndJoinPeriod->getStartDate(),
+            $createAndJoinPeriod->getEndDate()->modify('-1 days')
         );
     }
 
-    public function getAssemblePeriod(): Period {
-        return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.assembleStart' ) ),
-            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) )
+    public function getCreateAndJoinPeriod(): Period
+    {
+        return new Period(
+            new DateTimeImmutable($this->config->getString('periods.createAndJoinStart')),
+            new DateTimeImmutable($this->config->getString('periods.assembleEnd'))
         );
     }
 
-    public function getAssembleViewPeriod(): Period {
-        return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.assembleEnd' ) ),
-            new DateTimeImmutable( $this->config->getString('periods.transfersStart' ) )
+    public function getAssemblePeriod(): Period
+    {
+        return new Period(
+            new DateTimeImmutable($this->config->getString('periods.assembleStart')),
+            new DateTimeImmutable($this->config->getString('periods.assembleEnd'))
         );
     }
 
-    public function getTransferPeriod(): Period {
-        return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.transfersStart' ) ),
-            new DateTimeImmutable( $this->config->getString('periods.transfersEnd' ) )
+    public function getAssembleViewPeriod(): Period
+    {
+        return new Period(
+            new DateTimeImmutable($this->config->getString('periods.assembleEnd')),
+            new DateTimeImmutable($this->config->getString('periods.transfersStart'))
         );
     }
 
-    public function getTransferViewPeriod(): Period {
-        return new Period (
-            new DateTimeImmutable( $this->config->getString('periods.transfersEnd' ) ),
+    public function getTransferPeriod(): Period
+    {
+        return new Period(
+            new DateTimeImmutable($this->config->getString('periods.transfersStart')),
+            new DateTimeImmutable($this->config->getString('periods.transfersEnd'))
+        );
+    }
+
+    public function getTransferViewPeriod(): Period
+    {
+        return new Period(
+            new DateTimeImmutable($this->config->getString('periods.transfersEnd')),
             $this->getSeason()->getEndDateTime()
         );
     }
 
-    protected function getSourceCompetitions(): array {
+    /**
+     * @return list<array<string, int|string|null>>
+     * @throws Exception
+     */
+    protected function getSourceCompetitions(): array
+    {
         $season = $this->getSeason();
-        $sport = $this->sportRepos->findOneBy( ["customId" => SportCustom::Football ] );
-        if( $sport === null ) {
+        $sport = $this->sportRepos->findOneBy(["customId" => SportCustom::Football ]);
+        if ($sport === null) {
             return [];
         }
-        $competitions =  $this->competitionRepos->findExt( $sport, $season->getPeriod() );
-        return array_map( function( Competition $competition ): array {
+        $competitions =  $this->competitionRepos->findExt($sport, $season->getPeriod());
+        return array_values(array_map(function (Competition $competition): array {
             return ["id" => $competition->getId(), "name" => $competition->getName() ];
-        }, $competitions );
+        }, $competitions));
     }
 
-    public function getSeason(): Season {
-
-        $season =  $this->seasonRepos->findOneByPeriod( $this->getAssembleViewPeriod() );
-        if( $season === null ) {
-            throw new \Exception('assembleviewperiod is not in a season', E_ERROR);
+    public function getSeason(): Season
+    {
+        $period = new Period(
+            $this->getAssemblePeriod()->getStartDate(),
+            $this->getTransferPeriod()->getEndDate()
+        );
+        $season =  $this->seasonRepos->findOneByPeriod($period);
+        if ($season === null) {
+            throw new Exception('assembleviewperiod is not in a season', E_ERROR);
         }
         return $season;
     }

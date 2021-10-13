@@ -1,19 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace SuperElf\Period\View\Person;
-
-use DateTimeImmutable;
+namespace SuperElf\Player;
 
 class Filter
 {
-    // protected DateTimeImmutable|null $end = null;
+    protected int|string|null $teamId = null;
 
     public function __construct(
         protected int $viewPeriodId,
-        protected int|string|null $teamId = null,
-        protected int|null $line = null)
-    {
+        int|string|null $teamId,
+        protected int|null $line = null
+    ) {
+        $this->teamId = $teamId;
     }
 
     public function getViewPeriodId(): int

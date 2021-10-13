@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SuperElf\Player;
+namespace SuperElf\Statistics;
 
 use DateTime;
 use Psr\Log\LoggerInterface;
@@ -17,7 +17,6 @@ use SuperElf\Player as S11Player;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
-use SuperElf\Substitute\Appearance\Calculator as SubstituteAppearanceCalculator;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SportsHelpers\Against\Side as AgainstSide;
@@ -34,20 +33,19 @@ class Syncer
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected StatisticsRepository $statisticsRepos,
-        protected SubstituteAppearanceCalculator $appearanceCalculator,
+        protected Converter $converter,
         protected PointsCreator $pointsCreator,
         protected PointsCalculator $pointsCalculator
     ) {
     }
 
-    public function calculate(AgainstGame $game): void
+    public function sync(AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
         // viewperiods for season
 
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new CompetitorMap($competitors);
-        $this->logGame($game, $map);
 //
         $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
         if ($viewPeriod === null) {
@@ -59,35 +57,12 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-
-            $this->validateS11Players($viewPeriod, $gamePlace);
-
-            $this->calculateStatistics($viewPeriod, $gamePlace, $teamCompetitor->getTeam());
+            $this->syncStatistics($viewPeriod, $gamePlace, $teamCompetitor->getTeam());
         }
         // }
     }
 
-    protected function validateS11Players(ViewPeriod $viewPeriod, AgainstGamePlace $gamePlace): void
-    {
-        $this->logInfo('validating s11Players ..');
-        foreach ($gamePlace->getParticipations() as $gameParticipation) {
-            $this->validateS11Player($viewPeriod, $gameParticipation->getPlayer()->getPerson());
-        }
-        $this->logInfo('validated s11Players');
-    }
-
-    protected function validateS11Player(ViewPeriod $viewPeriod, Person $person): void
-    {
-        $s11Player = $this->s11PlayerRepos->findOneBy(["viewPeriod" => $viewPeriod, "person" => $person ]);
-        if ($s11Player !== null) {
-            return;
-        }
-        $s11Player = new S11Player($viewPeriod, $person);
-        ;
-        $this->logCreateS11Player($this->s11PlayerRepos->save($s11Player));
-    }
-
-    protected function calculateStatistics(
+    protected function syncStatistics(
         ViewPeriod $viewPeriod,
         AgainstGamePlace $gamePlace,
         Team $team
@@ -117,14 +92,19 @@ class Syncer
             }
             $gameParticipation = $this->getGameParticipation($s11Player, $gameParticipations);
             $statistics = $s11Player->getGameRoundStatistics($gameRound);
-            // if ($gameParticipation === null) {
+
             if ($statistics !== null) {
                 $s11Player->getStatistics()->removeElement($statistics);
                 $this->statisticsRepos->remove($statistics);
             }
-                continue;
-            }
-            $statistics = $this->converter->convert() $s11Player->getStatistics()->removeElement($statistics);
+
+
+            $statistics = $this->converter->convert(
+                $viewPeriod,
+                $s11Player,
+                $gamePlace->getGame(),
+                $gameParticipation
+            );
             $this->statisticsRepos->save($statistics);
 
 

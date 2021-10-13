@@ -34,6 +34,7 @@
     "symfony/property-access": "^5.0",
     "symfony/console": "^5.0",
     "thepercival/php-sports": "^1.0",
+    "thepercival/php-sports-planning": "^1.0",
     "thepercival/php-sports-import": "^1.0",
     "thepercival/php-sports-helpers": "^1.0",
     "tuupola/base62": "^2.0",
@@ -46,7 +47,7 @@
     "symfony/cache": "^5.3"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.00",
+    "friendsofphp/php-cs-fixer": "^3.0",
     "phpstan/phpstan": "^0.12",
     "phpstan/phpstan-doctrine": "^0.12",
     "phpstan/extension-installer": "^1.0",
@@ -72,7 +73,7 @@
     }
   },
   "scripts": {
-    "start": "php -S localhost:2998 -t public/",
+    "start": "php -S localhost:2997 -t public/",
     "test": [
       "vendor/bin/phpunit --configuration tests/phpunit.xml tests/cases/"
     ],

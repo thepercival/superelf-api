@@ -50,11 +50,11 @@
         <cascade-remove/>
       </cascade>
     </one-to-many>
-    <one-to-many field="scores" target-entity="SuperElf\Pool\GameRoundScore" mapped-by="pool">
-      <cascade>
-        <cascade-remove/>
-      </cascade>
-    </one-to-many>
+<!--    <one-to-many field="scores" target-entity="SuperElf\Pool\GameRoundScore" mapped-by="pool">-->
+<!--      <cascade>-->
+<!--        <cascade-remove/>-->
+<!--      </cascade>-->
+<!--    </one-to-many>-->
   </entity>
 
 </doctrine-mapping>

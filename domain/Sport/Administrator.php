@@ -7,7 +7,7 @@ use SuperElf\CompetitionType;
 use Sports\Sport;
 use SportsHelpers\GameMode;
 use SuperElf\Pool;
-use SuperElf\PoolCollection;
+use SportsHelpers\Sport\PersistVariant as SportPersistVariant;
 use Sports\Sport\Repository as SportRepository;
 
 class Administrator
@@ -18,50 +18,24 @@ class Administrator
     }
 
     /**
-     * @param Pool $ppol
-     * @return array<int, Sport>
+     * @param Pool $pool
+     * @return list<int>
      */
-    public function getCompetitionTypes(Pool $ppol): array {
+    public function getCompetitionTypes(Pool $pool): array {
         $competitionTypes = [
-            CompetitionType::COMPETITION => $this->getSport(CompetitionType::COMPETITION),
-            CompetitionType::CUP => $this->getSport(CompetitionType::CUP)
+            CompetitionType::COMPETITION, CompetitionType::CUP
         ];
-        if( $ppol->getPrevious() !== null ) {
-            $competitionTypes[CompetitionType::SUPERCUP] = $this->getSport(CompetitionType::SUPERCUP);
+        if( $pool->getPrevious() !== null ) {
+            $competitionTypes[] = CompetitionType::SUPERCUP;
         }
         return $competitionTypes;
     }
 
-    protected function getSport(int $leagueNumber): Sport {
-        $sportName = $this->getName($leagueNumber);
-        $sport = $this->sportRepos->findOneBy( ["name" => $sportName] );
+    public function getSport(): Sport {
+        $sport = $this->sportRepos->findOneBy( ["name" => self::SportName] );
         if( $sport === null ) {
-            $gameMode = $this->getGameMode($leagueNumber);
-            $nrOfSidePlaces = $this->getNrOfSidePlaces($leagueNumber);
-            $sport = new Sport( self::SportName, false, $gameMode, $nrOfSidePlaces );
-            $this->sportRepos->save( $sport );
+            throw new \Exception('the sport "' . self::SportName . '"could not be found ', E_ERROR);
         }
         return $sport;
-    }
-
-    protected function getGameMode(int $leagueNumber): int {
-        if( $leagueNumber === CompetitionType::COMPETITION) {
-            return GameMode::ALL_IN_ONE_GAME;
-        }
-        return GameMode::AGAINST;
-    }
-
-    protected function getNrOfSidePlaces(int $leagueNumber): int {
-        if( $leagueNumber === CompetitionType::COMPETITION) {
-            return 1;
-        }
-        return 0;
-    }
-
-    protected function getName(int $leagueNumber): string {
-        if( $leagueNumber === CompetitionType::COMPETITION) {
-            return self::SportName . '-' . 'allinonegame';
-        }
-        return self::SportName . '-' . 'against';
     }
 }

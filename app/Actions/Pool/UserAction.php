@@ -15,6 +15,7 @@ use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use App\Actions\Action;
 use Psr\Log\LoggerInterface;
+use SuperElf\User;
 
 final class UserAction extends Action
 {
@@ -33,7 +34,13 @@ final class UserAction extends Action
         $this->serializer = $serializer;
     }
 
-    public function fetchOne(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var Pool $pool */
@@ -52,12 +59,18 @@ final class UserAction extends Action
         }
     }
 
-    public function fetchOneFromSession(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchOneFromSession(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var Pool $pool */
             $pool = $request->getAttribute("pool");
-
+            /** @var User $user */
             $user = $request->getAttribute("user");
 
             $poolUser = $pool->getUser($user);
@@ -87,7 +100,13 @@ final class UserAction extends Action
     }
 
 
-    public function fetch(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetch(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var Pool $pool */
@@ -105,7 +124,13 @@ final class UserAction extends Action
         }
     }
 
-    public function remove(Request $request, Response $response, $args): Response
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function remove(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var Pool $pool */

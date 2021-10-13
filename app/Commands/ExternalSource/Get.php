@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Commands;
+namespace App\Commands\ExternalSource;
 
 use Sports\Association;
 use Sports\Competition;
@@ -12,49 +12,48 @@ use SportsImport\ExternalSource\ApiHelper;
 use SportsImport\ExternalSource\CacheInfo;
 use Sports\Output\ConsoleTable;
 use Sports\League;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Game\Against\Repository as AgainstGameRepository;
 use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
 use Psr\Container\ContainerInterface;
 use App\Command;
+
+use SportsImport\Entity;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource\Game\Against as AgainstGameExternalSource;
-use SportsImport\ExternalSource\Structure as StructureExternalSource;
-use SportsImport\ExternalSource\Competitor\Team as TeamCompetitorExternalSource;
-use SportsImport\ExternalSource\Competition as CompetitionExternalSource;
+use SportsImport\Getter as ImportGetter;
 use SportsImport\ExternalSource\Team as TeamExternalSource;
-use SportsImport\ExternalSource\League as LeagueExternalSource;
-use SportsImport\ExternalSource\Association as AssociationExternalSource;
-use SportsImport\ExternalSource\Season as SeasonExternalSource;
-use SportsImport\ExternalSource\Sport as SportExternalSource;
-use SportsImport\ExternalSource;
-use SportsImport\Service as ImportService;
 
-class GetExternal extends Command
+use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\Competitions;
+use SportsImport\ExternalSource\CompetitionStructure;
+use SportsImport\ExternalSource\CompetitionDetails;
+use SportsImport\Importer;
+use App\Commands\ExternalSource as ExternalSourceCommand;
+
+class Get extends ExternalSourceCommand
 {
-    protected ExternalSourceFactory $externalSourceFactory;
-    protected ImportService $importService;
-    protected CompetitionRepository $competitionRepos;
-    protected CompetitionAttacherRepository $competitionAttacherRepos;
+    protected ImportGetter $getter;
+    protected AgainstGameRepository $againstGameRepos;
+//    protected CompetitionAttacherRepository $competitionAttacherRepos;
 
     public function __construct(ContainerInterface $container)
     {
-        $this->externalSourceFactory = $container->get(ExternalSourceFactory::class);
-        $this->importService = $container->get(ImportService::class);
-        $this->competitionRepos = $container->get(CompetitionRepository::class);
-        $this->competitionAttacherRepos = $container->get(CompetitionAttacherRepository::class);
-        parent::__construct($container);
+        /** @var ImportGetter getter */
+        $this->getter = $container->get(ImportGetter::class);
+        /** @var AgainstGameRepository againstGameRepos */
+        $this->againstGameRepos = $container->get(AgainstGameRepository::class);
+//        $this->competitionAttacherRepos = $container->get(CompetitionAttacherRepository::class);
+        parent::__construct($container, 'command-getexternal');
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             // the name of the command (the part after "bin/console")
-            ->setName('app:getexternal')
+            ->setName('app:get-external')
             // the short description shown while running "php bin/console list"
             ->setDescription('gets the external objects')
             // the full command description shown when running the command with
@@ -67,360 +66,266 @@ class GetExternal extends Command
         parent::configure();
     }
 
-    protected function init(InputInterface $input, string $name): void
-    {
-        $this->initLogger($input, $name);
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->init($input, 'cron-getexternal');
+        $this->initLoggerFromInput($input);
 
-        $externalSourceName = $input->getArgument('externalSource');
-        $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
+        $externalSourceName = (string)$input->getArgument('externalSource');
+
+        $externalSourceImpl = $this->getExternalSourceImplFromInput($input);
         if ($externalSourceImpl === null) {
-            if( $this->logger !== null) {
-                $message = "voor \"" . $externalSourceName . "\" kan er geen externe bron worden gevonden";
-                $this->logger->error($message);
-            }
+            $message = 'voor "' . $externalSourceName . '" kan er geen externe bron worden gevonden';
+            $this->logger->error($message);
             return -1;
         }
+        $externalSource = $externalSourceImpl->getExternalSource();
 
-        $objectType = $input->getArgument('objectType');
-
-        maak hier een iterator van en dan kijken naar de afhankelijkheden tussen
-    bijvoorbeeld getGames en als getCompetition dan ook geimplementeerd dient te worden!!
+        $entity = $this->getEntityFromInput($input);
 
         try {
-            if ($objectType === "sports" and $externalSourceImpl instanceof SportExternalSource) {
-                $this->getSports($externalSourceImpl);
-            } elseif ($objectType === "seasons" and $externalSourceImpl instanceof SeasonExternalSource) {
-                $this->getSeasons($externalSourceImpl);
-            } else {
-                $sport = $this->getSportFromInput($input);
-                if ($objectType === "associations" and $externalSourceImpl instanceof AssociationExternalSource) {
-                    $this->getAssociations($externalSourceImpl, $sport);
-                } else {
-                    $association = $this->getAssociationFromInput($input);
-                    if ($objectType === "leagues" and $externalSourceImpl instanceof LeagueExternalSource) {
-                        $this->getLeagues($externalSourceImpl, $sport, $association);
-                    } else {
+            if( $externalSourceImpl instanceof Competitions) {
+                switch ($entity) {
+                    case Entity::SPORTS:
+                        $this->showSports($externalSourceImpl);
+                        return 0;
+                    case Entity::SEASONS:
+                        $this->showSeasons($externalSourceImpl);
+                        return 0;
+                    case Entity::ASSOCIATIONS:
+                        $sport = $this->getSportFromInput($input);
+                        $this->showAssociations($externalSourceImpl, $sport);
+                        return 0;
+                    case Entity::LEAGUES:
+                        $sport = $this->getSportFromInput($input);
+                        $association = $this->getAssociationFromInput($input);
+                        $this->showLeagues($externalSourceImpl, $externalSource, $sport, $association);
+                        return 0;
+                    case Entity::COMPETITIONS:
+                        $sport = $this->getSportFromInput($input);
                         $league = $this->getLeagueFromInput($input);
-                        if ($objectType === "competitions" and $externalSourceImpl instanceof CompetitionExternalSource) {
-                            $this->getCompetitions($externalSourceImpl, $sport, $association, $league);
-                        } else {
-                            $season = $this->getSeasonFromInput($input);
-                            if ($objectType === "teams" and $externalSourceImpl instanceof TeamExternalSource) {
-                                $this->getTeams($externalSourceImpl, $sport, $association, $league, $season);
-                            } elseif ($objectType === "teamcompetitors" and $externalSourceImpl instanceof TeamCompetitorExternalSource) {
-                                $this->getTeamCompetitors($externalSourceImpl, $sport, $association, $league, $season);
-                            } elseif ($objectType === "structure" and $externalSourceImpl instanceof StructureExternalSource) {
-                                $this->getStructure($externalSourceImpl, $sport, $association, $league, $season);
-                            } elseif ($objectType === "games" and $externalSourceImpl instanceof AgainstGameExternalSource) {
-                                $batchNrRange = $this->getBatchNrRangeFromInput($input);
-                                $this->getAgainstGames(
-                                    $externalSourceImpl,
-                                    $sport,
-                                    $association,
-                                    $league,
-                                    $season,
-                                    $batchNrRange
-                                );
-                            } elseif ($objectType === "game" and $externalSourceImpl instanceof AgainstGameExternalSource) {
-                                $this->getGame(
-                                    $externalSourceImpl,
-                                    $sport,
-                                    $association,
-                                    $league,
-                                    $season,
-                                    $this->getIdFromInput($input)
-                                );
-                            } else {
-                                if( $this->logger !== null) {
-                                    $message = "objectType \"" . $objectType . "\" kan niet worden opgehaald uit externe bronnen";
-                                    $this->logger->error($message);
-                                }
-                            }
-                        }
-                    }
+                        $this->showCompetitions($externalSourceImpl, $externalSource, $sport, $league);
+                        return 0;
                 }
             }
-        } catch (\Exception $e) {
-            if( $this->logger !== null) {
-                $this->logger->error($e->getMessage());
+            if( $externalSourceImpl instanceof Competitions &&
+                $externalSourceImpl instanceof CompetitionStructure) {
+                $sport = $this->getSportFromInput($input);
+//                $association = $this->getAssociationFromInput($input);
+                $league = $this->getLeagueFromInput($input);
+                $season = $this->getSeasonFromInput($input);
+                switch ($entity) {
+                    case Entity::TEAMS:
+                        $this->showTeams($externalSourceImpl, $externalSourceImpl, $externalSource,
+                                         $sport, $league, $season);
+                        return 0;
+                    case Entity::TEAMCOMPETITORS:
+                        $this->showTeamCompetitors(
+                            $externalSourceImpl, $externalSourceImpl, $externalSource,
+                            $sport, $league, $season);
+                        return 0;
+                    case Entity::STRUCTURE:
+                        $this->showStructure($externalSourceImpl, $externalSourceImpl, $externalSource,
+                                             $sport, $league, $season);
+                        return 0;
+                }
             }
+            if( $externalSourceImpl instanceof Competitions &&
+                $externalSourceImpl instanceof CompetitionStructure &&
+                $externalSourceImpl instanceof CompetitionDetails) {
+                $sport = $this->getSportFromInput($input);
+                $league = $this->getLeagueFromInput($input);
+                $season = $this->getSeasonFromInput($input);
+                switch ($entity) {
+                    case Entity::GAMES:
+                        $batchNrRange = $this->getBatchNrRangeFromInput($input);
+                        $this->showAgainstGames(
+                            $externalSourceImpl, $externalSourceImpl, $externalSourceImpl, $externalSource,
+                            $sport,
+                            $league,
+                            $season,
+                            $batchNrRange
+                        );
+                        return 0;
+                    case Entity::GAMEDETAILS:
+                        $this->showAgainstGame(
+                            $externalSourceImpl, $externalSourceImpl, $externalSourceImpl, $externalSource,
+                            $sport,
+                            $league,
+                            $season,
+                            $this->getIdFromInput($input)
+                        );
+                        return 0;
+                }
+            }
+            throw new \Exception('objectType "' . $entity . '" kan niet worden opgehaald uit externe bronnen', E_ERROR);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
         }
-
-//        if ($input->getOption("structures")) {
-//            $this->importStructures(SofaScore::NAME);
-//        }
-//        if ($input->getOption("games")) {
-//            $this->importGames(SofaScore::NAME);
-//        }
-
         return 0;
     }
 
-    protected function showMetadata(ExternalSource\Implementation $externalSourceImpl, int $dataType)
+    protected function showSports(Competitions $externalSourceCompetitions): void
     {
-        if ($externalSourceImpl instanceof CacheInfo) {
-            $this->logger->info($externalSourceImpl->getCacheInfo($dataType));
-        }
-        if ($externalSourceImpl instanceof ApiHelper) {
-            $this->logger->info("endpoint: " . $externalSourceImpl->getEndPoint($dataType));
-        }
-    }
-
-    protected function getSports(ExternalSource\Implementation $externalSourceImpl)
-    {
-        if (!($externalSourceImpl instanceof SportExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen sporten opvragen", E_ERROR
-            );
-        }
         $table = new ConsoleTable\Sports();
-        $table->display($externalSourceImpl->getSports());
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_SPORTS);
+        $table->display(array_values($externalSourceCompetitions->getSports()));
     }
 
-    protected function getAssociations(ExternalSource\Implementation $externalSourceImpl, Sport $sport)
+    protected function showAssociations(Competitions $externalSourceCompetitions, Sport $sport): void
     {
-        if (!($externalSourceImpl instanceof AssociationExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen bonden opvragen", E_ERROR
-            );
-        }
         $table = new ConsoleTable\Associations();
-        $table->display($externalSourceImpl->getAssociations($sport));
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_ASSOCIATIONS);
+        $table->display(array_values($externalSourceCompetitions->getAssociations($sport)));
     }
 
-    protected function getSeasons(ExternalSource\Implementation $externalSourceImpl)
+    protected function showSeasons(Competitions $externalSourceCompetitions): void
     {
-        if (!($externalSourceImpl instanceof SeasonExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen seizoenen opvragen", E_ERROR
-            );
-        }
         $table = new ConsoleTable\Seasons();
-        $table->display($externalSourceImpl->getSeasons());
-
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_SEASONS);
+        $table->display(array_values($externalSourceCompetitions->getSeasons()));
     }
 
-    protected function getLeagues(
-        ExternalSource\Implementation $externalSourceImpl,
-        Sport $sport,
-        Association $association
-    ) {
-        if (!($externalSourceImpl instanceof LeagueExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen competities opvragen", E_ERROR
-            );
-        }
-        $externalAssociation = $this->importService->getExternalAssociation($externalSourceImpl, $sport, $association);
+    protected function showLeagues(
+        Competitions $externalSourceCompetitions,
+        ExternalSource $externalSource,
+        Sport $sport, Association $association ): void {
+        $externalAssociation = $this->getter->getAssociation($externalSourceCompetitions, $externalSource, $sport, $association);
         $table = new ConsoleTable\Leagues();
-        $table->display($externalSourceImpl->getLeagues($externalAssociation));
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_LEAGUES);
+        $leagues = array_values($externalSourceCompetitions->getLeagues($externalAssociation));
+        $table->display($leagues);
     }
 
-    protected function getCompetitions(ExternalSource\Implementation $externalSourceImpl, Sport $sport, Association  $association, League $league)
+    protected function showCompetitions(Competitions $externalSourceCompetitions, ExternalSource $externalSource,
+        Sport $sport, League $league): void
     {
-        if (!($externalSourceImpl instanceof CompetitionExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen competities opvragen", E_ERROR
-            );
-        }
-        $externalLeague = $this->importService->getExternalLeague(
-            $externalSourceImpl, $sport, $association, $league
+        $externalLeague = $this->getter->getLeague(
+            $externalSourceCompetitions, $externalSource, $sport, $league
         );
         $table = new ConsoleTable\Competitions();
-        $table->display($externalSourceImpl->getCompetitions($sport, $externalLeague));
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_COMPETITIONS);
+        $competitions = array_values($externalSourceCompetitions->getCompetitions($sport, $externalLeague));
+        $table->display($competitions);
     }
 
-    protected function getTeams(
-        ExternalSource\Implementation $externalSourceImpl,
+    protected function showTeams(
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternalSource $externalSource,
         Sport $sport,
-        Association $association,
         League $league,
         Season $season
-    ) {
-        if (!($externalSourceImpl instanceof ExternalSource\Team)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen teams opvragen", E_ERROR
-            );
-        }
-        $competition = $this->importService->getExternalCompetition(
-            $externalSourceImpl,
+    ): void {
+        $competition = $this->getter->getCompetition(
+            $externalSourceCompetitions, $externalSource,
             $sport,
-            $association,
             $league,
             $season
         );
         $table = new ConsoleTable\Teams();
-        $table->display($externalSourceImpl->getTeams($competition));
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_TEAMS);
+        $table->display($externalSourceCompetitionStructure->getTeams($competition));
     }
 
-    protected function getTeamCompetitors(
-        ExternalSource\Implementation $externalSourceImpl,
+    protected function showTeamCompetitors(
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternalSource $externalSource,
         Sport $sport,
-        Association $association,
         League $league,
         Season $season
-    ) {
-        if (!($externalSourceImpl instanceof ExternalSource\Competitor\Team)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen teamcompetitors opvragen", E_ERROR
-            );
-        }
-        $competition = $this->importService->getExternalCompetition(
-            $externalSourceImpl,
+    ): void {
+        $competition = $this->getter->getCompetition(
+            $externalSourceCompetitions, $externalSource,
             $sport,
-            $association,
             $league,
             $season
         );
         $table = new ConsoleTable\TeamCompetitors();
-        $table->display($externalSourceImpl->getTeamCompetitors($competition));
-        $this->showMetadata($externalSourceImpl, ExternalSource::DATA_TEAMCOMPETITORS);
+        $table->display($externalSourceCompetitionStructure->getTeamCompetitors($competition));
     }
 
-    protected function getStructure(
-        ExternalSource\Implementation $externalSourceImpl,
+    protected function showStructure(
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternalSource $externalSource,
         Sport $sport,
-        Association $association,
         League $league,
         Season $season
-    ) {
-        if (!($externalSourceImpl instanceof ExternalSource\Competitor\Team)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen teamcompetitors opvragen", E_ERROR
-            );
-        }
-        if (!($externalSourceImpl instanceof ExternalSource\Structure)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen structuur opvragen", E_ERROR
-            );
-        }
-        $competition = $this->importService->getExternalCompetition(
-            $externalSourceImpl,
+    ): void {
+        $competition = $this->getter->getCompetition(
+            $externalSourceCompetitions, $externalSource,
             $sport,
-            $association,
             $league,
             $season
         );
 
-        $teamCompetitors = $externalSourceImpl->getTeamCompetitors($competition);
+        $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
         $table = new ConsoleTable\Structure();
-        $table->display($competition, $externalSourceImpl->getStructure($competition), $teamCompetitors);
+        $structure = $externalSourceCompetitionStructure->getStructure($competition);
+        $table->display($competition, $structure, $teamCompetitors);
     }
 
-    protected function getGames(
-        AgainstGameExternalSource $againstGameExternalSource,
-        ExternalSource\Implementation $externalSourceImpl,
+    protected function showAgainstGames(
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        CompetitionDetails $externalSourceCompetitionDetails,
+        ExternalSource $externalSource,
         Sport $sport,
-        Association $association,
         League $league,
         Season $season,
-        Range $batchNrRange
-    ) {
-        if (!($externalSourceImpl instanceof CompetitionExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen competitieseizoenen opvragen", E_ERROR
-            );
-        }
-        if (!($externalSourceImpl instanceof StructureExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen structuur opvragen", E_ERROR
-            );
-        }
-        if (!($externalSourceImpl instanceof TeamCompetitorExternalSource)) {
-            throw new \Exception(
-                "de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen deelnemers opvragen", E_ERROR
-            );
-        }
-
-        $competition = $this->importService->getExternalCompetition(
-            $againstGameExternalSource,
-            $externalSourceImpl,
+        SportRange $gameRoundRange
+    ): void {
+        $competition = $this->getter->getCompetition(
+            $externalSourceCompetitions,
+            $externalSource,
             $sport,
-            $association,
             $league,
             $season
         );
 
-        $batchNrs = $externalSourceImpl->getBatchNrs($competition);
+        $gameRoundNumbers = $externalSourceCompetitionDetails->getGameRoundNumbers($competition);
         $games = [];
-        for ($batchNr = $batchNrRange->min; $batchNr <= $batchNrRange->max; $batchNr++) {
+        for ($gameRoundNr = $gameRoundRange->getMin(); $gameRoundNr <= $gameRoundRange->getMax(); $gameRoundNr++) {
             if (count(
                     array_filter(
-                        $batchNrs,
-                        function (int $batchNrIt) use ($batchNr): bool {
-                            return $batchNrIt === $batchNr;
+                        $gameRoundNumbers,
+                        function (int $batchNrIt) use ($gameRoundNr): bool {
+                            return $batchNrIt === $gameRoundNr;
                         }
                     )
                 ) === 0) {
-                $this->logger->info("batchnr " . $batchNr . " komt niet voor in de externe bron");
+                $this->logger->info('gameRoundNr "' . $gameRoundNr . '" komt niet voor in de externe bron');
             }
-            $games = array_merge($games, $externalSourceImpl->getGames($competition, $batchNr));
+            $games = array_merge($games, $externalSourceCompetitionDetails->getAgainstGames($competition, $gameRoundNr));
         }
-        $teamCompetitors = $externalSourceImpl->getTeamCompetitors($competition);
-        $table = new ConsoleTable\Games();
-        $table->display($competition, $games, $teamCompetitors);
+        $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
+        $table = new ConsoleTable\AgainstGames();
+        $table->display($competition, array_values($games), $teamCompetitors);
     }
 
-    protected function getGame(
-        ExternalSource\Implementation $externalSourceImpl,
+    protected function showAgainstGame(
+        Competitions $externalSourceCompetitions,
+        CompetitionStructure $externalSourceCompetitionStructure,
+        CompetitionDetails $externalSourceCompetitionDetails,
+        ExternalSource $externalSource,
         Sport $sport,
-        Association $association,
         League $league,
         Season $season,
         string|int $gameId
-    ) {
-        if (!($externalSourceImpl instanceof ExternalSource\Competition)) {
-            throw new \Exception("de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen competitieseizoenen opvragen", E_ERROR );
-        }
-        if (!($externalSourceImpl instanceof ExternalSource\Structure)) {
-            throw new \Exception("de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen structuur opvragen", E_ERROR );
-        }
-        if (!($externalSourceImpl instanceof ExternalSource\Competitor\Team)) {
-            throw new \Exception("de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen deelnemers opvragen", E_ERROR );
-        }
-        if (!($externalSourceImpl instanceof ExternalSource\Game)) {
-            throw new \Exception("de externe bron \"" . $externalSourceImpl->getExternalSource()->getName(
-                ) . "\" kan geen wedstrijden opvragen", E_ERROR );
-        }
-
-        $competition = $this->importService->getExternalCompetition(
-            $externalSourceImpl,
+    ): void {
+        $competition = $this->getter->getCompetition(
+            $externalSourceCompetitions,
+            $externalSource,
             $sport,
-            $association,
             $league,
             $season
         );
+        $againstGame = $this->againstGameRepos->find($gameId);
+        if( $againstGame === null) {
+            return;
+        }
 
-        $game = $externalSourceImpl->getGame($competition, $gameId);
+        $externalGame = $this->getter->getAgainstGame($externalSourceCompetitionDetails, $externalSource,
+                                              $competition, $againstGame);
 
-        $teamCompetitors = $externalSourceImpl->getTeamCompetitors($competition);
-        $table = new ConsoleTable\Game();
-        $table->display($competition, $game, $teamCompetitors);
+        $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
+        $table = new ConsoleTable\AgainstGame();
+        $table->display($competition, $externalGame, $teamCompetitors);
     }
 
 }

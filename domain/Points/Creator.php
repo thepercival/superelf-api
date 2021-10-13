@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SuperElf\Season\ScoreUnit;
+namespace SuperElf\Points;
 
 use Sports\Season;
 use SuperElf\Points;

@@ -63,13 +63,9 @@ abstract class Action
         return $response;
     }
 
-    /**
-     * @param Request $request
-     * @return array|object
-     * @throws HttpBadRequestException
-     */
-    protected function getFormData(Request $request)
+    protected function getFormData(Request $request): mixed
     {
+        /** @var mixed $input */
         $input = json_decode($this->getRawData());
         if ($input === null) {
             return new \stdClass();
@@ -82,19 +78,23 @@ abstract class Action
         return $input;
     }
 
-    protected function getRawData()
+    protected function getRawData(): string
     {
-        return file_get_contents('php://input');
+        $rawData = file_get_contents('php://input');
+        if ($rawData === false) {
+            throw new \Exception("de invoer is ongeldig", E_ERROR);
+        }
+        return $rawData;
     }
 
     /**
      * @param  Request $request
-     * @param  mixed $args
+     * @param  array<string, int|string> $args
      * @param  string $name
-     * @return mixed
+     * @return string|int
      * @throws HttpBadRequestException
      */
-    protected function resolveArg(Request $request, $args, string $name)
+    protected function resolveArg(Request $request, array $args, string $name): int|string
     {
         if (!isset($args[$name])) {
             throw new HttpBadRequestException($request, "Could not resolve argument `{$name}`.");

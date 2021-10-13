@@ -48,7 +48,7 @@ final class PersonAction extends Action
 //        }
 //    }
 
-    protected function getSerializationContext()
+    protected function getSerializationContext(): SerializationContext
     {
         $serGroups = ['Default','players'];
         return SerializationContext::create()->setGroups($serGroups);

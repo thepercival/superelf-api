@@ -5,32 +5,35 @@ namespace SuperElf;
 
 use DateTimeImmutable;
 use League\Period\Period;
+use Sports\Competition;
 
 class ActiveConfig
 {
     protected DateTimeImmutable $createAndJoinStart;
     protected DateTimeImmutable $createAndJoinEnd;
-    protected array $sourceCompetitions;
     /**
      * @var list<array<string, string|array<int,int>>>
      */
     protected array $availableFormations = [];
 
-    public function __construct(
-        Period $createAndJoinPeriod,
-        array $sourceCompetitions )
+    /**
+     * @param Period $createAndJoinPeriod
+     * @param list<array<string, int|string|null>> $sourceCompetitions
+     */
+    public function __construct(Period $createAndJoinPeriod, protected array $sourceCompetitions)
     {
         $this->createAndJoinStart = $createAndJoinPeriod->getStartDate();
         $this->createAndJoinEnd = $createAndJoinPeriod->getEndDate();
-
-        $this->sourceCompetitions = $sourceCompetitions;
     }
 
     public function getCreateAndJoinPeriod(): Period
     {
-        return new Period( $this->createAndJoinStart, $this->createAndJoinEnd );
+        return new Period($this->createAndJoinStart, $this->createAndJoinEnd);
     }
 
+    /**
+     * @return list<array<string, int|string|null>>
+     */
     public function getSourceCompetitions(): array
     {
         return $this->sourceCompetitions;
@@ -47,7 +50,7 @@ class ActiveConfig
     /**
      * @param list<array<string, string|array<int,int>>> $availableFormations
      */
-    public function setAvailableFormations( array $availableFormations ): void
+    public function setAvailableFormations(array $availableFormations): void
     {
         $this->availableFormations = $availableFormations;
     }
