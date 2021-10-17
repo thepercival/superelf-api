@@ -3,11 +3,9 @@ declare(strict_types=1);
 
 namespace SuperElf\Points;
 
-use Sports\Sport;
 use SportsHelpers\Against\Result as AgainstResult;
 use SuperElf\Statistics;
 use SuperElf\Points;
-use Sports\Sport\Custom as SportCustom;
 
 class Calculator
 {
@@ -15,13 +13,13 @@ class Calculator
     {
     }
 
-    public function getPoints(Statistics $statistics, Points $points): int
+    public function getStatisticsPoints(int $line, Statistics $statistics, Points $points): int
     {
         $total = $this->getResultPoints($statistics, $points);
-        $total += $this->getGoalPoints($statistics, $points);
-        $total += $this->getAssistPoints($statistics, $points);
-        $total += $this->getCleanSheetPoints($statistics, $points);
-        $total += $this->getSpottySheetPoints($statistics, $points);
+        $total += $this->getGoalPoints($line, $statistics, $points);
+        $total += $this->getAssistPoints($line, $statistics, $points);
+        $total += $this->getCleanSheetPoints($line, $statistics, $points);
+        $total += $this->getSpottySheetPoints($line, $statistics, $points);
         $total += $this->getCardPoints($statistics, $points);
         return $total;
     }
@@ -37,29 +35,29 @@ class Calculator
         return 0;
     }
 
-    protected function getGoalPoints(Statistics $statistics, Points $points): int
+    protected function getGoalPoints(int $line, Statistics $statistics, Points $points): int
     {
-        $total = $statistics->getNrOfFieldGoals() * $points->getFieldGoal($statistics->getPlayerLine());
-        $total += $statistics->getNrOfAssists() * $points->getAssist($statistics->getPlayerLine());
+        $total = $statistics->getNrOfFieldGoals() * $points->getFieldGoal($line);
+        $total += $statistics->getNrOfAssists() * $points->getAssist($line);
         $total += $statistics->getNrOfPenalties() * $points->getPenalty();
         $total += $statistics->getNrOfOwnGoals() * $points->getOwnGoal();
         return $total;
     }
 
 
-    protected function getAssistPoints(Statistics $statistics, Points $points): int
+    protected function getAssistPoints(int $line, Statistics $statistics, Points $points): int
     {
-        return $statistics->getNrOfAssists() * $points->getAssist($statistics->getPlayerLine());
+        return $statistics->getNrOfAssists() * $points->getAssist($line);
     }
 
-    protected function getCleanSheetPoints(Statistics $statistics, Points $points): int
+    protected function getCleanSheetPoints(int $line, Statistics $statistics, Points $points): int
     {
-        return $statistics->hasCleanSheet() ? $points->getCleanSheet($statistics->getPlayerLine()) : 0;
+        return $statistics->hasCleanSheet() ? $points->getCleanSheet($line) : 0;
     }
 
-    protected function getSpottySheetPoints(Statistics $statistics, Points $points): int
+    protected function getSpottySheetPoints(int $line, Statistics $statistics, Points $points): int
     {
-        return $statistics->hasSpottySheet() ? $points->getSpottySheet($statistics->getPlayerLine()) : 0;
+        return $statistics->hasSpottySheet() ? $points->getSpottySheet($line) : 0;
     }
 
     protected function getCardPoints(Statistics $statistics, Points $points): int

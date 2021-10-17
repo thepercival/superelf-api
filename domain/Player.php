@@ -7,41 +7,24 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
 use SportsHelpers\Identifiable;
 use Sports\Person as BasePerson;
-use SuperElf\GameRound;
+use Sports\Team\Player as TeamPlayer;
 use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Period\View\Person\GameRoundScore;
+use SuperElf\Player\Totals;
 
 class Player extends Identifiable
 {
-//    public const SHEET_SPOTTY_THRESHOLD = 4;
-//
-//    public const RESULT = 1;
-//    public const GOALS_FIELD = 2;
-//    public const GOALS_PENALTY = 4;
-//    public const GOALS_OWN = 8;
-//    public const ASSISTS = 16;
-//    public const SHEET_CLEAN = 32;
-//    public const SHEET_SPOTTY = 64;
-//    public const CARDS_YELLOW = 128;
-//    public const CARD_RED = 256;
-//    public const LINEUP = 512;
-//    public const SUBSTITUTED = 1024;
-//    public const SUBSTITUTE = 2048;
-//    public const LINE = 4096;
-
-//    protected int $total = 0;
-//    /**
-//     * @var array<int,int>
-//     */
-//    protected array $points = [];
+    protected int $totalPoints = 0;
     /**
      * @var ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
      * @psalm-var ArrayCollection<int|string, Statistics>
      */
     protected ArrayCollection|PersistentCollection $statistics;
 
-    public function __construct(protected ViewPeriod $viewPeriod, protected BasePerson $person)
-    {
+    public function __construct(
+        protected ViewPeriod $viewPeriod,
+        protected BasePerson $person,
+        protected Totals $totals
+    ) {
         $this->statistics = new ArrayCollection();
     }
 
@@ -55,6 +38,15 @@ class Player extends Identifiable
         return $this->person;
     }
 
+    public function getLine(): int
+    {
+        $player = $this->getPerson()->getPlayers()->first();
+        if (!($player instanceof TeamPlayer)) {
+            throw new \Exception('s11player should always have a line', E_ERROR);
+        }
+        return $player->getLine();
+    }
+
     /**
      * @return ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
      * @psalm-return ArrayCollection<int|string, Statistics>
@@ -66,22 +58,32 @@ class Player extends Identifiable
 
     public function getGameRoundStatistics(GameRound $gameRound): Statistics|null
     {
-        $filtered = $this->statistics->filter(function (Statistics $statistics) use ($gameRound): bool {
+        $filtered = $this->getStatistics()->filter(function (Statistics $statistics) use ($gameRound): bool {
             return $statistics->getGameRound() === $gameRound;
         });
         $firstScore = $filtered->first();
         return $firstScore === false ? null : $firstScore;
     }
 
-//    public function getTotal(): int
-//    {
-//        return $this->total;
-//    }
-//
-//    public function setTotal(int $total): void
-//    {
-//        $this->total = $total;
-//    }
+    public function getTotals(): Totals
+    {
+        return $this->totals;
+    }
+
+    public function setTotals(Totals $totals): void
+    {
+        $this->totals = $totals;
+    }
+
+    public function getTotalPoints(): int
+    {
+        return $this->totalPoints;
+    }
+
+    public function setTotalPoints(int $totalPoints): void
+    {
+        $this->totalPoints = $totalPoints;
+    }
 
 //    /**
 //     * @param Points $points

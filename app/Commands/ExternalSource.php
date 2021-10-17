@@ -37,11 +37,11 @@ abstract class ExternalSource extends Command
         return $this->externalSourceFactory->createByName($externalSourceName);
     }
 
-   protected function getEntityFromInput(InputInterface $input): int
-   {
-       $objectType = (string)$input->getArgument('objectType');
+    protected function getEntityFromInput(InputInterface $input): int
+    {
+        $objectType = (string)$input->getArgument('objectType');
 
-       switch ($objectType) {
+        switch ($objectType) {
            case 'sports':
                 return Entity::SPORTS;
            case 'associations':
@@ -67,10 +67,5 @@ abstract class ExternalSource extends Command
                 $this->logger->error($message);
             }
         return 0;
-    }
-
-    protected function getPluralFromInput(InputInterface $input): bool
-    {
-        return str_ends_with((string)$input->getArgument('objectType'),'s');
     }
 }

@@ -74,7 +74,7 @@ class Points extends Identifiable
             case Sport\Custom::Football_Line_Forward:
                 return $this->getFieldGoalForward();
         }
-        throw new \Exception('line is incorrect ', E_ERROR);
+        throw new \Exception('incorrect line('.$line.') to get fieldGoalPoints', E_ERROR);
     }
 
     public function getAssistGoalkeeper(): int
@@ -109,7 +109,7 @@ class Points extends Identifiable
             case Sport\Custom::Football_Line_Forward:
                 return $this->getAssistForward();
         }
-        throw new \Exception('line is incorrect ', E_ERROR);
+        throw new \Exception('incorrect line('.$line.') to get assists', E_ERROR);
     }
 
     public function getPenalty(): int
@@ -139,7 +139,7 @@ class Points extends Identifiable
         } elseif ($line === Sport\Custom::Football_Line_Defense) {
             return $this->getCleanSheetDefender();
         }
-        throw new \Exception('line is incorrect ', E_ERROR);
+        return 0;
     }
 
     public function getSpottySheetGoalkeeper(): int
@@ -159,7 +159,7 @@ class Points extends Identifiable
         } elseif ($line === Sport\Custom::Football_Line_Defense) {
             return $this->getSpottySheetDefender();
         }
-        throw new \Exception('line is incorrect ', E_ERROR);
+        return 0;
     }
 
     public function getCardYellow(): int

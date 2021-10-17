@@ -11,17 +11,17 @@ use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Person;
 use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
+use SportsHelpers\Against\Result;
 use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\Points as SeasonPoints;
 use SuperElf\Statistics\Repository as StatisticsRepository;
+use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Player as S11Player;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
-use SuperElf\Points\Creator as PointsCreator;
-use SportsHelpers\Against\Side as AgainstSide;
 use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Output\Game\Against as AgainstGameOutput;
 use Sports\Competitor\Map as CompetitorMap;
 
 class Syncer
@@ -32,9 +32,9 @@ class Syncer
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
+        protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
         protected Converter $converter,
-        protected PointsCreator $pointsCreator,
         protected PointsCalculator $pointsCalculator
     ) {
     }
@@ -80,7 +80,9 @@ class Syncer
         if ($gameRound === null) {
             return;
         }
-        // $seasonPoints = $this->scoreUnitCreator->create($viewPeriod->getSourceCompetition()->getSeason());
+        $season = $viewPeriod->getSourceCompetition()->getSeason();
+        $seasonPoints = $this->pointsCreator->get($season);
+
         $gameParticipations = array_values($gamePlace->getParticipations()->toArray());
         $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team);
         foreach ($s11Players as $s11Player) {
@@ -91,13 +93,12 @@ class Syncer
                 continue;
             }
             $gameParticipation = $this->getGameParticipation($s11Player, $gameParticipations);
-            $statistics = $s11Player->getGameRoundStatistics($gameRound);
+            $oldStatistics = $s11Player->getGameRoundStatistics($gameRound);
 
-            if ($statistics !== null) {
-                $s11Player->getStatistics()->removeElement($statistics);
-                $this->statisticsRepos->remove($statistics);
+            if ($oldStatistics !== null) {
+                $s11Player->getStatistics()->removeElement($oldStatistics);
+                $this->statisticsRepos->remove($oldStatistics);
             }
-
 
             $statistics = $this->converter->convert(
                 $viewPeriod,
@@ -107,29 +108,12 @@ class Syncer
             );
             $this->statisticsRepos->save($statistics);
 
-
-
-//            $changedGameRoundScore = $this->calculateGameRoundScore($player, $gameRound, $finalScore, $side, $gameParticipation);
-//            if ($changedGameRoundScore === null) {
-//                continue;
-//            }
-//            $points = $player->calculatePoints($seasonScoreUnits);
-//            $s11Player->setPoints($points);
-//            $s11Player->setTotal(array_sum($points));
-//            $this->s11PlayerRepos->save($s11Player);
-//            $this->appearanceCalculator->calculate($s11Player, $player->getLine(), $gameRound, $seasonScoreUnits);
+            if ($oldStatistics === null || !$statistics->equals($oldStatistics)) {
+                $this->updatePlayerTotals($s11Player);
+                $this->updatePlayerTotalPoints($seasonPoints, $s11Player);
+            }
         }
-        $this->logInfo('calculated statistics ..');
-    }
-
-    protected function calculateSubstituteAppearances(
-        ViewPeriod $viewPeriod,
-        AgainstGamePlace $gamePlace,
-        Team $team
-    ): void {
-        $this->logInfo('calculating substitute-appearances ..');
-        // @TODO CDK THROUGH UPDATE STATEMENT???
-        $this->logInfo('calculated substitute-appearances ..');
+        $this->logInfo('calculated statistics');
     }
 
 //
@@ -173,84 +157,46 @@ class Syncer
         }
         return null;
     }
-//
-//    /**
-//     * @param BaseViewPeriodPerson $viewPeriodPerson
-//     * @param GameRound $gameRound
-//     * @return ViewPeriodPersonGameRoundScore
-//     */
-//    protected function createGameRoundScore( BaseViewPeriodPerson $viewPeriodPerson, GameRound $gameRound ): ViewPeriodPersonGameRoundScore {
-//        $gameRoundScore = $this->gameRoundScoreRepos->findOneBy( [
-//            "viewPeriodPerson" => $viewPeriodPerson, "gameRound" => $gameRound ]);
-//
-//        if( $gameRoundScore !== null ) {
-//            return $gameRoundScore;
-//        }
-//        $gameRoundScore = new ViewPeriodPersonGameRoundScore( $viewPeriodPerson, $gameRound );
-//        return $this->gameRoundScoreRepos->save($gameRoundScore);
-//    }
-//
-//
-//    protected function getStats(
-//        AgainstScoreHelper $finalScore,
-//        int $side,
-//        GameParticipation $participation = null): ParticipationStats|null {
-//        if( $participation === null ) {
-//            return null;
-//        }
-//        $opposite = $side === Side::HOME ? Side::AWAY : Side::HOME;
-//        return new ParticipationStats(
-//            $finalScore->getResult($side),
-//            $participation->getGoals(GoalEvent::FIELD )->count(),
-//            $participation->getGoals(GoalEvent::PENALTY )->count(),
-//            $participation->getGoals(GoalEvent::OWN )->count(),
-//            $participation->getAssists()->count(),
-//            $finalScore->get($opposite) === 0,
-//            $finalScore->get($opposite) >= BaseViewPeriodPerson::SHEET_SPOTTY_THRESHOLD,
-//            BaseViewPeriodPerson::CARDS_YELLOW => $participation->getCards(Sport::WARNING )->count(),
-//            BaseViewPeriodPerson::CARD_RED => $participation->getCards(Sport::SENDOFF )->count(),
-//            BaseViewPeriodPerson::LINEUP => !$participation->isBeginning(),
-//            BaseViewPeriodPerson::SUBSTITUTED => $participation->isSubstituted(),
-//            BaseViewPeriodPerson::SUBSTITUTE => $participation->getM
-//
-//        ];
-//    }
-//
-//    protected function statsAreEqual( array $oldStats, array $newStats): bool {
-//        return count($oldStats) === count($newStats)
-//            && $oldStats[BaseViewPeriodPerson::RESULT] === $newStats[BaseViewPeriodPerson::RESULT]
-//            && $oldStats[BaseViewPeriodPerson::GOALS_FIELD] === $newStats[BaseViewPeriodPerson::GOALS_FIELD]
-//            && $oldStats[BaseViewPeriodPerson::GOALS_PENALTY] === $newStats[BaseViewPeriodPerson::GOALS_PENALTY]
-//            && $oldStats[BaseViewPeriodPerson::GOALS_OWN] === $newStats[BaseViewPeriodPerson::GOALS_OWN]
-//            && $oldStats[BaseViewPeriodPerson::ASSISTS] === $newStats[BaseViewPeriodPerson::ASSISTS]
-//            && $oldStats[BaseViewPeriodPerson::SHEET_CLEAN] === $newStats[BaseViewPeriodPerson::SHEET_CLEAN]
-//            && $oldStats[BaseViewPeriodPerson::SHEET_SPOTTY] === $newStats[BaseViewPeriodPerson::SHEET_SPOTTY]
-//            && $oldStats[BaseViewPeriodPerson::CARDS_YELLOW] === $newStats[BaseViewPeriodPerson::CARDS_YELLOW]
-//            && $oldStats[BaseViewPeriodPerson::CARD_RED] === $newStats[BaseViewPeriodPerson::CARD_RED]
-//            && $oldStats[BaseViewPeriodPerson::LINEUP] === $newStats[BaseViewPeriodPerson::LINEUP]
-//            && $oldStats[BaseViewPeriodPerson::SUBSTITUTED] === $newStats[BaseViewPeriodPerson::SUBSTITUTED]
-//            && $oldStats[BaseViewPeriodPerson::SUBSTITUTE] === $newStats[BaseViewPeriodPerson::SUBSTITUTE]
-//            && $oldStats[BaseViewPeriodPerson::LINE] === $newStats[BaseViewPeriodPerson::LINE];
-//    }
-//
-//    public function setLogger( LoggerInterface $logger ): void {
-//        $this->logger = $logger;
-//    }
-//
-    protected function logGame(AgainstGame $game, CompetitorMap $competitorMap): void
+
+    protected function updatePlayerTotals(S11Player $s11Player): void
     {
-        if ($this->logger === null) {
-            return;
+        $totals = $s11Player->getTotals();
+        foreach ($s11Player->getStatistics() as $statistics) {
+            if ($statistics->getResult() === Result::WIN) {
+                $totals->incrementNrOfWins();
+            }
+            if ($statistics->getResult() === Result::DRAW) {
+                $totals->incrementNrOfDraws();
+            }
+            if ($statistics->isStarting()) {
+                $totals->incrementNrOfTimesStarted();
+            }
+            if ($statistics->isSubstituted()) {
+                $totals->incrementNrOfTimesSubstituted();
+            }
+            $totals->addNrOfFieldGoals($statistics->getNrOfFieldGoals());
+            $totals->addNrOfAssists($statistics->getNrOfAssists());
+            $totals->addNrOfPenalties($statistics->getNrOfPenalties());
+            $totals->addNrOfOwnGoals($statistics->getNrOfOwnGoals());
+            if ($statistics->hasCleanSheet()) {
+                $totals->incrementNrOfCleanSheets();
+            }
+            if ($statistics->hasSpottySheet()) {
+                $totals->incrementNrOfSpottySheets();
+            }
+            $totals->addNrOfYellowCards($statistics->getNrOfYellowCards());
+            if ($statistics->directRedCard()) {
+                $totals->incrementNrOfRedCards();
+            }
         }
-        $gameOutput = new AgainstGameOutput($competitorMap);
-        $gameOutput->output($game);
+        $totals->setUpdatedAt(new \DateTimeImmutable());
     }
 
-    protected function logCreateS11Player(S11Player $s11Player): void
+    protected function updatePlayerTotalPoints(SeasonPoints $seasonPoints, S11Player $s11Player): void
     {
-        $basePeriod = $s11Player->getViewPeriod()->getPeriod();
-        $periodDescription = "periode " . $basePeriod->getStartDate()->format("Y-m-d"). " t/m " . $basePeriod->getEndDate()->format("Y-m-d");
-        $this->logInfo("  toegevoegd: " . $periodDescription ." , persoon: " . $s11Player->getPerson()->getName());
+        $s11Player->setTotalPoints(
+            $s11Player->getTotals()->getPoints($s11Player->getLine(), $seasonPoints)
+        );
     }
 
     protected function logNoS11Player(Person $person): void

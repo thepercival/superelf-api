@@ -21,10 +21,12 @@ class Statistics extends Identifiable
         protected int $sheet,
         protected int $nrOfYellowCards,
         protected bool $directRedCard,
-        protected int $playerLine,
         protected \DateTimeImmutable $gameStartDateTime,
         protected \DateTimeImmutable $updatedAt
     ) {
+        if (!$this->player->getStatistics()->contains($this)) {
+            $this->player->getStatistics()->add($this) ;
+        }
     }
 
     public function getGameRound(): GameRound
@@ -117,8 +119,18 @@ class Statistics extends Identifiable
         return $this->directRedCard;
     }
 
-    public function getPlayerLine(): int
+    public function equals(Statistics $compare): bool
     {
-        return $this->playerLine;
+        return $this->getResult() === $compare->getResult()
+            && $this->getBeginMinute() === $compare->getBeginMinute()
+            && $this->getEndMinute() === $compare->getEndMinute()
+            && $this->getNrOfFieldGoals() === $compare->getNrOfFieldGoals()
+            && $this->getNrOfAssists() === $compare->getNrOfAssists()
+            && $this->getNrOfPenalties() === $compare->getNrOfPenalties()
+            && $this->getNrOfOwnGoals() === $compare->getNrOfOwnGoals()
+            && $this->hasCleanSheet() === $compare->hasCleanSheet()
+            && $this->hasSpottySheet() === $compare->hasSpottySheet()
+            && $this->getNrOfYellowCards() === $compare->getNrOfYellowCards()
+            && $this->directRedCard() === $compare->directRedCard();
     }
 }

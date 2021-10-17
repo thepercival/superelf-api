@@ -6,13 +6,14 @@ namespace SuperElf;
 use DateTimeImmutable;
 use League\Period\Period;
 use Sports\Competition;
+use Sports\Formation;
 
 class ActiveConfig
 {
     protected DateTimeImmutable $createAndJoinStart;
     protected DateTimeImmutable $createAndJoinEnd;
     /**
-     * @var list<array<string, string|array<int,int>>>
+     * @var list<Formation>
      */
     protected array $availableFormations = [];
 
@@ -40,7 +41,7 @@ class ActiveConfig
     }
 
     /**
-     * @return list<array<string, string|array<int,int>>>
+     * @return list<Formation>
      */
     public function getAvailableFormations(): array
     {
@@ -48,7 +49,7 @@ class ActiveConfig
     }
 
     /**
-     * @param list<array<string, string|array<int,int>>> $availableFormations
+     * @param list<Formation> $availableFormations
      */
     public function setAvailableFormations(array $availableFormations): void
     {

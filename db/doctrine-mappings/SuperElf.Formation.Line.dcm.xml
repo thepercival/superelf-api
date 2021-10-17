@@ -2,34 +2,23 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="SuperElf\Formation\Line" table="formationLines" repository-class="SuperElf\Formation\Line\Repository">
     <field name="number" column="number" type="smallint" nullable="false" unique="false"/>
-    <field name="maxNrOfPersons" column="maxNrOfPersons" type="smallint" nullable="false" unique="false"/>
     <many-to-one field="formation" target-entity="SuperElf\Formation" inversed-by="lines">
       <join-columns>
         <join-column name="formationId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
-    <one-to-one field="substitute" target-entity="SuperElf\Player">
-      <cascade>
-        <cascade-persist/>
-      </cascade>
-      <join-columns>
-        <join-column name="substituteId" referenced-column-name="id" nullable="true" on-delete="RESTRICT"/>
-      </join-columns>
-    </one-to-one>
-    <many-to-many field="players" target-entity="SuperElf\Player">
+    <one-to-many field="places" target-entity="SuperElf\Formation\Place" mapped-by="formationLine">
       <cascade>
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
-      <join-table name="playersPerFormationLine">
-        <join-columns>
-          <join-column name="formationLineId"/>
-        </join-columns>
-        <inverse-join-columns>
-          <join-column name="playerId"/>
-        </inverse-join-columns>
-      </join-table>
-    </many-to-many>
+    </one-to-many>
+    <one-to-many field="substituteAppearances" target-entity="SuperElf\Substitute\Appearance" mapped-by="formationLine">
+      <cascade>
+        <cascade-persist/>
+        <cascade-remove/>
+      </cascade>
+    </one-to-many>
     <unique-constraints>
       <unique-constraint columns="formationId,number" name="main_u_idx"/>
     </unique-constraints>

@@ -6,7 +6,7 @@ namespace App\Commands;
 use Sports\Association;
 use Sports\Game;
 use Sports\Season;
-use Sports\Team;
+use SportsHelpers\SportRange;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\League;
 use Sports\Competition\Repository as CompetitionRepository;
@@ -93,13 +93,11 @@ class Get extends ExternalSource
                     $this->showTeamCompetitors($league, $season);
                 } elseif ($entity === Entity::STRUCTURE) {
                     $this->showStructure($league, $season);
-                } elseif ($entity === Entity::GAMES) {
-                    $plural = $this->getPluralFromInput($input);
-                    if ($plural) {
-                        $this->showAgainstGames($league, $season);
-                    } else {
-                        $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
-                    }
+                } elseif ($entity === Entity::GAMES ) {
+                    $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
+                    $this->showAgainstGames($league, $season, $gameRoundRange);
+                } elseif ($entity === Entity::GAMEDETAILS) {
+                    $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
                 } else {
                     $message = 'objectType "'. $entity . '" kan niet worden opgehaald uit bronnen';
                     $this->logger->error($message);
@@ -215,7 +213,7 @@ class Get extends ExternalSource
         $table->display($competition, $structure, $teamCompetitors);
     }
 
-    protected function showAgainstGames(League $league, Season $season): void
+    protected function showAgainstGames(League $league, Season $season, SportRange|null $gameRoundRange = null): void
     {
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
@@ -223,7 +221,12 @@ class Get extends ExternalSource
         }
         $structure = $this->structureRepos->getStructure($competition);
         $games = array_values($structure->getFirstRoundNumber()->getGames(Game\Order::ByBatch));
-        $againstGames = array_filter($games, fn (AgainstGame|TogetherGame $game) => $game instanceof AgainstGame);
+        $againstGames = array_filter($games, function (AgainstGame|TogetherGame $game): bool {
+            return $game instanceof AgainstGame;
+        });
+        $againstGames = array_filter($againstGames, function (AgainstGame $game) use ($gameRoundRange): bool {
+            return $gameRoundRange === null || $gameRoundRange->isWithIn($game->getGameRoundNumber());
+        });
 
         $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
         $table = new ConsoleTable\AgainstGames();

@@ -9,18 +9,12 @@ use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Person;
-use Sports\Score\Config\Service as ScoreConfigService;
-use Sports\Team;
 use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Statistics\Repository as StatisticsRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
-use SuperElf\Substitute\Appearance\Calculator as SubstituteAppearanceCalculator;
 use SuperElf\Points\Calculator as PointsCalculator;
-use SuperElf\Points\Creator as PointsCreator;
-use SportsHelpers\Against\Side as AgainstSide;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Output\Game\Against as AgainstGameOutput;
 use Sports\Competitor\Map as CompetitorMap;
@@ -33,7 +27,6 @@ class Syncer
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected PointsCreator $pointsCreator,
         protected PointsCalculator $pointsCalculator
     ) {
     }
@@ -75,7 +68,7 @@ class Syncer
         if ($s11Player !== null) {
             return;
         }
-        $s11Player = new S11Player($viewPeriod, $person);
+        $s11Player = new S11Player($viewPeriod, $person, new Totals());
         $this->logCreateS11Player($this->s11PlayerRepos->save($s11Player));
     }
     /**

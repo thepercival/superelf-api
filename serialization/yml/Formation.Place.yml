@@ -1,0 +1,11 @@
+SuperElf\Formation\Place:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    number:
+      type: integer
+    penaltyPoints:
+      type: integer
+    player:
+      type: SuperElf\Player

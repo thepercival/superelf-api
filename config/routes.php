@@ -118,12 +118,7 @@ return function (App $app): void {
                 '/{poolUserId}/formations',
                 function (Group $group): void {
                     $group->options('', FormationAction::class . ':options');
-                    $group->post('', FormationAction::class . ':add');
-
-                    // $group->get('/{formationId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
-                    $group->options('/{formationId}', FormationAction::class . ':options');
-                    $group->delete('/{formationId}', FormationAction::class . ':remove');
-                    $group->put('/{formationId}', FormationAction::class . ':edit');
+                    $group->put('', FormationAction::class . ':edit');
 
 //                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/person' { viewPeriodPerson }
 //                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/substitute' { poolUserViewPeriodPerson }
@@ -136,7 +131,7 @@ return function (App $app): void {
                             $group->options('/{playerId}', FormationAction::class . ':options');
                             $group->delete('/{playerId}', FormationAction::class . ':removePlayer');
                         }
-                    )->add(PoolUserAuthMiddleware::class);
+                    )/*->add(PoolUserAuthMiddleware::class)*/;
 
                     $group->group(
                         '/{formationId}/lines/{lineNumber}/substitute',
@@ -146,7 +141,7 @@ return function (App $app): void {
                             $group->options('/{substituteId}', FormationAction::class . ':options');
                             $group->delete('/{substituteId}', FormationAction::class . ':removeSubstitute');
                         }
-                    )->add(PoolUserAuthMiddleware::class);
+                    )/*->add(PoolUserAuthMiddleware::class)*/;
                 }
             )->add(PoolUserAuthMiddleware::class);
         }

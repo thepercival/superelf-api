@@ -1,23 +1,17 @@
-SuperElf\Period\View\Person:
+SuperElf\Player:
   exclusion_policy: ALL
   access_type: public_property
   properties:
-    id:
-      type: integer
-      expose: true
-      exclude: false
-      read_only: true
     person:
       type: Sports\Person
       read_only: true
-      expose: true
-    points:
-      type: array
+    totals:
+      type: SuperElf\Player\Totals
       read_only: true
-    total:
+    statistics:
+      groups: [ statistics ]
+      type: ArrayCollection<SuperElf\Statistics>
+      read_only: true
+    totalPoints:
       type: integer
-      read_only: true
-    gameRoundScores:
-      groups: [ scores ]
-      type: ArrayCollection<SuperElf\Period\View\Person\GameRoundScore>
       read_only: true

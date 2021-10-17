@@ -67,7 +67,6 @@ class Converter
             $sheet,
             $nrOfYellowCards,
             $nrOfYellowCards < 2 && $participation->getSendoff() !== null,
-            $participation->getPlayer()->getLine(),
             $participation->getAgainstGamePlace()->getGame()->getStartDateTime(),
             new \DateTimeImmutable()
         );
@@ -97,7 +96,6 @@ class Converter
             Sheet::NORMAL,
             0,
             false,
-            $player->getLine(),
             $game->getStartDateTime(),
             new \DateTimeImmutable()
         );

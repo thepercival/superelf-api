@@ -103,6 +103,7 @@ class Sync extends Command
                     $this->logger->info('game with gameId ' . (string)$content->gameId . ' not found');
                 }
                 $consumer->acknowledge($message);
+                die();
             } catch (\Exception $e) {
                 $this->logger->error($e->getMessage());
                 $consumer->reject($message);

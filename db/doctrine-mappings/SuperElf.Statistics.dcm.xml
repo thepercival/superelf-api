@@ -11,7 +11,6 @@
     <field name="sheet" column="sheet" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfYellowCards" column="nrOfYellowCards" type="smallint" nullable="false" unique="false"/>
     <field name="directRedCard" column="directRedCard" type="boolean" nullable="false" unique="false"/>
-    <field name="playerLine" column="playerLine" type="smallint" nullable="false" unique="false"/>
     <field name="gameStartDateTime" column="gameStartDateTime" type="datetime_immutable" nullable="false" unique="false"/>
     <field name="updatedAt" column="updatedAt" type="datetime_immutable" nullable="false" unique="false"/>
     <many-to-one field="player" target-entity="SuperElf\Player">

@@ -5,11 +5,11 @@ SuperElf\Formation\Line:
   properties:
     number:
       type: integer
-    players:
-      type: ArrayCollection<SuperElf\Player>
-    maxNrOfPersons:
-      type: integer
+    places:
+      type: ArrayCollection<SuperElf\Formation\Place>
     substitute:
       type: SuperElf\Player
-    substitutions:
+  virtual_properties:
+    getSubstituteAppearancesAsRoundNumbers:
       type: array<int>
+      serialized_name: substituteAppearances

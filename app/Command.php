@@ -68,7 +68,7 @@ class Command extends SymCommand
         $this->addOption('association', null, InputOption::VALUE_OPTIONAL, 'the name of the association');
         $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
-        $this->addOption('batchNrRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
     }
 
@@ -157,16 +157,16 @@ class Command extends SymCommand
         return $season;
     }
 
-    protected function getBatchNrRangeFromInput(InputInterface $input): SportRange
+    protected function getGameRoundNrRangeFromInput(InputInterface $input): SportRange|null
     {
-        $batchNrRangeOption = (string)$input->getOption("batchNrRange");
-        if (strlen($batchNrRangeOption) === 0) {
-            return new SportRange(1, 1);
+        $rangeOption = (string)$input->getOption("gameRoundRange");
+        if (strlen($rangeOption) === 0) {
+            return null;
         }
-        if (!str_contains($batchNrRangeOption, '-')) {
-            throw new Exception('misformat batchNrRange-option');
+        if (!str_contains($rangeOption, '-')) {
+            throw new Exception('misformat gameRoundRange-option');
         }
-        $minMax = explode('-', $batchNrRangeOption);
+        $minMax = explode('-', $rangeOption);
         return new SportRange((int)$minMax[0], (int)$minMax[1]);
     }
 

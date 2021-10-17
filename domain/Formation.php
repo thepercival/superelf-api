@@ -10,6 +10,7 @@ use Sports\Team;
 use Sports\Team\Player;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line;
+use SuperElf\Period\View as ViewPeriod;
 
 class Formation extends Identifiable
 {
@@ -19,9 +20,14 @@ class Formation extends Identifiable
      */
     protected ArrayCollection|PersistentCollection $lines;
 
-    public function __construct()
+    public function __construct(protected ViewPeriod $viewPeriod)
     {
         $this->lines = new ArrayCollection();
+    }
+
+    public function getViewPeriod(): ViewPeriod
+    {
+        return $this->viewPeriod;
     }
 
     /**
@@ -48,7 +54,7 @@ class Formation extends Identifiable
     public function getName(): string
     {
         return implode("-", array_map(function (Line $line): int {
-            return $line->getMaxNrOfPersons();
+            return $line->getPlaces()->count();
         }, $this->getLines()->toArray()));
     }
 

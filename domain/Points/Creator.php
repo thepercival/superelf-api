@@ -14,18 +14,13 @@ class Creator
     {
     }
 
-    /**
-     * @param Season $season
-     * @return Points
-     * @throws \Exception
-     */
-    public function create(Season $season): Points
+    public function get(Season $season): Points
     {
         $points = $this->pointsRepos->findOneBy(["season" => $season ]);
         if ($points !== null) {
             return $points;
         }
-        return new Points(
+        $points = new Points(
             $season,
             Defaults::POINTS_WIN,
             Defaults::POINTS_DRAW,
@@ -46,5 +41,7 @@ class Creator
             Defaults::CARD_YELLOW,
             Defaults::CARD_RED
         );
+        $this->pointsRepos->save($points);
+        return $points;
     }
 }

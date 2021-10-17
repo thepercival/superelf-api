@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="SuperElf\Player\Totals" table="playerTotals" repository-class="SuperElf\Player\Totals\Repository">
+    <field name="nrOfWins" column="nrOfWins" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfDraws" column="nrOfDraws" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfTimesStarted" column="nrOfTimesStarted" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfTimesSubstituted" column="nrOfTimesSubstituted" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfFieldGoals" column="nrOfFieldGoals" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfAssists" column="nrOfAssists" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfPenalties" column="nrOfPenalties" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfOwnGoals" column="nrOfOwnGoals" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfCleanSheets" column="nrOfCleanSheets" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfSpottySheets" column="nrOfSpottySheets" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfYellowCards" column="nrOfYellowCards" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfRedCards" column="nrOfRedCards" type="smallint" nullable="false" unique="false"/>
+    <field name="updatedAt" column="updatedAt" type="datetime_immutable" nullable="false" unique="false"/>
+  </entity>
+</doctrine-mapping>

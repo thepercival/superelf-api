@@ -10,29 +10,30 @@ use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
 use SuperElf\GameRound;
 use SuperElf\Player as S11Player;
+use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Substitute\Appearance;
 
 class Line extends Identifiable
 {
     /**
-     * @var ArrayCollection<int|string, S11Player>|PersistentCollection<int|string, S11Player>
-     * @psalm-var ArrayCollection<int|string, S11Player>
+     * @var ArrayCollection<int|string, FormationPlace>|PersistentCollection<int|string, FormationPlace>
+     * @psalm-var ArrayCollection<int|string, FormationPlace>
      */
-    protected ArrayCollection|PersistentCollection $players;
-    protected S11Player|null $substitute = null;
+    protected ArrayCollection|PersistentCollection $places;
     /**
      * @var ArrayCollection<int|string, Appearance>|PersistentCollection<int|string, Appearance>
      * @psalm-var ArrayCollection<int|string, Appearance>
      */
     protected ArrayCollection|PersistentCollection $substituteAppearances;
 
-    public function __construct(
-        protected FormationBase $formation,
-        protected  int $number,
-        protected  int $maxNrOfPersons
-    )
+    private const SUBSTITUTE_NUMBER = 0;
+
+    public function __construct(protected FormationBase $formation, protected  int $number)
     {
-        $this->players = new ArrayCollection();
+        if (!$this->formation->getLines()->contains($this)) {
+            $this->formation->getLines()->add($this) ;
+        }
+        $this->places = new ArrayCollection();
         $this->substituteAppearances = new ArrayCollection();
     }
 
@@ -46,29 +47,41 @@ class Line extends Identifiable
         return $this->number;
     }
 
-
-    public function getMaxNrOfPersons(): int
+    /**
+     * @return ArrayCollection<int|string, FormationPlace>|PersistentCollection<int|string, FormationPlace>
+     * @psalm-return ArrayCollection<int|string, FormationPlace>
+     */
+    public function getPlaces(): ArrayCollection|PersistentCollection
     {
-        return $this->maxNrOfPersons;
+        return $this->places;
     }
 
     /**
-     * @return ArrayCollection<int|string, S11Player>|PersistentCollection<int|string, S11Player>
-     * @psalm-return ArrayCollection<int|string, S11Player>
+     * @return ArrayCollection<int|string, FormationPlace>
+     * @psalm-return ArrayCollection<int|string, FormationPlace>
      */
-    public function getPlayers(): ArrayCollection|PersistentCollection
+    public function getStartingPlaces(): ArrayCollection
     {
-        return $this->players;
+        return $this->places->filter(function (FormationPlace $formationPlace): bool {
+            return $formationPlace->getNumber() > self::SUBSTITUTE_NUMBER;
+        });
     }
 
-    public function getSubstitute(): S11Player|null
+    public function getPlace(int $number): FormationPlace
     {
-        return $this->substitute;
+        $filtered = $this->places->filter(function (FormationPlace $formationPlace) use ($number): bool {
+            return $formationPlace->getNumber() === $number;
+        });
+        $firstPlace = $filtered->first();
+        if ($firstPlace === false) {
+            throw new \Exception('the formation-place for number "' . $number . '" could not be found', E_ERROR);
+        }
+        return $firstPlace;
     }
 
-    public function setSubstitute(S11Player $player = null): void
+    public function getSubstitute(): FormationPlace
     {
-        $this->substitute = $player;
+        return $this->getPlace(self::SUBSTITUTE_NUMBER);
     }
 
     /**
@@ -77,12 +90,11 @@ class Line extends Identifiable
     public function getAllPersons(): array
     {
         $persons = [];
-        foreach ($this->getPlayers() as $player) {
-            $persons[] = $player->getPerson();
-        }
-        $substitute = $this->getSubstitute();
-        if ($substitute !== null) {
-            $persons[] = $substitute->getPerson();
+        foreach ($this->getPlaces() as $formationPlace) {
+            $s11Player = $formationPlace->getPlayer();
+            if ($s11Player !== null) {
+                $persons[] = $s11Player->getPerson();
+            }
         }
         return $persons;
     }
@@ -113,5 +125,15 @@ class Line extends Identifiable
         });
         $firstAppareance = $filtered->first();
         return $firstAppareance === false ? null : $firstAppareance;
+    }
+
+    /**
+     * @return array<int|string, int>
+     */
+    public function getSubstituteAppearancesAsRoundNumbers(): array
+    {
+        return $this->substituteAppearances->map(function (Appearance $appareance): int {
+            return $appareance->getGameRound()->getNumber();
+        })->toArray();
     }
 }

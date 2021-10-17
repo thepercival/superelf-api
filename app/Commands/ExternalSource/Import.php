@@ -162,7 +162,8 @@ class Import extends ExternalSourceCommand
                             $externalSourceImpl->getExternalSource(),
                             $sport,
                             $league,
-                            $season
+                            $season,
+                            $this->getGameRoundNrRangeFromInput($input)
                         );
                         return 0;
                     case Entity::GAMEDETAILS:
@@ -173,7 +174,8 @@ class Import extends ExternalSourceCommand
                             $externalSourceImpl->getExternalSource(),
                             $sport,
                             $league,
-                            $season
+                            $season,
+                            (string)$this->getIdFromInput($input)
                         );
                         return 0;
                     case Entity::IMAGES:
@@ -227,7 +229,8 @@ class Import extends ExternalSourceCommand
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
-        Season $season
+        Season $season,
+        string $externalGameId
     ): void
     {
         // bepaal de period waarin gezocht moet worden
@@ -247,10 +250,21 @@ class Import extends ExternalSourceCommand
 //        $period = new Period(
 //            new \DateTimeImmutable('2020-10-16 08:00'),
 //            new \DateTimeImmutable('2020-10-19 08:00') );*/
-        $period = new Period(
-            new \DateTimeImmutable('2020-10-19 08:00'),
-            new \DateTimeImmutable('2020-12-11 08:00')
-        );
+//        $period = new Period(
+//            new \DateTimeImmutable('2020-10-19 08:00'),
+//            new \DateTimeImmutable('2020-12-11 08:00')
+//        );
+
+        //$games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
+
+        //            foreach ($games as $game) {
+//                $externalGameId = $this->againstGameAttacherRepos->findExternalId($externalSource, $game );
+//                if( $externalGameId === null ) {
+//                    $this->logger->error('no attacher find for gameId "' . (string)$game->getId() . '" is not finished');
+//                }
+
+       // $externalGameId
+
         $this->importer->importAgainstGameDetails(
             $externalSourceCompetitions,
             $externalSourceCompetitionStructure,
@@ -259,7 +273,7 @@ class Import extends ExternalSourceCommand
             $sport,
             $league,
             $season,
-            $period
+            $externalGameId
         );
     }
 

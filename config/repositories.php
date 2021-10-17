@@ -33,16 +33,18 @@ use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\Formation;
 use SuperElf\Formation\Line\Repository as FormationLineRepository;
 use SuperElf\Formation\Line as FormationLine;
+use SuperElf\Formation\Place\Repository as FormationPlayerRepository;
+use SuperElf\Formation\Place as FormationPlayer;
 use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
 use SuperElf\ScoutedPerson;
 use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Competitor;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\GameRound;
-use SuperElf\Player\GameRoundScore\Repository as PlayerGameRoundScoreRepository;
-use SuperElf\Player\GameRoundScore as PlayerGameRoundScore;
-use SuperElf\Substitute\Appearance\Repository as SubstituteParticipationRepository;
-use SuperElf\Substitute\Appearance as SubstituteParticipation;
+use SuperElf\Statistics\Repository as StatisticsRepository;
+use SuperElf\Statistics;
+use SuperElf\Substitute\Appearance\Repository as SubstituteAppearanceRepository;
+use SuperElf\Substitute\Appearance as SubstituteAppearance;
 
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource;
@@ -166,6 +168,20 @@ return [
         $metaData = $entityManager->getClassMetaData(FormationLine::class);
         return new FormationLineRepository($entityManager, $metaData);
     },
+    SubstituteAppearanceRepository::class => function (ContainerInterface $container): SubstituteAppearanceRepository {
+        /** @var EntityManager $entityManager */
+        $entityManager = $container->get(EntityManager::class);
+        /** @psalm-var ClassMetaData<SubstituteAppearance> $metaData */
+        $metaData = $entityManager->getClassMetaData(SubstituteAppearance::class);
+        return new SubstituteAppearanceRepository($entityManager, $metaData);
+    },
+    FormationPlayerRepository::class => function (ContainerInterface $container): FormationPlayerRepository {
+        /** @var EntityManager $entityManager */
+        $entityManager = $container->get(EntityManager::class);
+        /** @psalm-var ClassMetaData<FormationPlayer> $metaData */
+        $metaData = $entityManager->getClassMetaData(FormationPlayer::class);
+        return new FormationPlayerRepository($entityManager, $metaData);
+    },
     PoolCollectionRepository::class => function (ContainerInterface $container): PoolCollectionRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
@@ -193,6 +209,13 @@ return [
         /** @psalm-var ClassMetaData<GameRound> $metaData */
         $metaData = $entityManager->getClassMetaData(GameRound::class);
         return new GameRoundRepository($entityManager, $metaData);
+    },
+    StatisticsRepository::class => function (ContainerInterface $container): StatisticsRepository {
+        /** @var EntityManager $entityManager */
+        $entityManager = $container->get(EntityManager::class);
+        /** @psalm-var ClassMetaData<Statistics> $metaData */
+        $metaData = $entityManager->getClassMetaData(Statistics::class);
+        return new StatisticsRepository($entityManager, $metaData);
     },
     ScoutedPersonRepository::class => function (ContainerInterface $container): ScoutedPersonRepository {
         /** @var EntityManager $entityManager */

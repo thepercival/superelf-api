@@ -28,11 +28,11 @@ class Repository extends EntityRepository
      */
     public function findByExt(ViewPeriod $viewPeriod, Team $team = null, int $line = null, int $maxRows = null): array
     {
-        $qb = $this->createQueryBuilder('vpp')
+        $qb = $this->createQueryBuilder('s11pl')
             ->distinct()
-            ->join("vpp.person", "p")
+            ->join("s11pl.person", "p")
             ->join('Sports\Team\Player', 'pl', 'WITH', 'p = pl.person')
-            ->where('vpp.viewPeriod = :viewPeriod')
+            ->where('s11pl.viewPeriod = :viewPeriod')
         ;
 
         $qb = $qb->setParameter('viewPeriod', $viewPeriod);
@@ -47,6 +47,7 @@ class Repository extends EntityRepository
         if ($maxRows !== null) {
             $qb = $qb->setMaxResults($maxRows);
         }
+        $qb = $qb->orderBy('s11pl.totalPoints', 'desc');
         // $sql = $qb->getQuery()->getSQL();
         /** @var list<S11Player> $players */
         $players = $qb->getQuery()->getResult();

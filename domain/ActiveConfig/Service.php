@@ -10,6 +10,9 @@ use Exception;
 use League\Period\Period;
 use Selective\Config\Configuration;
 use Sports\Competition;
+use Sports\Formation;
+use Sports\Formation as SportsFormation;
+use Sports\Formation\Line as FormationLine;
 use Sports\Season;
 use Sports\Sport\Custom as SportCustom;
 use SuperElf\ActiveConfig;
@@ -35,15 +38,13 @@ class Service
         );
         $formations = [];
         /** @var string $formationName */
-        foreach ($this->config->getArray('availableFormationNames') as $formationName) {
-            $formations[] = [
-                "name" => $formationName,
-                "lines" => [
-                    SportCustom::Football_Line_GoalKepeer => (int) substr($formationName, 0, 1),
-                    SportCustom::Football_Line_Defense => (int) substr($formationName, 2, 1),
-                    SportCustom::Football_Line_Midfield => (int) substr($formationName, 4, 1),
-                    SportCustom::Football_Line_Forward => (int) substr($formationName, 6, 1)]
-            ];
+        foreach ($this->config->getArray('availableFormations') as $formationName) {
+            $formation = new Formation();
+            new FormationLine($formation, SportCustom::Football_Line_GoalKepeer, (int) substr($formationName, 0, 1));
+            new FormationLine($formation, SportCustom::Football_Line_Defense, (int) substr($formationName, 2, 1));
+            new FormationLine($formation, SportCustom::Football_Line_Midfield, (int) substr($formationName, 4, 1));
+            new FormationLine($formation, SportCustom::Football_Line_Forward, (int) substr($formationName, 6, 1));
+            $formations[] = $formation;
         }
         $activeConfig->setAvailableFormations($formations);
         return $activeConfig;
@@ -126,5 +127,20 @@ class Service
             throw new Exception('assembleviewperiod is not in a season', E_ERROR);
         }
         return $season;
+    }
+
+    /**
+     * @param SportsFormation $sportsFormation
+     * @return bool
+     */
+    public function isAvailable(SportsFormation $sportsFormation): bool
+    {
+        $name = $sportsFormation->getName();
+        foreach ($this->getConfig()->getAvailableFormations() as $availableFormation) {
+            if ($availableFormation->getName() === $name) {
+                return true;
+            }
+        }
+        return false;
     }
 }

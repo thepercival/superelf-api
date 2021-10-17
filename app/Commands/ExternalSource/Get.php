@@ -8,7 +8,7 @@ use Sports\Competition;
 use Sports\Season;
 use Sports\Sport;
 use SportsHelpers\SportRange;
-use SportsImport\ExternalSource\ApiHelper;
+use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\ExternalSource\CacheInfo;
 use Sports\Output\ConsoleTable;
 use Sports\League;
@@ -37,7 +37,7 @@ class Get extends ExternalSourceCommand
 {
     protected ImportGetter $getter;
     protected AgainstGameRepository $againstGameRepos;
-//    protected CompetitionAttacherRepository $competitionAttacherRepos;
+    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
 
     public function __construct(ContainerInterface $container)
     {
@@ -45,7 +45,8 @@ class Get extends ExternalSourceCommand
         $this->getter = $container->get(ImportGetter::class);
         /** @var AgainstGameRepository againstGameRepos */
         $this->againstGameRepos = $container->get(AgainstGameRepository::class);
-//        $this->competitionAttacherRepos = $container->get(CompetitionAttacherRepository::class);
+        /** @var AgainstGameAttacherRepository againstGameRepos */
+        $this->againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
         parent::__construct($container, 'command-getexternal');
     }
 
@@ -83,7 +84,7 @@ class Get extends ExternalSourceCommand
         $entity = $this->getEntityFromInput($input);
 
         try {
-            if( $externalSourceImpl instanceof Competitions) {
+            if ($externalSourceImpl instanceof Competitions) {
                 switch ($entity) {
                     case Entity::SPORTS:
                         $this->showSports($externalSourceImpl);
@@ -107,7 +108,7 @@ class Get extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if( $externalSourceImpl instanceof Competitions &&
+            if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure) {
                 $sport = $this->getSportFromInput($input);
 //                $association = $this->getAssociationFromInput($input);
@@ -115,21 +116,38 @@ class Get extends ExternalSourceCommand
                 $season = $this->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::TEAMS:
-                        $this->showTeams($externalSourceImpl, $externalSourceImpl, $externalSource,
-                                         $sport, $league, $season);
+                        $this->showTeams(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSource,
+                            $sport,
+                            $league,
+                            $season
+                        );
                         return 0;
                     case Entity::TEAMCOMPETITORS:
                         $this->showTeamCompetitors(
-                            $externalSourceImpl, $externalSourceImpl, $externalSource,
-                            $sport, $league, $season);
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSource,
+                            $sport,
+                            $league,
+                            $season
+                        );
                         return 0;
                     case Entity::STRUCTURE:
-                        $this->showStructure($externalSourceImpl, $externalSourceImpl, $externalSource,
-                                             $sport, $league, $season);
+                        $this->showStructure(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSource,
+                            $sport,
+                            $league,
+                            $season
+                        );
                         return 0;
                 }
             }
-            if( $externalSourceImpl instanceof Competitions &&
+            if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
                 $externalSourceImpl instanceof CompetitionDetails) {
                 $sport = $this->getSportFromInput($input);
@@ -137,18 +155,24 @@ class Get extends ExternalSourceCommand
                 $season = $this->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::GAMES:
-                        $batchNrRange = $this->getBatchNrRangeFromInput($input);
+                        $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
                         $this->showAgainstGames(
-                            $externalSourceImpl, $externalSourceImpl, $externalSourceImpl, $externalSource,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSource,
                             $sport,
                             $league,
                             $season,
-                            $batchNrRange
+                            $gameRoundRange !== null ? $gameRoundRange : new SportRange(1, 1)
                         );
                         return 0;
                     case Entity::GAMEDETAILS:
                         $this->showAgainstGame(
-                            $externalSourceImpl, $externalSourceImpl, $externalSourceImpl, $externalSource,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSource,
                             $sport,
                             $league,
                             $season,
@@ -185,18 +209,28 @@ class Get extends ExternalSourceCommand
     protected function showLeagues(
         Competitions $externalSourceCompetitions,
         ExternalSource $externalSource,
-        Sport $sport, Association $association ): void {
+        Sport $sport,
+        Association $association
+    ): void
+    {
         $externalAssociation = $this->getter->getAssociation($externalSourceCompetitions, $externalSource, $sport, $association);
         $table = new ConsoleTable\Leagues();
         $leagues = array_values($externalSourceCompetitions->getLeagues($externalAssociation));
         $table->display($leagues);
     }
 
-    protected function showCompetitions(Competitions $externalSourceCompetitions, ExternalSource $externalSource,
-        Sport $sport, League $league): void
+    protected function showCompetitions(
+        Competitions $externalSourceCompetitions,
+        ExternalSource $externalSource,
+        Sport $sport,
+        League $league
+    ): void
     {
         $externalLeague = $this->getter->getLeague(
-            $externalSourceCompetitions, $externalSource, $sport, $league
+            $externalSourceCompetitions,
+            $externalSource,
+            $sport,
+            $league
         );
         $table = new ConsoleTable\Competitions();
         $competitions = array_values($externalSourceCompetitions->getCompetitions($sport, $externalLeague));
@@ -212,7 +246,8 @@ class Get extends ExternalSourceCommand
         Season $season
     ): void {
         $competition = $this->getter->getCompetition(
-            $externalSourceCompetitions, $externalSource,
+            $externalSourceCompetitions,
+            $externalSource,
             $sport,
             $league,
             $season
@@ -230,7 +265,8 @@ class Get extends ExternalSourceCommand
         Season $season
     ): void {
         $competition = $this->getter->getCompetition(
-            $externalSourceCompetitions, $externalSource,
+            $externalSourceCompetitions,
+            $externalSource,
             $sport,
             $league,
             $season
@@ -248,7 +284,8 @@ class Get extends ExternalSourceCommand
         Season $season
     ): void {
         $competition = $this->getter->getCompetition(
-            $externalSourceCompetitions, $externalSource,
+            $externalSourceCompetitions,
+            $externalSource,
             $sport,
             $league,
             $season
@@ -282,13 +319,13 @@ class Get extends ExternalSourceCommand
         $games = [];
         for ($gameRoundNr = $gameRoundRange->getMin(); $gameRoundNr <= $gameRoundRange->getMax(); $gameRoundNr++) {
             if (count(
-                    array_filter(
+                array_filter(
                         $gameRoundNumbers,
                         function (int $batchNrIt) use ($gameRoundNr): bool {
                             return $batchNrIt === $gameRoundNr;
                         }
                     )
-                ) === 0) {
+            ) === 0) {
                 $this->logger->info('gameRoundNr "' . $gameRoundNr . '" komt niet voor in de externe bron');
             }
             $games = array_merge($games, $externalSourceCompetitionDetails->getAgainstGames($competition, $gameRoundNr));
@@ -315,17 +352,23 @@ class Get extends ExternalSourceCommand
             $league,
             $season
         );
-        $againstGame = $this->againstGameRepos->find($gameId);
-        if( $againstGame === null) {
-            return;
-        }
 
-        $externalGame = $this->getter->getAgainstGame($externalSourceCompetitionDetails, $externalSource,
-                                              $competition, $againstGame);
+//        $againstGame = $this->againstGameAttacherRepos->findImportable($externalSource, $gameId);
+//        // $this->againstGameRepos->find($gameId); // only internalId
+//        if ($againstGame === null) {
+//            $this->logger->warning('no ');
+//            return;
+//        }
+
+        $externalGame = $this->getter->getAgainstGame(
+            $externalSourceCompetitionDetails,
+            $externalSource,
+            $competition,
+            $gameId
+        );
 
         $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
         $table = new ConsoleTable\AgainstGame();
         $table->display($competition, $externalGame, $teamCompetitors);
     }
-
 }

@@ -7,5 +7,10 @@
         <cascade-remove/>
       </cascade>
     </one-to-many>
+    <many-to-one field="viewPeriod" target-entity="SuperElf\Period\View">
+      <join-columns>
+        <join-column name="viewPeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+      </join-columns>
+    </many-to-one>
   </entity>
 </doctrine-mapping>

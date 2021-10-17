@@ -1,0 +1,30 @@
+SuperElf\Player\Totals:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    nrOfWins:
+      type: integer
+    nrOfDraws:
+      type: integer
+    nrOfTimesStarted:
+      type: integer
+    nrOfTimesSubstituted:
+      type: integer
+    nrOfFieldGoals:
+      type: integer
+    nrOfAssists:
+      type: integer
+    nrOfPenalties:
+      type: integer
+    nrOfOwnGoals:
+      type: integer
+    nrOfCleanSheets:
+      type: integer
+    nrOfSpottySheets:
+      type: integer
+    nrOfYellowCards:
+      type: integer
+    nrOfRedCards:
+      type: integer
