@@ -1,13 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Period\Transfer;
 
-use Sports\Person;
 use SportsHelpers\Identifiable;
-use SuperElf\Pool\User as PoolUser;
-use SuperElf\Player as S11Player;
 use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Player as S11Player;
+use SuperElf\Pool\User as PoolUser;
 
 class Action extends Identifiable
 {

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Statistics;
@@ -17,6 +18,7 @@ use SuperElf\Points as SeasonPoints;
 use SuperElf\Statistics\Repository as StatisticsRepository;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Player as S11Player;
+use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
@@ -26,6 +28,7 @@ use Sports\Competitor\Map as CompetitorMap;
 
 class Syncer
 {
+    protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;
 
     public function __construct(
@@ -37,6 +40,7 @@ class Syncer
         protected Converter $converter,
         protected PointsCalculator $pointsCalculator
     ) {
+        $this->playerTotalsCalculator = new PlayerTotalsCalculator();
     }
 
     public function sync(AgainstGame $game): void
@@ -60,6 +64,8 @@ class Syncer
             $this->syncStatistics($viewPeriod, $gamePlace, $teamCompetitor->getTeam());
         }
         // }
+        $this->s11PlayerRepos->flush();
+        $this->statisticsRepos->flush();
     }
 
     protected function syncStatistics(
@@ -89,7 +95,7 @@ class Syncer
             $person = $s11Player->getPerson();
             $player = $person->getPlayer($team, $game->getStartDateTime());
             if ($player === null) {
-                $this->logNoS11Player($person);
+                $this->logNoS11Player($person, $game->getStartDateTime());
                 continue;
             }
             $gameParticipation = $this->getGameParticipation($s11Player, $gameParticipations);
@@ -97,7 +103,7 @@ class Syncer
 
             if ($oldStatistics !== null) {
                 $s11Player->getStatistics()->removeElement($oldStatistics);
-                $this->statisticsRepos->remove($oldStatistics);
+                $this->statisticsRepos->remove($oldStatistics, true);
             }
 
             $statistics = $this->converter->convert(
@@ -109,8 +115,9 @@ class Syncer
             $this->statisticsRepos->save($statistics);
 
             if ($oldStatistics === null || !$statistics->equals($oldStatistics)) {
-                $this->updatePlayerTotals($s11Player);
-                $this->updatePlayerTotalPoints($seasonPoints, $s11Player);
+                $this->playerTotalsCalculator->updateTotals($s11Player);
+                $this->playerTotalsCalculator->updateTotalPoints($seasonPoints, $s11Player);
+                $this->s11PlayerRepos->save($s11Player, true);
             }
         }
         $this->logInfo('calculated statistics');
@@ -149,7 +156,7 @@ class Syncer
      */
     protected function getGameParticipation(S11Player $s11Player, array $gameParticipations): GameParticipation|null
     {
-        $filtered = array_filter($gameParticipations, function (GameParticipation $gameParticipation) use ($s11Player) : bool {
+        $filtered = array_filter($gameParticipations, function (GameParticipation $gameParticipation) use ($s11Player): bool {
             return $s11Player->getPerson() === $gameParticipation->getPlayer()->getPerson();
         });
         if (count($filtered) > 0) {
@@ -158,50 +165,9 @@ class Syncer
         return null;
     }
 
-    protected function updatePlayerTotals(S11Player $s11Player): void
+    protected function logNoS11Player(Person $person, \DateTimeImmutable $dateTime): void
     {
-        $totals = $s11Player->getTotals();
-        foreach ($s11Player->getStatistics() as $statistics) {
-            if ($statistics->getResult() === Result::WIN) {
-                $totals->incrementNrOfWins();
-            }
-            if ($statistics->getResult() === Result::DRAW) {
-                $totals->incrementNrOfDraws();
-            }
-            if ($statistics->isStarting()) {
-                $totals->incrementNrOfTimesStarted();
-            }
-            if ($statistics->isSubstituted()) {
-                $totals->incrementNrOfTimesSubstituted();
-            }
-            $totals->addNrOfFieldGoals($statistics->getNrOfFieldGoals());
-            $totals->addNrOfAssists($statistics->getNrOfAssists());
-            $totals->addNrOfPenalties($statistics->getNrOfPenalties());
-            $totals->addNrOfOwnGoals($statistics->getNrOfOwnGoals());
-            if ($statistics->hasCleanSheet()) {
-                $totals->incrementNrOfCleanSheets();
-            }
-            if ($statistics->hasSpottySheet()) {
-                $totals->incrementNrOfSpottySheets();
-            }
-            $totals->addNrOfYellowCards($statistics->getNrOfYellowCards());
-            if ($statistics->directRedCard()) {
-                $totals->incrementNrOfRedCards();
-            }
-        }
-        $totals->setUpdatedAt(new \DateTimeImmutable());
-    }
-
-    protected function updatePlayerTotalPoints(SeasonPoints $seasonPoints, S11Player $s11Player): void
-    {
-        $s11Player->setTotalPoints(
-            $s11Player->getTotals()->getPoints($s11Player->getLine(), $seasonPoints)
-        );
-    }
-
-    protected function logNoS11Player(Person $person): void
-    {
-        $this->logInfo("  voor persoon: " . $person->getName() . " is geen speler gevonden");
+        $this->logInfo('  voor "' . $person->getName() . '" en "'.$dateTime->format(DATE_ISO8601).'" is geen overlappende spelersperiode gevonden');
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod();
             $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => periode " . $basePeriod);

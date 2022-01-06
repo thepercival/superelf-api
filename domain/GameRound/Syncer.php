@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\GameRound;
@@ -9,8 +10,8 @@ use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\State;
 use SuperElf\GameRound;
 use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 

@@ -1,16 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Middleware\Authorization;
 
-use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthorizationMiddleware;
-use SuperElf\User;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\User;
 
 class PoolUserMiddleware extends AuthorizationMiddleware
 {
-    protected function isAuthorized(Request $request ): void
+    protected function isAuthorized(Request $request): void
     {
         /** @var PoolUser|null $poolUser */
         $poolUser = $request->getAttribute('poolUser');
@@ -20,7 +21,7 @@ class PoolUserMiddleware extends AuthorizationMiddleware
         /** @var User $user */
         $user = $request->getAttribute("user");
 
-        if ($poolUser->getUser() !== $user ) {
+        if ($poolUser->getUser() !== $user) {
             throw new \Exception("je mag alleen voor je eigen deelnemer iets wijzigen", E_ERROR);
         }
     }

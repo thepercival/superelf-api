@@ -44,6 +44,11 @@
         <join-column name="transferPeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
+    <many-to-one field="points" target-entity="SuperElf\Points">
+      <join-columns>
+        <join-column name="pointsId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+      </join-columns>
+    </many-to-one>
     <one-to-many field="users" target-entity="SuperElf\Pool\User" mapped-by="pool">
       <cascade>
         <cascade-persist/>

@@ -45,16 +45,10 @@ final class UserAction extends Action
         return DeserializationContext::create()->setGroups($serGroups);
     }
 
-    protected function getSerializationContext(): SerializationContext
-    {
-        $serGroups = ['Default', 'admin'];
-        return SerializationContext::create()->setGroups($serGroups);
-    }
-
     /**
      * @param Request $request
      * @param Response $response
-     * @param array $args
+     * @param array<string, int|string> $args
      * @return Response
      */
     public function fetchOne(Request $request, Response $response, array $args): Response
@@ -66,7 +60,7 @@ final class UserAction extends Action
             if ($user->getId() !== (int)$args['userId']) {
                 throw new \Exception("de ingelogde gebruiker en de op te halen gebruiker zijn verschillend", E_ERROR);
             }
-            $json = $this->serializer->serialize($user, 'json', $this->getSerializationContext());
+            $json = $this->serializer->serialize($user, 'json', $this->getSerializationContext(['admin']));
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);
@@ -76,7 +70,7 @@ final class UserAction extends Action
     /**
      * @param Request $request
      * @param Response $response
-     * @param array $args
+     * @param array<string, int|string> $args
      * @return Response
      */
     public function edit(Request $request, Response $response, array $args): Response
@@ -85,6 +79,7 @@ final class UserAction extends Action
             /** @var User $userAuth */
             $userAuth = $request->getAttribute("user");
 
+            /** @var User $userSer */
             $userSer = $this->serializer->deserialize(
                 $this->getRawData(),
                 User::class,
@@ -103,7 +98,7 @@ final class UserAction extends Action
                 $this->serializer->serialize(
                     $userAuth,
                     'json',
-                    $this->getSerializationContext()
+                    $this->getSerializationContext(['admin'])
                 )
             );
         } catch (\Exception $e) {

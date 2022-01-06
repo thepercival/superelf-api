@@ -1,34 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands\ExternalSource;
 
-use App\QueueService;
 use App\Commands\ExternalSource as ExternalSourceCommand;
-use League\Period\Period;
+use App\QueueService;
 use Psr\Container\ContainerInterface;
-use App\Command;
-use Selective\Config\Configuration;
-
-use Sports\Association;
 use Sports\League;
-use Sports\League\Repository as LeagueRepository;
 use Sports\Season;
-use Sports\Season\Repository as SeasonRepository;
 use Sports\Sport;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\Implementation;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Output\OutputInterface;
-
-use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
+use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\Importer;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Import extends ExternalSourceCommand
 {
@@ -36,9 +25,10 @@ class Import extends ExternalSourceCommand
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var Importer importer */
-        $this->importer = $container->get(Importer::class);
-        parent::__construct($container, 'command-import');
+        /** @var Importer $importer */
+        $importer = $container->get(Importer::class);
+        $this->importer = $importer;
+        parent::__construct($container);
         $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
     }
 
@@ -53,26 +43,23 @@ class Import extends ExternalSourceCommand
             // the "--help" option
             ->setHelp('import the objects');
 
-        $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');
-        $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
-
         parent::configure();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLoggerFromInput($input);
-        $externalSourceName = (string)$input->getArgument('externalSource');
-        $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
-        if ($externalSourceImpl === null) {
-            $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
-            $this->logger->error($message);
-            return -1;
-        }
-
-        $entity = $this->getEntityFromInput($input);
-
         try {
+            $this->initLogger($input, 'command-import');
+            $externalSourceName = (string)$input->getArgument('externalSource');
+            $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
+            if ($externalSourceImpl === null) {
+                $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
+                $this->getLogger()->error($message);
+                return -1;
+            }
+
+            $entity = $this->getEntityFromInput($input);
+
             if ($externalSourceImpl instanceof Competitions) {
                 switch ($entity) {
                     case Entity::SPORTS:
@@ -175,52 +162,20 @@ class Import extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
-                            (string)$this->getIdFromInput($input)
-                        );
-                        return 0;
-                    case Entity::IMAGES:
-                        $this->importImages(
-                            $externalSourceImpl,
-                            $externalSourceImpl,
-                            $externalSourceImpl->getExternalSource(),
-                            $league,
-                            $season
+                            (string)$this->getIdFromInput($input),
+                            $this->getGameCacheOptionFromInput($input)
                         );
                         return 0;
                 }
             }
             throw new \Exception('objectType "' . $entity . '" kan niet worden opgehaald uit externe bronnen', E_ERROR);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if ($this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
         return 0;
     }
-
-//    protected function importSports(Implementation $externalSourceImpl): void
-//    {
-//        $this->importer->importSports($externalSourceImpl);
-//    }
-//
-//    protected function importAssociations(Implementation $externalSourceImpl, Sport $sport): void
-//    {
-//        $this->importer->importAssociations($externalSourceImpl, $sport);
-//    }
-//
-//    protected function importSeasons(Implementation $externalSourceImpl): void
-//    {
-//        $this->importer->importSeasons($externalSourceImpl);
-//    }
-//
-//    protected function importLeagues(Implementation $externalSourceImpl, Association $association): void
-//    {
-//        $this->importer->importLeagues($externalSourceImpl, $association);
-//    }
-//
-//    protected function importCompetition(Implementation $externalSourceImpl,
-//        Sport $sport, Association $association, League $league, Season $season): void
-//    {
-//        $this->importer->importCompetition($externalSourceImpl, $sport, $association, $league, $season );
-//    }
 
     protected function importAgainstGameDetails(
         Competitions $externalSourceCompetitions,
@@ -230,9 +185,9 @@ class Import extends ExternalSourceCommand
         Sport $sport,
         League $league,
         Season $season,
-        string $externalGameId
-    ): void
-    {
+        string $externalGameId,
+        bool $removeFromGameCache
+    ): void {
         // bepaal de period waarin gezocht moet worden
         // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
 
@@ -263,7 +218,7 @@ class Import extends ExternalSourceCommand
 //                    $this->logger->error('no attacher find for gameId "' . (string)$game->getId() . '" is not finished');
 //                }
 
-       // $externalGameId
+        // $externalGameId
 
         $this->importer->importAgainstGameDetails(
             $externalSourceCompetitions,
@@ -273,46 +228,8 @@ class Import extends ExternalSourceCommand
             $sport,
             $league,
             $season,
-            $externalGameId
-        );
-    }
-
-    protected function importImages(
-        CompetitionStructure $externalSourceCompetitionStructure,
-        CompetitionDetails $externalSourceCompetitionDetails,
-        ExternalSource $externalSource,
-        League $league,
-        Season $season
-    ): void
-    {
-        $localPath = $this->config->getString('www.apiurl-localpath');
-        $localPath .= $this->config->getString('images.personsSuffix');
-        $publicPath = $this->config->getString('www.apiurl');
-        $publicPath .= $this->config->getString('images.personsSuffix');
-        $maxWidth = 150;
-        $this->importer->importPersonImages(
-            $externalSourceCompetitionDetails,
-            $externalSource,
-            $league,
-            $season,
-            $localPath,
-            $publicPath,
-            $maxWidth
-        );
-
-        $localPath = $this->config->getString('www.apiurl-localpath');
-        $localPath .= $this->config->getString('images.teamsSuffix');
-        $publicPath = $this->config->getString('www.apiurl');
-        $publicPath .= $this->config->getString('images.teamsSuffix');
-        $maxWidth = 150;
-        $this->importer->importTeamImages(
-            $externalSourceCompetitionStructure,
-            $externalSource,
-            $league,
-            $season,
-            $localPath,
-            $publicPath,
-            $maxWidth
+            $externalGameId,
+            $removeFromGameCache
         );
     }
 }

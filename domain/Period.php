@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
@@ -46,7 +47,8 @@ abstract class Period extends Identifiable implements Stringable
         return $this->getPeriod()->contains($date !== null ? $date : new DateTimeImmutable()) ;
     }
 
-    public function __toString(): string {
+    public function __toString(): string
+    {
         return $this->getStartDateTime()->format(DateTime::ISO8601) .
             ' => ' .
             $this->getEndDateTime()->format(DateTime::ISO8601);

@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 use App\Actions\ActiveConfigAction;
 use App\Actions\AuthAction;
-use App\Actions\Pool\ShellAction;
-use App\Actions\Sports\CompetitionAction;
-use App\Actions\PlayerAction;
 use App\Actions\FormationAction;
-use App\Actions\UserAction;
-use App\Actions\PoolAction;
+use App\Actions\PlayerAction;
+use App\Actions\Pool\ShellAction;
 use App\Actions\Pool\UserAction as PoolUserAction;
-use App\Actions\ScoutedPersonAction;
-use App\Middleware\PoolMiddleware;
-use App\Middleware\VersionMiddleware;
-use App\Middleware\UserMiddleware;
-use App\Middleware\PoolUserMiddleware;
-use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
+use App\Actions\PoolAction;
+use App\Actions\ScoutedPlayerAction;
+use App\Actions\Sports\AgainstGameAction;
+use App\Actions\Sports\CompetitionAction;
+use App\Actions\Sports\StructureAction;
+use App\Actions\StatisticsAction;
+use App\Actions\UserAction;
 use App\Middleware\Authorization\Pool\AdminMiddleware as PoolAdminAuthMiddleware;
 use App\Middleware\Authorization\Pool\UserMiddleware as UserThroughPoolAuthMiddleware;
 use App\Middleware\Authorization\PoolUserMiddleware as PoolUserAuthMiddleware;
-
+use App\Middleware\Authorization\UserMiddleware as UserAuthMiddleware;
+use App\Middleware\PoolMiddleware;
+use App\Middleware\PoolUserMiddleware;
+use App\Middleware\UserMiddleware;
+use App\Middleware\VersionMiddleware;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app): void {
-    $app->group('/public',
+    $app->group(
+        '/public',
         function (Group $group): void {
             $group->group('/auth', function (Group $group): void {
                 $group->options('/register', AuthAction::class . ':options');
@@ -43,9 +46,11 @@ return function (App $app): void {
             $group->get('/cancreate', PoolAction::class . ':canCreate')->add(VersionMiddleware::class);
             $group->options('/shells', ShellAction::class . ':options');
             $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
-    });
+        }
+    );
 
-    $app->group('/auth',
+    $app->group(
+        '/auth',
         function (Group $group): void {
             $group->options('/extendtoken', AuthAction::class . ':options');
             $group->post('/extendtoken', AuthAction::class . ':extendToken');
@@ -119,29 +124,18 @@ return function (App $app): void {
                 function (Group $group): void {
                     $group->options('', FormationAction::class . ':options');
                     $group->put('', FormationAction::class . ':edit');
+                    $group->options('/{formationId}/places/{placeId}', FormationAction::class . ':options');
+                    $group->post('/{formationId}/places/{placeId}', FormationAction::class . ':editPlace');
 
-//                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/person' { viewPeriodPerson }
-//                    'poolusers/' + poolUserId + '/formations' + formationId + 'lines/' + lineNumber + '/substitute' { poolUserViewPeriodPerson }
-
-                    $group->group(
-                        '/{formationId}/lines/{lineNumber}/players',
-                        function (Group $group): void {
-                            $group->options('', FormationAction::class . ':options');
-                            $group->post('', FormationAction::class . ':addPlayer');
-                            $group->options('/{playerId}', FormationAction::class . ':options');
-                            $group->delete('/{playerId}', FormationAction::class . ':removePlayer');
-                        }
-                    )/*->add(PoolUserAuthMiddleware::class)*/;
-
-                    $group->group(
-                        '/{formationId}/lines/{lineNumber}/substitute',
-                        function (Group $group): void {
-                            $group->options('', FormationAction::class . ':options');
-                            $group->post('', FormationAction::class . ':addSubstitute');
-                            $group->options('/{substituteId}', FormationAction::class . ':options');
-                            $group->delete('/{substituteId}', FormationAction::class . ':removeSubstitute');
-                        }
-                    )/*->add(PoolUserAuthMiddleware::class)*/;
+//                    $group->group(
+//                        '/{formationId}/lines/{lineNumber}/substitute',
+//                        function (Group $group): void {
+//                            $group->options('', FormationAction::class . ':options');
+//                            $group->post('', FormationAction::class . ':addSubstitute');
+//                            $group->options('/{substituteId}', FormationAction::class . ':options');
+//                            $group->delete('/{substituteId}', FormationAction::class . ':removeSubstitute');
+//                        }
+//                    )/*->add(PoolUserAuthMiddleware::class)*/;
                 }
             )->add(PoolUserAuthMiddleware::class);
         }
@@ -152,6 +146,14 @@ return function (App $app): void {
         function (Group $group): void {
             $group->options('', PlayerAction::class . ':options');
             $group->post('', PlayerAction::class . ':fetch');
+
+            $group->group(
+                '/{playerId}/statistics',
+                function (Group $group): void {
+                    $group->options('', StatisticsAction::class . ':options');
+                    $group->get('', StatisticsAction::class . ':fetch');
+                }
+            );
         }
     )->add(VersionMiddleware::class);
 
@@ -167,23 +169,36 @@ return function (App $app): void {
         '/competitions/{competitionId}',
         function (Group $group): void {
             $group->options('', CompetitionAction::class . ':options');
-            $group->get('', CompetitionAction::class . ':fetchOne')->add(PoolMiddleware::class);
+            $group->get('', CompetitionAction::class . ':fetchOne');
 
             $group->group(
-                '/scoutedpersons',
+                '/gamerounds/{gameRoundNumber}',
                 function (Group $group): void {
-                    $group->options('', ScoutedPersonAction::class . ':options');
-                    $group->post('', ScoutedPersonAction::class . ':add');
-                    $group->get('', ScoutedPersonAction::class . ':fetch');
-                    $group->options('/{scoutedPersonId}', ScoutedPersonAction::class . ':options');
-                    $group->put('/{scoutedPersonId}', ScoutedPersonAction::class . ':edit');
-                    $group->delete('/{scoutedPersonId}', ScoutedPersonAction::class . ':remove');
-                }
-            )->add(UserAuthMiddleware::class)->add(UserMiddleware::class);
+                    $group->options('', AgainstGameAction::class . ':options');
+                    $group->get('', AgainstGameAction::class . ':fetch');
+                },
+            );
+            $group->group(
+                '/structure',
+                function (Group $group): void {
+                    $group->options('', StructureAction::class . ':options');
+                    $group->get('', StructureAction::class . ':fetchOne');
+                },
+            );
         },
     )->add(VersionMiddleware::class);
 
-
+    $app->group(
+        '/viewperiods/{viewPeriodId}/scoutedplayers',
+        function (Group $group): void {
+            $group->options('', ScoutedPlayerAction::class . ':options');
+            $group->post('', ScoutedPlayerAction::class . ':add');
+            $group->get('', ScoutedPlayerAction::class . ':fetch');
+            $group->options('/{scoutedPlayerId}', ScoutedPlayerAction::class . ':options');
+            $group->put('/{scoutedPlayerId}', ScoutedPlayerAction::class . ':edit');
+            $group->delete('/{scoutedPlayerId}', ScoutedPlayerAction::class . ':remove');
+        },
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
         '',
@@ -194,5 +209,4 @@ return function (App $app): void {
             $group->get('/shells', ShellAction::class . ':fetchPublic');
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
-
 };

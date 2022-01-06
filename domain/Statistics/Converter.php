@@ -1,21 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Statistics;
 
 use DateTimeInterface;
-use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Against as AgainstGame;
+use Sports\Game\Participation as GameParticipation;
 use Sports\Score\Config\Service as ScoreConfigService;
-use SportsHelpers\Against\Side as AgainstSide;
+use SportsHelpers\Against\Result as AgainstResult;
 use SuperElf\Defaults;
 use SuperElf\GameRound;
+use SuperElf\OneTeamSimultaneous;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Player as S11Player;
 use SuperElf\Sheet;
 use SuperElf\Statistics;
-use SuperElf\Player as S11Player;
-use SuperElf\Period\View as ViewPeriod;
-use SportsHelpers\Against\Result as AgainstResult;
-use SuperElf\OneTeamSimultaneous;
 
 class Converter
 {
@@ -44,7 +44,7 @@ class Converter
             throw new \Exception('game has no final score while participations exist', E_ERROR);
         }
 
-        $opposite = $side === AgainstSide::HOME ? AgainstSide::AWAY : AgainstSide::HOME;
+        $opposite = $side->getOpposite();
         $sheet = Sheet::NORMAL;
         if ($finalScore->get($opposite) === 0) {
             $sheet = Sheet::CLEAN;
@@ -86,7 +86,7 @@ class Converter
         return new Statistics(
             $s11Player,
             $gameRound,
-            AgainstResult::LOSS,
+            AgainstResult::Loss,
             -1,
             -1,
             0,

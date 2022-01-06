@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Player;
@@ -13,6 +14,8 @@ class Totals extends Identifiable
         protected int $nrOfDraws = 0,
         protected int $nrOfTimesStarted = 0,
         protected int $nrOfTimesSubstituted = 0,
+        protected int $nrOfTimesSubstitute = 0,
+        protected int $nrOfTimesNotAppeared = 0,
         protected int $nrOfFieldGoals = 0,
         protected int $nrOfAssists = 0,
         protected int $nrOfPenalties = 0,
@@ -23,6 +26,25 @@ class Totals extends Identifiable
         protected int $nrOfRedCards = 0,
         protected \DateTimeImmutable|null $updatedAt = null
     ) {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function reset(): void
+    {
+        $this->nrOfWins = 0;
+        $this->nrOfDraws = 0;
+        $this->nrOfTimesStarted = 0;
+        $this->nrOfTimesSubstituted = 0;
+        $this->nrOfTimesSubstitute = 0;
+        $this->nrOfTimesNotAppeared = 0;
+        $this->nrOfFieldGoals = 0;
+        $this->nrOfAssists = 0;
+        $this->nrOfPenalties = 0;
+        $this->nrOfOwnGoals = 0;
+        $this->nrOfCleanSheets = 0;
+        $this->nrOfSpottySheets = 0;
+        $this->nrOfYellowCards = 0;
+        $this->nrOfRedCards = 0;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -66,6 +88,26 @@ class Totals extends Identifiable
         $this->nrOfTimesSubstituted++;
     }
 
+    public function getNrOfTimesSubstitute(): int
+    {
+        return $this->nrOfTimesSubstitute;
+    }
+
+    public function incrementNrOfTimesSubstitute(): void
+    {
+        $this->nrOfTimesSubstitute++;
+    }
+
+    public function getNrOfTimesNotAppeared(): int
+    {
+        return $this->nrOfTimesNotAppeared;
+    }
+
+    public function incrementNrOfTimesNotAppeared(): void
+    {
+        $this->nrOfTimesNotAppeared++;
+    }
+
     public function getNrOfFieldGoals(): int
     {
         return $this->nrOfFieldGoals;
@@ -73,7 +115,7 @@ class Totals extends Identifiable
 
     public function addNrOfFieldGoals(int $nrOfFieldGoals): void
     {
-        $this->nrOfFieldGoals = $nrOfFieldGoals;
+        $this->nrOfFieldGoals += $nrOfFieldGoals;
     }
 
     public function getNrOfAssists(): int
@@ -83,7 +125,7 @@ class Totals extends Identifiable
 
     public function addNrOfAssists(int $nrOfAssists): void
     {
-        $this->nrOfAssists = $nrOfAssists;
+        $this->nrOfAssists += $nrOfAssists;
     }
 
     public function getNrOfPenalties(): int
@@ -93,7 +135,7 @@ class Totals extends Identifiable
 
     public function addNrOfPenalties(int $nrOfPenalties): void
     {
-        $this->nrOfPenalties = $nrOfPenalties;
+        $this->nrOfPenalties += $nrOfPenalties;
     }
 
     public function getNrOfOwnGoals(): int
@@ -103,7 +145,7 @@ class Totals extends Identifiable
 
     public function addNrOfOwnGoals(int $nrOfOwnGoals): void
     {
-        $this->nrOfOwnGoals = $nrOfOwnGoals;
+        $this->nrOfOwnGoals += $nrOfOwnGoals;
     }
 
     public function getNrOfCleanSheets(): int
@@ -133,7 +175,7 @@ class Totals extends Identifiable
 
     public function addNrOfYellowCards(int $nrOfYellowCards): void
     {
-        $this->nrOfYellowCards = $nrOfYellowCards;
+        $this->nrOfYellowCards += $nrOfYellowCards;
     }
 
     public function getNrOfRedCards(): int

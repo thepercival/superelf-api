@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Exceptions\DomainRecordNotFoundException;
 use App\Response\ErrorResponse;
-use Psr\Log\LoggerInterface;
-use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
-use SuperElf\Auth\Service as AuthService;
-use SuperElf\Auth\Item as AuthItem;
-use DateTimeImmutable;
 use JMS\Serializer\SerializerInterface;
-use \Firebase\JWT\JWT;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use stdClass;
-use Tuupola\Base62;
+use SuperElf\Auth\Item as AuthItem;
+use SuperElf\Auth\Service as AuthService;
+use SuperElf\User;
+use SuperElf\User\Repository as UserRepository;
 
 final class AuthAction extends Action
 {
@@ -141,7 +137,7 @@ final class AuthAction extends Action
             $password = (string)$authData->password;
             $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
 
-            if (!$user or !password_verify($user->getSalt() . $password, $user->getPassword())) {
+            if ($user === null || !password_verify($user->getSalt() . $password, $user->getPassword())) {
                 throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
             }
 

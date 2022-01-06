@@ -4,18 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Sports;
 
-use App\Response\ErrorResponse;
-use Doctrine\Common\Collections\ArrayCollection;
-use JMS\Serializer\SerializationContext;
-use Psr\Log\LoggerInterface;
+use App\Actions\Action;
 use JMS\Serializer\SerializerInterface;
-use Sports\Team\Player;
+use Psr\Log\LoggerInterface;
 use Sports\Team\Player\Repository as PlayerRepository;
 use Sports\Team\Repository as TeamRepository;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Actions\Action;
-use SuperElf\CompetitionPerson\Filter as CompetitionPersonFilter;
 
 final class PlayerAction extends Action
 {
@@ -50,9 +43,4 @@ final class PlayerAction extends Action
 //        }
 //    }
 
-    protected function getSerializationContext(): SerializationContext
-    {
-        $serGroups = ['Default','person'];
-        return SerializationContext::create()->setGroups($serGroups);
-    }
 }

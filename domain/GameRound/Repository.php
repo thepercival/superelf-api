@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\GameRound;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Period\View as ViewPeriod;
 use SuperElf\GameRound as BaseGameRound;
+use SuperElf\Period\View as ViewPeriod;
 
 /**
  * @template-extends EntityRepository<BaseGameRound>

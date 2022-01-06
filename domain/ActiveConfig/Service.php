@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace SuperElf\ActiveConfig;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use League\Period\Period;
 use Selective\Config\Configuration;
 use Sports\Competition;
+use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Formation;
 use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as FormationLine;
 use Sports\Season;
-use Sports\Sport\Custom as SportCustom;
-use SuperElf\ActiveConfig;
-use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Season\Repository as SeasonRepository;
+use Sports\Sport\Custom as SportCustom;
 use Sports\Sport\Repository as SportRepository;
+use SuperElf\ActiveConfig;
 
 class Service
 {
@@ -111,9 +110,9 @@ class Service
             return [];
         }
         $competitions =  $this->competitionRepos->findExt($sport, $season->getPeriod());
-        return array_values(array_map(function (Competition $competition): array {
+        return array_map(function (Competition $competition): array {
             return ["id" => $competition->getId(), "name" => $competition->getName() ];
-        }, $competitions));
+        }, $competitions);
     }
 
     public function getSeason(): Season

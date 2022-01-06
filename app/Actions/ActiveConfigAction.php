@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use SuperElf\ActiveConfig\Service as ActiveConfigService;
-use SuperElf\ActiveConfig;
-use Selective\Config\Configuration;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use JMS\Serializer\SerializerInterface;
-
-use SuperElf\User;
+use Selective\Config\Configuration;
+use SuperElf\ActiveConfig\Service as ActiveConfigService;
 
 final class ActiveConfigAction extends Action
 {
@@ -41,7 +38,7 @@ final class ActiveConfigAction extends Action
     {
         try {
             $activeConfig = $this->activeConfigService->getConfig();
-            $json = $this->serializer->serialize($activeConfig,'json');
+            $json = $this->serializer->serialize($activeConfig, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);

@@ -1,30 +1,35 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
-use SuperElf\Sport\Administrator as SportAdministrator;
 use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition;
+use Sports\Competition\Repository as CompetitionRepository;
+use Sports\League\Repository as LeagueRepository;
+use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionsCreator;
-use SuperElf\PoolCollection;
+use SuperElf\Period\Administrator as PeriodAdministrator;
+use SuperElf\Points\Creator as PointsCreator;
+use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Period\Administrator as PeriodAdministrator;
-use SuperElf\User;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\PoolCollection;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
-use Sports\League\Repository as LeagueRepository;
-use Sports\Competition\Repository as CompetitionRepository;
-use SuperElf\ActiveConfig\Service as ActiveConfigService;
+use SuperElf\Sport\Administrator as SportAdministrator;
+use SuperElf\User;
 
 class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
+    protected PointsCreator $pointsCreator;
 
     public function __construct(
         protected PoolRepository $poolRepos,
+        protected PointsRepository $pointsRepository,
         protected PeriodAdministrator $periodAdministrator,
         protected SportAdministrator $sportAdministrator,
         protected PoolCollectionRepository $poolCollectionRepos,
@@ -34,12 +39,13 @@ class Administrator
         protected Configuration $config
     ) {
         $this->competitionsCreator = new CompetitionsCreator();
+        $this->pointsCreator = new PointsCreator($this->pointsRepository);
     }
 
     public function createCollection(string $name): PoolCollection
     {
         $poolCollection = $this->poolCollectionRepos->findOneByName($name);
-        if( $poolCollection === null) {
+        if ($poolCollection === null) {
             $poolCollection = new PoolCollection(new Association($name));
             $this->poolCollectionRepos->save($poolCollection);
         }
@@ -52,13 +58,14 @@ class Administrator
         $pool = new Pool(
             $poolCollection,
             $sourceCompetition,
+            $this->pointsCreator->get($sourceCompetition->getSeason()),
             $this->periodAdministrator->getCreateAndJoinPeriod($sourceCompetition),
             $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
             $this->periodAdministrator->getTransferPeriod($sourceCompetition)
         );
 
         $this->addUser($pool, $user, true);
-        $this->poolRepos->save($pool);
+        $this->poolRepos->save($pool, true);
 
         $competitionTypes = $this->sportAdministrator->getCompetitionTypes($pool);
         $sport = $this->sportAdministrator->getSport();

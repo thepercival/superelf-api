@@ -1,402 +1,406 @@
 <?php
+
 declare(strict_types=1);
 
-use DI\ContainerBuilder;
-use Psr\Container\ContainerInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-
-use SuperElf\User\Repository as UserRepository;
-use SuperElf\User;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
-use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
-use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Period\Transfer\Transfer\Repository as TransferRepository;
-use SuperElf\Period\Transfer\Transfer;
-use SuperElf\Period\Transfer\Substitution\Repository as SubstitutionRepository;
-use SuperElf\Period\Transfer\Substitution;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player as S11Player;
-
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool;
-use SuperElf\Points\Repository as PointsRepository;
-use SuperElf\Points;
-use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
-use SuperElf\PoolCollection;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\Pool\User as PoolUser;
-use SuperElf\Formation\Repository as FormationRepository;
-use SuperElf\Formation;
-use SuperElf\Formation\Line\Repository as FormationLineRepository;
-use SuperElf\Formation\Line as FormationLine;
-use SuperElf\Formation\Place\Repository as FormationPlayerRepository;
-use SuperElf\Formation\Place as FormationPlayer;
-use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
-use SuperElf\ScoutedPerson;
-use SuperElf\Competitor\Repository as CompetitorRepository;
-use SuperElf\Competitor;
-use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\GameRound;
-use SuperElf\Statistics\Repository as StatisticsRepository;
-use SuperElf\Statistics;
-use SuperElf\Substitute\Appearance\Repository as SubstituteAppearanceRepository;
-use SuperElf\Substitute\Appearance as SubstituteAppearance;
-
-use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
-use SportsImport\ExternalSource;
-use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
-use SportsImport\CacheItemDb;
-
-use Sports\Sport\Repository as SportRepository;
-use Sports\Sport;
-use Sports\Association\Repository as AssociationRepository;
+use Psr\Container\ContainerInterface;
 use Sports\Association;
-use Sports\Season\Repository as SeasonRepository;
-use Sports\Season;
-use Sports\League\Repository as LeagueRepository;
-use Sports\League;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Association\Repository as AssociationRepository;
 use Sports\Competition;
-use Sports\Team\Repository as TeamRepository;
-use Sports\Team;
-use Sports\Competitor\Team\Repository as TeamCompetitorRepository;
+use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Competitor\Team\Repository as TeamCompetitorRepository;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\Together as TogetherGame;
-use Sports\Score\Against\Repository as AgainstScoreRepository;
-use Sports\Score\Against as AgainstScore;
-use Sports\Score\Together\Repository as TogetherScoreRepository;
-use Sports\Score\Together as TogetherScore;
-use Sports\Person\Repository as PersonRepository;
+use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\League;
+use Sports\League\Repository as LeagueRepository;
 use Sports\Person;
-use Sports\Team\Player\Repository as PlayerRepository;
+use Sports\Person\Repository as PersonRepository;
+use Sports\Score\Against as AgainstScore;
+use Sports\Score\Against\Repository as AgainstScoreRepository;
+use Sports\Score\Together as TogetherScore;
+use Sports\Score\Together\Repository as TogetherScoreRepository;
+use Sports\Season;
+use Sports\Season\Repository as SeasonRepository;
+use Sports\Sport;
+use Sports\Sport\Repository as SportRepository;
+use Sports\Team;
 use Sports\Team\Player;
-
-use SportsImport\Attacher\Sport\Repository as SportAttacherRepository;
-use SportsImport\Attacher\Sport as SportAttacher;
-use SportsImport\Attacher\Association\Repository as AssociationAttacherRepository;
+use Sports\Team\Player\Repository as PlayerRepository;
+use Sports\Team\Repository as TeamRepository;
 use SportsImport\Attacher\Association as AssociationAttacher;
-use SportsImport\Attacher\Season\Repository as SeasonAttacherRepository;
-use SportsImport\Attacher\Season as SeasonAttacher;
-use SportsImport\Attacher\League\Repository as LeagueAttacherRepository;
-use SportsImport\Attacher\League as LeagueAttacher;
-use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
+use SportsImport\Attacher\Association\Repository as AssociationAttacherRepository;
 use SportsImport\Attacher\Competition as CompetitionAttacher;
-use SportsImport\Attacher\Team\Repository as TeamAttacherRepository;
-use SportsImport\Attacher\Team as TeamAttacher;
-use SportsImport\Attacher\Competitor\Team\Repository as TeamCompetitorAttacherRepository;
+use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
 use SportsImport\Attacher\Competitor\Team as TeamCompetitorAttacher;
-use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
+use SportsImport\Attacher\Competitor\Team\Repository as TeamCompetitorAttacherRepository;
 use SportsImport\Attacher\Game\Against as AgainstGameAttacher;
-use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
+use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
+use SportsImport\Attacher\League as LeagueAttacher;
+use SportsImport\Attacher\League\Repository as LeagueAttacherRepository;
 use SportsImport\Attacher\Person as PersonAttacher;
+use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
+use SportsImport\Attacher\Season as SeasonAttacher;
+use SportsImport\Attacher\Season\Repository as SeasonAttacherRepository;
+use SportsImport\Attacher\Sport as SportAttacher;
+use SportsImport\Attacher\Sport\Repository as SportAttacherRepository;
+use SportsImport\Attacher\Team as TeamAttacher;
+use SportsImport\Attacher\Team\Repository as TeamAttacherRepository;
+use SportsImport\CacheItemDb;
+use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
+use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SuperElf\Competitor;
+use SuperElf\Competitor\Repository as CompetitorRepository;
+use SuperElf\Formation;
+use SuperElf\Formation\Line as FormationLine;
+use SuperElf\Formation\Line\Repository as FormationLineRepository;
+use SuperElf\Formation\Place as FormationPlayer;
+use SuperElf\Formation\Place\Repository as FormationPlayerRepository;
+use SuperElf\Formation\Repository as FormationRepository;
+use SuperElf\GameRound;
+use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\Period\Assemble as AssemblePeriod;
+use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
+use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
+use SuperElf\Period\Transfer\Substitution;
+use SuperElf\Period\Transfer\Substitution\Repository as SubstitutionRepository;
+use SuperElf\Period\Transfer\Transfer;
+use SuperElf\Period\Transfer\Transfer\Repository as TransferRepository;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player as S11Player;
+use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Player\Totals as S11PlayerTotals;
+use SuperElf\Player\Totals\Repository as S11PlayerTotalsRepository;
+use SuperElf\Points;
+use SuperElf\Points\Repository as PointsRepository;
+use SuperElf\Pool;
+use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\PoolCollection;
+use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
+use SuperElf\ScoutedPlayer;
+use SuperElf\ScoutedPlayer\Repository as ScoutedPlayerRepository;
+use SuperElf\Statistics;
+use SuperElf\Statistics\Repository as StatisticsRepository;
+use SuperElf\Substitute\Appearance as SubstituteAppearance;
+use SuperElf\Substitute\Appearance\Repository as SubstituteAppearanceRepository;
+use SuperElf\User;
+use SuperElf\User\Repository as UserRepository;
 
 return [
     UserRepository::class => function (ContainerInterface $container): UserRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<User> $metaData */
-        $metaData = $entityManager->getClassMetaData(User::class);
+        /** @psalm-var ClassMetadata<User> $metaData */
+        $metaData = $entityManager->getClassMetadata(User::class);
         return new UserRepository($entityManager, $metaData);
     },
     ViewPeriodRepository::class => function (ContainerInterface $container): ViewPeriodRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<ViewPeriod> $metaData */
-        $metaData = $entityManager->getClassMetaData(ViewPeriod::class);
+        /** @psalm-var ClassMetadata<ViewPeriod> $metaData */
+        $metaData = $entityManager->getClassMetadata(ViewPeriod::class);
         return new ViewPeriodRepository($entityManager, $metaData);
     },
     AssemblePeriodRepository::class => function (ContainerInterface $container): AssemblePeriodRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<AssemblePeriod> $metaData */
-        $metaData = $entityManager->getClassMetaData(AssemblePeriod::class);
+        /** @psalm-var ClassMetadata<AssemblePeriod> $metaData */
+        $metaData = $entityManager->getClassMetadata(AssemblePeriod::class);
         return new AssemblePeriodRepository($entityManager, $metaData);
     },
     TransferPeriodRepository::class => function (ContainerInterface $container): TransferPeriodRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TransferPeriod> $metaData */
-        $metaData = $entityManager->getClassMetaData(TransferPeriod::class);
+        /** @psalm-var ClassMetadata<TransferPeriod> $metaData */
+        $metaData = $entityManager->getClassMetadata(TransferPeriod::class);
         return new TransferPeriodRepository($entityManager, $metaData);
     },
     TransferRepository::class => function (ContainerInterface $container): TransferRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Transfer> $metaData */
-        $metaData = $entityManager->getClassMetaData(Transfer::class);
+        /** @psalm-var ClassMetadata<Transfer> $metaData */
+        $metaData = $entityManager->getClassMetadata(Transfer::class);
         return new TransferRepository($entityManager, $metaData);
     },
     SubstitutionRepository::class => function (ContainerInterface $container): SubstitutionRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Substitution> $metaData */
-        $metaData = $entityManager->getClassMetaData(Substitution::class);
+        /** @psalm-var ClassMetadata<Substitution> $metaData */
+        $metaData = $entityManager->getClassMetadata(Substitution::class);
         return new SubstitutionRepository($entityManager, $metaData);
     },
     PoolRepository::class => function (ContainerInterface $container): PoolRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Pool> $metaData */
-        $metaData = $entityManager->getClassMetaData(Pool::class);
+        /** @psalm-var ClassMetadata<Pool> $metaData */
+        $metaData = $entityManager->getClassMetadata(Pool::class);
         return new PoolRepository($entityManager, $metaData);
     },
     PoolUserRepository::class => function (ContainerInterface $container): PoolUserRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<PoolUser> $metaData */
-        $metaData = $entityManager->getClassMetaData(PoolUser::class);
+        /** @psalm-var ClassMetadata<PoolUser> $metaData */
+        $metaData = $entityManager->getClassMetadata(PoolUser::class);
         return new PoolUserRepository($entityManager, $metaData);
     },
     FormationRepository::class => function (ContainerInterface $container): FormationRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Formation> $metaData */
-        $metaData = $entityManager->getClassMetaData(Formation::class);
+        /** @psalm-var ClassMetadata<Formation> $metaData */
+        $metaData = $entityManager->getClassMetadata(Formation::class);
         return new FormationRepository($entityManager, $metaData);
     },
     FormationLineRepository::class => function (ContainerInterface $container): FormationLineRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<FormationLine> $metaData */
-        $metaData = $entityManager->getClassMetaData(FormationLine::class);
+        /** @psalm-var ClassMetadata<FormationLine> $metaData */
+        $metaData = $entityManager->getClassMetadata(FormationLine::class);
         return new FormationLineRepository($entityManager, $metaData);
     },
     SubstituteAppearanceRepository::class => function (ContainerInterface $container): SubstituteAppearanceRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<SubstituteAppearance> $metaData */
-        $metaData = $entityManager->getClassMetaData(SubstituteAppearance::class);
+        /** @psalm-var ClassMetadata<SubstituteAppearance> $metaData */
+        $metaData = $entityManager->getClassMetadata(SubstituteAppearance::class);
         return new SubstituteAppearanceRepository($entityManager, $metaData);
     },
     FormationPlayerRepository::class => function (ContainerInterface $container): FormationPlayerRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<FormationPlayer> $metaData */
-        $metaData = $entityManager->getClassMetaData(FormationPlayer::class);
+        /** @psalm-var ClassMetadata<FormationPlayer> $metaData */
+        $metaData = $entityManager->getClassMetadata(FormationPlayer::class);
         return new FormationPlayerRepository($entityManager, $metaData);
     },
     PoolCollectionRepository::class => function (ContainerInterface $container): PoolCollectionRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<PoolCollection> $metaData */
-        $metaData = $entityManager->getClassMetaData(PoolCollection::class);
+        /** @psalm-var ClassMetadata<PoolCollection> $metaData */
+        $metaData = $entityManager->getClassMetadata(PoolCollection::class);
         return new PoolCollectionRepository($entityManager, $metaData);
     },
     S11PlayerRepository::class => function (ContainerInterface $container): S11PlayerRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<S11Player> $metaData */
-        $metaData = $entityManager->getClassMetaData(S11Player::class);
+        /** @psalm-var ClassMetadata<S11Player> $metaData */
+        $metaData = $entityManager->getClassMetadata(S11Player::class);
         return new S11PlayerRepository($entityManager, $metaData);
+    },
+    S11PlayerTotalsRepository::class => function (ContainerInterface $container): S11PlayerTotalsRepository {
+        /** @var EntityManager $entityManager */
+        $entityManager = $container->get(EntityManager::class);
+        /** @psalm-var ClassMetadata<S11PlayerTotals> $metaData */
+        $metaData = $entityManager->getClassMetadata(S11PlayerTotals::class);
+        return new S11PlayerTotalsRepository($entityManager, $metaData);
     },
     PointsRepository::class => function (ContainerInterface $container): PointsRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Points> $metaData */
-        $metaData = $entityManager->getClassMetaData(Points::class);
+        /** @psalm-var ClassMetadata<Points> $metaData */
+        $metaData = $entityManager->getClassMetadata(Points::class);
         return new PointsRepository($entityManager, $metaData);
     },
     GameRoundRepository::class => function (ContainerInterface $container): GameRoundRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<GameRound> $metaData */
-        $metaData = $entityManager->getClassMetaData(GameRound::class);
+        /** @psalm-var ClassMetadata<GameRound> $metaData */
+        $metaData = $entityManager->getClassMetadata(GameRound::class);
         return new GameRoundRepository($entityManager, $metaData);
     },
     StatisticsRepository::class => function (ContainerInterface $container): StatisticsRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Statistics> $metaData */
-        $metaData = $entityManager->getClassMetaData(Statistics::class);
+        /** @psalm-var ClassMetadata<Statistics> $metaData */
+        $metaData = $entityManager->getClassMetadata(Statistics::class);
         return new StatisticsRepository($entityManager, $metaData);
     },
-    ScoutedPersonRepository::class => function (ContainerInterface $container): ScoutedPersonRepository {
+    ScoutedPlayerRepository::class => function (ContainerInterface $container): ScoutedPlayerRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<ScoutedPerson> $metaData */
-        $metaData = $entityManager->getClassMetaData(ScoutedPerson::class);
-        return new ScoutedPersonRepository($entityManager, $metaData);
+        /** @psalm-var ClassMetadata<ScoutedPlayer> $metaData */
+        $metaData = $entityManager->getClassMetadata(ScoutedPlayer::class);
+        return new ScoutedPlayerRepository($entityManager, $metaData);
     },
     CompetitorRepository::class => function (ContainerInterface $container): CompetitorRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Competitor> $metaData */
-        $metaData = $entityManager->getClassMetaData(Competitor::class);
+        /** @psalm-var ClassMetadata<Competitor> $metaData */
+        $metaData = $entityManager->getClassMetadata(Competitor::class);
         return new CompetitorRepository($entityManager, $metaData);
     },
     SportRepository::class => function (ContainerInterface $container): SportRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Sport> $metaData */
-        $metaData = $entityManager->getClassMetaData(Sport::class);
+        /** @psalm-var ClassMetadata<Sport> $metaData */
+        $metaData = $entityManager->getClassMetadata(Sport::class);
         return new SportRepository($entityManager, $metaData);
     },
     SportAttacherRepository::class => function (ContainerInterface $container): SportAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<SportAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(SportAttacher::class);
+        /** @psalm-var ClassMetadata<SportAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(SportAttacher::class);
         return new SportAttacherRepository($entityManager, $metaData);
     },
     AssociationRepository::class => function (ContainerInterface $container): AssociationRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Association> $metaData */
-        $metaData = $entityManager->getClassMetaData(Association::class);
+        /** @psalm-var ClassMetadata<Association> $metaData */
+        $metaData = $entityManager->getClassMetadata(Association::class);
         return new AssociationRepository($entityManager, $metaData);
     },
     AssociationAttacherRepository::class => function (ContainerInterface $container): AssociationAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<AssociationAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(AssociationAttacher::class);
+        /** @psalm-var ClassMetadata<AssociationAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(AssociationAttacher::class);
         return new AssociationAttacherRepository($entityManager, $metaData);
     },
     SeasonRepository::class => function (ContainerInterface $container): SeasonRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Season> $metaData */
-        $metaData = $entityManager->getClassMetaData(Season::class);
+        /** @psalm-var ClassMetadata<Season> $metaData */
+        $metaData = $entityManager->getClassMetadata(Season::class);
         return new SeasonRepository($entityManager, $metaData);
     },
     SeasonAttacherRepository::class => function (ContainerInterface $container): SeasonAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<SeasonAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(SeasonAttacher::class);
+        /** @psalm-var ClassMetadata<SeasonAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(SeasonAttacher::class);
         return new SeasonAttacherRepository($entityManager, $metaData);
     },
     LeagueRepository::class => function (ContainerInterface $container): LeagueRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<League> $metaData */
-        $metaData = $entityManager->getClassMetaData(League::class);
+        /** @psalm-var ClassMetadata<League> $metaData */
+        $metaData = $entityManager->getClassMetadata(League::class);
         return new LeagueRepository($entityManager, $metaData);
     },
     LeagueAttacherRepository::class => function (ContainerInterface $container): LeagueAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<LeagueAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(LeagueAttacher::class);
+        /** @psalm-var ClassMetadata<LeagueAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(LeagueAttacher::class);
         return new LeagueAttacherRepository($entityManager, $metaData);
     },
     CompetitionRepository::class => function (ContainerInterface $container): CompetitionRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Competition> $metaData */
-        $metaData = $entityManager->getClassMetaData(Competition::class);
+        /** @psalm-var ClassMetadata<Competition> $metaData */
+        $metaData = $entityManager->getClassMetadata(Competition::class);
         return new CompetitionRepository($entityManager, $metaData);
     },
     CompetitionAttacherRepository::class => function (ContainerInterface $container): CompetitionAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<CompetitionAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(CompetitionAttacher::class);
+        /** @psalm-var ClassMetadata<CompetitionAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(CompetitionAttacher::class);
         return new CompetitionAttacherRepository($entityManager, $metaData);
     },
     TeamRepository::class => function (ContainerInterface $container): TeamRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Team> $metaData */
-        $metaData = $entityManager->getClassMetaData(Team::class);
+        /** @psalm-var ClassMetadata<Team> $metaData */
+        $metaData = $entityManager->getClassMetadata(Team::class);
         return new TeamRepository($entityManager, $metaData);
     },
     TeamAttacherRepository::class => function (ContainerInterface $container): TeamAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TeamAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(TeamAttacher::class);
+        /** @psalm-var ClassMetadata<TeamAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(TeamAttacher::class);
         return new TeamAttacherRepository($entityManager, $metaData);
     },
     PlayerRepository::class => function (ContainerInterface $container): PlayerRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Player> $metaData */
-        $metaData = $entityManager->getClassMetaData(Player::class);
+        /** @psalm-var ClassMetadata<Player> $metaData */
+        $metaData = $entityManager->getClassMetadata(Player::class);
         return new PlayerRepository($entityManager, $metaData);
     },
     TeamCompetitorRepository::class => function (ContainerInterface $container): TeamCompetitorRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TeamCompetitor> $metaData */
-        $metaData = $entityManager->getClassMetaData(TeamCompetitor::class);
+        /** @psalm-var ClassMetadata<TeamCompetitor> $metaData */
+        $metaData = $entityManager->getClassMetadata(TeamCompetitor::class);
         return new TeamCompetitorRepository($entityManager, $metaData);
     },
     TeamCompetitorAttacherRepository::class => function (ContainerInterface $container): TeamCompetitorAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TeamCompetitorAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(TeamCompetitorAttacher::class);
+        /** @psalm-var ClassMetadata<TeamCompetitorAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(TeamCompetitorAttacher::class);
         return new TeamCompetitorAttacherRepository($entityManager, $metaData);
     },
     ExternalSourceRepository::class => function (ContainerInterface $container): ExternalSourceRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<ExternalSource> $metaData */
-        $metaData = $entityManager->getClassMetaData(ExternalSource::class);
+        /** @psalm-var ClassMetadata<ExternalSource> $metaData */
+        $metaData = $entityManager->getClassMetadata(ExternalSource::class);
         return new ExternalSourceRepository($entityManager, $metaData);
     },
     CacheItemDbRepository::class => function (ContainerInterface $container): CacheItemDbRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<CacheItemDb> $metaData */
-        $metaData = $entityManager->getClassMetaData(CacheItemDb::class);
+        /** @psalm-var ClassMetadata<CacheItemDb> $metaData */
+        $metaData = $entityManager->getClassMetadata(CacheItemDb::class);
         return new CacheItemDbRepository($entityManager, $metaData);
     },
     AgainstGameRepository::class => function (ContainerInterface $container): AgainstGameRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<AgainstGame> $metaData */
-        $metaData = $entityManager->getClassMetaData(AgainstGame::class);
+        /** @psalm-var ClassMetadata<AgainstGame> $metaData */
+        $metaData = $entityManager->getClassMetadata(AgainstGame::class);
         return new AgainstGameRepository($entityManager, $metaData);
     },
     TogetherGameRepository::class => function (ContainerInterface $container): TogetherGameRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TogetherGame> $metaData */
-        $metaData = $entityManager->getClassMetaData(TogetherGame::class);
+        /** @psalm-var ClassMetadata<TogetherGame> $metaData */
+        $metaData = $entityManager->getClassMetadata(TogetherGame::class);
         return new TogetherGameRepository($entityManager, $metaData);
     },
     AgainstGameAttacherRepository::class => function (ContainerInterface $container): AgainstGameAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<AgainstGameAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(AgainstGameAttacher::class);
+        /** @psalm-var ClassMetadata<AgainstGameAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(AgainstGameAttacher::class);
         return new AgainstGameAttacherRepository($entityManager, $metaData);
     },
     AgainstScoreRepository::class => function (ContainerInterface $container): AgainstScoreRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<AgainstScore> $metaData */
-        $metaData = $entityManager->getClassMetaData(AgainstScore::class);
+        /** @psalm-var ClassMetadata<AgainstScore> $metaData */
+        $metaData = $entityManager->getClassMetadata(AgainstScore::class);
         return new AgainstScoreRepository($entityManager, $metaData);
     },
     TogetherScoreRepository::class => function (ContainerInterface $container): TogetherScoreRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<TogetherScore> $metaData */
-        $metaData = $entityManager->getClassMetaData(TogetherScore::class);
+        /** @psalm-var ClassMetadata<TogetherScore> $metaData */
+        $metaData = $entityManager->getClassMetadata(TogetherScore::class);
         return new TogetherScoreRepository($entityManager, $metaData);
     },
     PersonRepository::class => function (ContainerInterface $container): PersonRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<Person> $metaData */
-        $metaData = $entityManager->getClassMetaData(Person::class);
+        /** @psalm-var ClassMetadata<Person> $metaData */
+        $metaData = $entityManager->getClassMetadata(Person::class);
         return new PersonRepository($entityManager, $metaData);
     },
     PersonAttacherRepository::class => function (ContainerInterface $container): PersonAttacherRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetaData<PersonAttacher> $metaData */
-        $metaData = $entityManager->getClassMetaData(PersonAttacher::class);
+        /** @psalm-var ClassMetadata<PersonAttacher> $metaData */
+        $metaData = $entityManager->getClassMetadata(PersonAttacher::class);
         return new PersonAttacherRepository($entityManager, $metaData);
     },
 ];

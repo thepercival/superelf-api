@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Player\Totals;
 
 use Doctrine\ORM\EntityRepository;
-use SuperElf\Player\Totals as S11PlayerTotals;
 use SportsHelpers\Repository as BaseRepository;
+use SuperElf\Player\Totals as S11PlayerTotals;
 
 /**
  * @template-extends EntityRepository<S11PlayerTotals>

@@ -5,37 +5,33 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use SuperElf\Auth\SyncService as AuthSyncService;
-use JMS\Serializer\DeserializationContext;
-use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
-use SuperElf\Pool;
-use SuperElf\ScoutedPerson;
-use Psr\Log\LoggerInterface;
-use SuperElf\ScoutedPerson\Repository as ScoutedPersonRepository;
-use Sports\Competition\Repository as CompetitionRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
+use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\ScoutedPlayer;
+use SuperElf\ScoutedPlayer\Repository as ScoutedPlayerRepository;
 use SuperElf\User;
-use Sports\Person\Repository as PersonRepository;
 
-final class ScoutedPersonAction extends Action
+final class ScoutedPlayerAction extends Action
 {
-    private ScoutedPersonRepository $scoutedPersonRepos;
-    private CompetitionRepository $competitionRepos;
-    private PersonRepository $personRepos;
+    private ScoutedPlayerRepository $scoutedPlayerRepos;
+    private ViewPeriodRepository $viewPeriodRepos;
+    private S11PlayerRepository $s11PlayerRepos;
 
     public function __construct(
         LoggerInterface $logger,
-        ScoutedPersonRepository $scoutedPersonRepos,
-        CompetitionRepository $competitionRepos,
-        PersonRepository $personRepos,
+        ScoutedPlayerRepository $scoutedPlayerRepos,
+        ViewPeriodRepository $viewPeriodRepos,
+        S11PlayerRepository $s11PlayerRepos,
         SerializerInterface $serializer
     ) {
         parent::__construct($logger, $serializer);
-        $this->scoutedPersonRepos = $scoutedPersonRepos;
-        $this->competitionRepos = $competitionRepos;
-        $this->personRepos = $personRepos;
+        $this->scoutedPlayerRepos = $scoutedPlayerRepos;
+        $this->viewPeriodRepos = $viewPeriodRepos;
+        $this->s11PlayerRepos = $s11PlayerRepos;
         $this->serializer = $serializer;
     }
 
@@ -51,15 +47,16 @@ final class ScoutedPersonAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
-            $sourceCompetition = $this->competitionRepos->find( $args["competitionId"] );
-            if( $sourceCompetition === null ) {
+            $viewPeriod = $this->viewPeriodRepos->find($args["viewPeriodId"]);
+            if ($viewPeriod === null) {
                 throw new \Exception("de broncompetitie is niet gevonden", E_ERROR);
             }
 
-            $scoutedPersons = $this->scoutedPersonRepos->findBy( ["user" => $user, "sourceCompetition" => $sourceCompetition ]);
+            $scoutedPlayers = $this->scoutedPlayerRepos->findByExt($user, $viewPeriod);
 
-            $json = $this->serializer->serialize($scoutedPersons, 'json', $this->getSerializationContext() );
-            return $this->respondWithJson($response, $json );
+            $serContext = $this->getSerializationContext(['players']);
+            $json = $this->serializer->serialize($scoutedPlayers, 'json', $serContext);
+            return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);
         }
@@ -77,31 +74,36 @@ final class ScoutedPersonAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
-            $serScoutedPerson = $this->serializer->deserialize(
+            /** @var ScoutedPlayer $serScoutedPlayer */
+            $serScoutedPlayer = $this->serializer->deserialize(
                 $this->getRawData(),
-                ScoutedPerson::class,
+                ScoutedPlayer::class,
                 'json'
             );
 
-            $sourceCompetition = $this->competitionRepos->find( (int)$args["competitionId"] );
-            if( $sourceCompetition === null ) {
+            $viewPeriod = $this->viewPeriodRepos->find((int)$args["viewPeriodId"]);
+            if ($viewPeriod === null) {
                 throw new \Exception("de broncompetitie is niet gevonden", E_ERROR);
             }
 
-            $person = $this->personRepos->find( $serScoutedPerson->getPerson()->getId() );
-            if( $person === null ) {
-                throw new \Exception("de persoon is niet gevonden", E_ERROR);
+            $s11Player = $this->s11PlayerRepos->find($serScoutedPlayer->getS11Player()->getId());
+            if ($s11Player === null) {
+                throw new \Exception("de speler is niet gevonden", E_ERROR);
             }
 
-            $scoutedPerson = $this->scoutedPersonRepos->findOneBy( [
-                "person" => $person, "sourceCompetition" => $sourceCompetition, "user" => $user ] );
-            if( $scoutedPerson !== null ) {
-                throw new \Exception("de persoon staat al in je scouting-lijst", E_ERROR);
+            if ($s11Player->getViewPeriod() !== $viewPeriod) {
+                throw new \Exception("de competitie van de speler is anders als de meegegeven competitie", E_ERROR);
             }
-            $scoutedPerson = new ScoutedPerson( $user, $sourceCompetition, $person, $serScoutedPerson->getNrOfStars() );
 
-            $this->scoutedPersonRepos->save($scoutedPerson);
-            $json = $this->serializer->serialize($scoutedPerson, 'json');
+            $scoutedPlayer = $this->scoutedPlayerRepos->findOneBy([
+                "s11Player" => $s11Player, "user" => $user ]);
+            if ($scoutedPlayer !== null) {
+                throw new \Exception("de speler staat al in je scouting-lijst", E_ERROR);
+            }
+            $scoutedPlayer = new ScoutedPlayer($user, $s11Player, $serScoutedPlayer->getNrOfStars());
+
+            $this->scoutedPlayerRepos->save($scoutedPlayer);
+            $json = $this->serializer->serialize($scoutedPlayer, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -152,24 +154,18 @@ final class ScoutedPersonAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
-            $scoutedPerson = $this->scoutedPersonRepos->find((int)$args['scoutedPersonId']);
-            if ($scoutedPerson === null ) {
-                throw new \Exception("de gescoute persoon is niet gevonden", E_ERROR);
+            $scoutedPlayer = $this->scoutedPlayerRepos->find((int)$args['scoutedPlayerId']);
+            if ($scoutedPlayer === null) {
+                throw new \Exception("de gescoute speler is niet gevonden", E_ERROR);
             }
-            if ($scoutedPerson->getUser() !== $user ) {
-                throw new \Exception("de gescoute persoon is niet van de gebruiker", E_ERROR);
+            if ($scoutedPlayer->getUser() !== $user) {
+                throw new \Exception("de gescoute speler is niet van de gebruiker", E_ERROR);
             }
 
-            $this->scoutedPersonRepos->remove($scoutedPerson);
+            $this->scoutedPlayerRepos->remove($scoutedPlayer);
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
-    }
-
-    protected function getSerializationContext(): SerializationContext
-    {
-        $serGroups = ['Default','players'];
-        return SerializationContext::create()->setGroups($serGroups);
     }
 }

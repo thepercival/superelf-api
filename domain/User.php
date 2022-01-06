@@ -15,15 +15,19 @@ class User extends Identifiable
     private string|null $forgetpassword = null;
     private bool $validated;
 
-    const MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
-    const MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
-    const MIN_LENGTH_PASSWORD = 3;
-    const MAX_LENGTH_PASSWORD = 50;
-    const MIN_LENGTH_NAME = 2;
-    const MAX_LENGTH_NAME = 15;
+    public const MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
+    public const MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
+    public const MIN_LENGTH_PASSWORD = 3;
+    public const MAX_LENGTH_PASSWORD = 50;
+    public const MIN_LENGTH_NAME = 2;
+    public const MAX_LENGTH_NAME = 15;
 
     public function __construct(
-        string $emailaddress, string $name, protected string $salt, protected string $password)
+        string $emailaddress,
+        string $name,
+        protected string $salt,
+        protected string $password
+    )
     {
         $this->validated = false;
         $this->setEmailaddress($emailaddress);

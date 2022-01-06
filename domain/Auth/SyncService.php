@@ -14,18 +14,11 @@ use Selective\Config\Configuration;
 
 class SyncService
 {
-    private UserRepository $userRepos;
-    protected Mailer $mailer;
-    protected Configuration $config;
-
     public function __construct(
-        UserRepository $userRepos,
-        Mailer $mailer,
-        Configuration $config
+        /*private UserRepository $userRepos,*/
+        protected Mailer $mailer,
+        protected Configuration $config
     ) {
-        $this->userRepos = $userRepos;
-        $this->mailer = $mailer;
-        $this->config = $config;
     }
 
     public function add(Pool $pool, int $roles, string $emailaddress = null, bool $sendMail = false): void
@@ -109,10 +102,9 @@ class SyncService
 
     /**
      * @param User $user
-     * @param array $invitations
-     * @return array
+     * @return list<string>
      */
-    public function processInvitations(User $user, array $invitations): array
+    public function processInvitations(User $user/*, array $invitations*/): array
     {
 //        $poolUsers = [];
 //        while (count($invitations) > 0) {
@@ -130,7 +122,7 @@ class SyncService
 
     /**
      * @param User $user
-     * @return array
+     * @return list<string>
      */
     public function revertPoolUsers(User $user): array
     {

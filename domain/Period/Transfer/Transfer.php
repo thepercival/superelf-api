@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Period\Transfer;
@@ -8,13 +9,14 @@ use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Player as S11Player;
 use SuperElf\Pool\User as PoolUser;
 
-class Transfer extends Action {
-
+class Transfer extends Action
+{
     public function __construct(
         PoolUser $poolUser,
         TransferPeriod $transferPeriod,
         S11Player $playerOut,
-        protected Person $personIn )
+        protected Person $personIn
+    )
     {
         parent::__construct($poolUser, $transferPeriod, $playerOut);
         if (!$poolUser->getTransfers()->contains($this)) {
@@ -22,7 +24,8 @@ class Transfer extends Action {
         }
     }
 
-    public function getPersonIn(): Person {
+    public function getPersonIn(): Person
+    {
         return $this->personIn;
     }
 }

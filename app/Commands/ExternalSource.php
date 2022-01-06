@@ -1,34 +1,39 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands;
 
-use SportsImport\Entity;
-use SportsImport\ExternalSource\ApiHelper;
-use SportsImport\ExternalSource\CacheInfo;
-use SportsImport\ExternalSource\CompetitionDetails;
-use SportsImport\ExternalSource\Competitions;
-use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;
-use Sports\Competition\Repository as CompetitionRepository;
-use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
-use Psr\Container\ContainerInterface;
 use App\Command;
-
-use Symfony\Component\Console\Input\InputInterface;
-
+use Psr\Container\ContainerInterface;
+use SportsImport\ExternalSource\ApiHelper;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource as ExternalSourceBase;
+use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 abstract class ExternalSource extends Command
 {
+    use EntityTrait;
     protected ExternalSourceFactory $externalSourceFactory;
 
-    public function __construct(ContainerInterface $container, string $loggerName)
+    public function __construct(ContainerInterface $container)
     {
-        /** @var ExternalSourceFactory externalSourceFactory */
-        $this->externalSourceFactory = $container->get(ExternalSourceFactory::class);
-        parent::__construct($container, $loggerName);
+        /** @var ExternalSourceFactory $externalSourceFactory */
+        $externalSourceFactory = $container->get(ExternalSourceFactory::class);
+        $this->externalSourceFactory = $externalSourceFactory;
+        parent::__construct($container);
+    }
+
+    protected function configure(): void
+    {
+        $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');
+        $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
+
+        $this->addOption('no-game-cache', null, InputOption::VALUE_NONE, 'no-game-cache');
+
+        parent::configure();
     }
 
     protected function getExternalSourceImplFromInput(InputInterface $input): ExternalSourceImplementation|null
@@ -37,35 +42,11 @@ abstract class ExternalSource extends Command
         return $this->externalSourceFactory->createByName($externalSourceName);
     }
 
-    protected function getEntityFromInput(InputInterface $input): int
+    protected function getGameCacheOptionFromInput(InputInterface $input): bool
     {
-        $objectType = (string)$input->getArgument('objectType');
-
-        switch ($objectType) {
-           case 'sports':
-                return Entity::SPORTS;
-           case 'associations':
-               return Entity::ASSOCIATIONS;
-           case 'seasons':
-               return Entity::SEASONS;
-           case 'leagues':
-               return Entity::LEAGUES;
-           case 'competitions':
-               return Entity::COMPETITIONS;
-           case 'structure':
-               return Entity::STRUCTURE;
-           case 'teamcompetitors':
-               return Entity::TEAMCOMPETITORS;
-           case 'teams':
-               return Entity::TEAMS;
-           case 'games':
-               return Entity::GAMES;
-           case 'game':
-               return Entity::GAMEDETAILS;
-           default:
-                $message = 'objectType "' . $objectType . '" kan niet worden opgehaald uit externe bronnen';
-                $this->logger->error($message);
-            }
-        return 0;
+        return $input->hasOption('no-game-cache') && filter_var(
+            $input->getOption('no-game-cache'),
+            FILTER_VALIDATE_BOOLEAN
+        );
     }
 }

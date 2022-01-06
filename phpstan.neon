@@ -1,6 +1,14 @@
 parameters:
-    level: 5
+    level: 6
     inferPrivatePropertyTypeFromConstructor:
         true
     doctrine:
         repositoryClass: Sports\Repository
+    paths:
+        - domain
+        - tests/cases
+        - app
+        - config
+        #- serialization/handler
+    #excludePaths:
+        #- app/ImageService.php

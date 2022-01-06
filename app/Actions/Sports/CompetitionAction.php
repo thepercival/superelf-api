@@ -4,30 +4,24 @@ declare(strict_types=1);
 
 namespace App\Actions\Sports;
 
-use App\Response\ErrorResponse;
-use JMS\Serializer\SerializationContext;
-use Selective\Config\Configuration;
 use App\Actions\Action;
+use App\Response\ErrorResponse;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use JMS\Serializer\SerializerInterface;
+use Selective\Config\Configuration;
 use Sports\Competition\Repository as CompetitionRepository;
 
 final class CompetitionAction extends Action
 {
-    protected CompetitionRepository $competitionRepos;
-    protected Configuration $config;
-
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        CompetitionRepository $competitionRepos,
-        Configuration $config
+        protected CompetitionRepository $competitionRepos,
+        protected Configuration $config
     ) {
         parent::__construct($logger, $serializer);
-        $this->competitionRepos = $competitionRepos;
-        $this->config = $config;
     }
 
     /**
@@ -39,21 +33,15 @@ final class CompetitionAction extends Action
     public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
-            $competition = $this->competitionRepos->find( (int)$args["competitionId"] );
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
             $json = $this->serializer->serialize(
                 $competition,
                 'json',
-                $this->getSerializationContext()
+                $this->getSerializationContext(['teamCompetitors','noReference'])
             );
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);
         }
-    }
-
-    protected function getSerializationContext(): SerializationContext
-    {
-        $serGroups = ['Default', 'teamCompetitors','noReference'];
-        return SerializationContext::create()->setGroups($serGroups);
     }
 }

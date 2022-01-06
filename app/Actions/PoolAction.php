@@ -1,26 +1,26 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use App\Response\ForbiddenResponse as ForbiddenResponse;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializationContext;
-use Selective\Config\Configuration;
-use Slim\Factory\ServerRequestCreatorFactory;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use JMS\Serializer\SerializerInterface;
-use stdClass;
+use Selective\Config\Configuration;
 use Sports\Competition\Repository as CompetitionRepository;
-use SuperElf\Pool;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
-use SuperElf\Pool\Administrator as PoolAdministrator;
-use SuperElf\User;
+use stdClass;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
+use SuperElf\Pool;
+use SuperElf\Pool\Administrator as PoolAdministrator;
+use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
+use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\User;
 
 final class PoolAction extends Action
 {
@@ -28,6 +28,7 @@ final class PoolAction extends Action
         LoggerInterface $logger,
         SerializerInterface $serializer,
         protected PoolRepository $poolRepos,
+        protected PoolUserRepository $poolUserRepos,
         protected CompetitionRepository $competitionRepos,
         protected PoolAvailabilityChecker $poolAvailabilityChecker,
         protected PoolAdministrator $poolAdministrator,
@@ -53,7 +54,7 @@ final class PoolAction extends Action
             $json = $this->serializer->serialize(
                 $pool,
                 'json',
-                $this->getSerializationContext($pool, $user)
+                $this->getPoolSerializationContext($pool, $user)
             );
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
@@ -113,7 +114,7 @@ final class PoolAction extends Action
             $pool = $this->poolAdministrator->createPool($sourceCompetition, $poolName, $user);
 
             // $this->poolRepos->save($pool);
-            $serializationContext = $this->getSerializationContext($pool, $user);
+            $serializationContext = $this->getPoolSerializationContext($pool, $user);
             $json = $this->serializer->serialize($pool, 'json', $serializationContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
@@ -167,7 +168,9 @@ final class PoolAction extends Action
             if ($pool->getUser($user) !== null) {
                 throw new \Exception('je bent al ingeschreven voor de pool');
             }
-            $this->poolAdministrator->addUser($pool, $user, false);
+            $poolUser = $this->poolAdministrator->addUser($pool, $user, false);
+
+            $this->poolUserRepos->save($poolUser, true);
 
             return $response->withStatus(200);
         } catch (\Exception $e) {
@@ -191,9 +194,9 @@ final class PoolAction extends Action
         return DeserializationContext::create()->setGroups($serGroups);
     }
 
-    protected function getSerializationContext(Pool $pool, User $user = null): SerializationContext
+    protected function getPoolSerializationContext(Pool $pool, User $user = null): SerializationContext
     {
-        $serGroups = ['Default','noReference'];
+        $serGroups = ['noReference'];
         if ($user !== null) {
             $poolUser = $pool->getUser($user);
             if ($poolUser !== null) {
@@ -203,6 +206,6 @@ final class PoolAction extends Action
                 }
             }
         }
-        return SerializationContext::create()->setGroups($serGroups);
+        return $this->getSerializationContext($serGroups);
     }
 }

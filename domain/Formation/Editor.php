@@ -1,17 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Formation;
 
+use Sports\Formation as SportsFormation;
 use Sports\Sport\Custom as CustomSport;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\Formation;
-use Sports\Formation as SportsFormation;
 use SuperElf\Formation\Line as FormationLine;
+use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Formation\Place as FormationPlace;
 
 class Editor
 {
@@ -46,28 +47,46 @@ class Editor
         return $formation;
     }
 
+
     /**
      * @param Formation $formation
      * @param SportsFormation $newSportFormation
      * @return list<FormationPlace>
      */
-    public function updateAssemble(Formation $formation, SportsFormation $newSportFormation): array
+    public function removeAssemble(Formation $formation, SportsFormation $newSportFormation): array
     {
         $this->validate($newSportFormation);
 
         $removedPlaces = [];
         foreach ($formation->getLines() as $formationLine) {
             $newSportFormationLine = $newSportFormation->getLine($formationLine->getNumber());
-            $diffPlaces = $newSportFormationLine->getNrOfPersons() - ($formationLine->getPlaces()->count() - 1);
-            for ($i = 0 ; $i < $diffPlaces ; $i++) {
-                new FormationPlace($formationLine, null);
-            }
             $diffPlaces = ($formationLine->getPlaces()->count() - 1) - $newSportFormationLine->getNrOfPersons();
             for ($i = 0 ; $i < $diffPlaces ; $i++) {
                 $removedPlaces[] = $this->removePlace($formationLine);
             }
         }
         return $removedPlaces;
+    }
+
+    /**
+     * @param Formation $formation
+     * @param SportsFormation $newSportFormation
+     * @return list<FormationPlace>
+     */
+    public function addAssemble(Formation $formation, SportsFormation $newSportFormation): array
+    {
+        $this->validate($newSportFormation);
+
+        $addedPlaces = [];
+        foreach ($formation->getLines() as $formationLine) {
+            $newSportFormationLine = $newSportFormation->getLine($formationLine->getNumber());
+            $diffPlaces = $newSportFormationLine->getNrOfPersons() - ($formationLine->getPlaces()->count() - 1);
+            for ($i = 0 ; $i < $diffPlaces ; $i++) {
+                $addedPlaces[] = new FormationPlace($formationLine, null);
+            }
+        }
+
+        return $addedPlaces;
     }
 
     protected function removePlace(FormationLine $formationLine): FormationPlace

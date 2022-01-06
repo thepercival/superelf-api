@@ -1,0 +1,37 @@
+SuperElf\Statistics:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    gameRound:
+      type: SuperElf\GameRound
+      read_only: true
+    result:
+      type: int
+      access_type: public_method
+      accessor:
+        getter: getResultNative
+      read_only: true
+    beginMinute:
+      type: int
+    endMinute:
+      type: int
+    nrOfFieldGoals:
+      type: int
+    nrOfAssists:
+      type: int
+    nrOfPenalties:
+      type: int
+    nrOfOwnGoals:
+      type: int
+    sheet:
+      type: int
+    nrOfYellowCards:
+      type: int
+    directRedCard:
+      type: bool
+    gameStartDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: gameStart
+      read_only: true

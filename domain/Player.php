@@ -1,13 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
-use SportsHelpers\Identifiable;
+use Doctrine\Common\Collections\Collection;
 use Sports\Person as BasePerson;
 use Sports\Team\Player as TeamPlayer;
+use SportsHelpers\Identifiable;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player\Totals;
 
@@ -15,10 +16,9 @@ class Player extends Identifiable
 {
     protected int $totalPoints = 0;
     /**
-     * @var ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
-     * @psalm-var ArrayCollection<int|string, Statistics>
+     * @var Collection<int|string, Statistics>
      */
-    protected ArrayCollection|PersistentCollection $statistics;
+    protected Collection $statistics;
 
     public function __construct(
         protected ViewPeriod $viewPeriod,
@@ -48,10 +48,9 @@ class Player extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Statistics>|PersistentCollection<int|string, Statistics>
-     * @psalm-return ArrayCollection<int|string, Statistics>
+ * @return Collection<int|string, Statistics>
      */
-    public function getStatistics(): ArrayCollection|PersistentCollection
+    public function getStatistics(): Collection
     {
         return $this->statistics;
     }
@@ -84,39 +83,4 @@ class Player extends Identifiable
     {
         $this->totalPoints = $totalPoints;
     }
-
-//    /**
-//     * @param Points $points
-//     * @return array<int,int>
-//     */
-//    public function calculatePoints(array $seasonScoreUnits) : array
-//    {
-//        $totals = [];
-//        foreach ($this->getGameRoundScores() as $gameRoundScore) {
-//            $gameRoundScorePoints = $gameRoundScore->getPoints();
-//            foreach ($seasonScoreUnits as $seasonScoreUnit) {
-//                if (!array_key_exists($seasonScoreUnit->getNumber(), $totals)) {
-//                    $totals[$seasonScoreUnit->getNumber()] = 0;
-//                }
-//                $totals[$seasonScoreUnit->getNumber()] += $gameRoundScorePoints[$seasonScoreUnit->getNumber()];
-//            }
-//        }
-//        return $totals;
-//    }
-
-//    /**
-//     * @return array<int,int>
-//     */
-//    public function getPoints(): array
-//    {
-//        return $this->points;
-//    }
-//
-//    /**
-//     * @param array<int,int> $points
-//     */
-//    public function setPoints(array $points): void
-//    {
-//        $this->points = $points;
-//    }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="SuperElf\Statistics" table="statistics" repository-class="SuperElf\Statistics\Repository">
-    <field name="result" column="result" type="smallint" nullable="false" unique="false"/>
+    <field name="result" column="result" type="enum_AgainstResult" nullable="false" unique="false"/>
     <field name="beginMinute" column="beginMinute" type="smallint" nullable="false" unique="false"/>
     <field name="endMinute" column="endMinute" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfFieldGoals" column="nrOfFieldGoals" type="smallint" nullable="false" unique="false"/>
@@ -13,7 +13,7 @@
     <field name="directRedCard" column="directRedCard" type="boolean" nullable="false" unique="false"/>
     <field name="gameStartDateTime" column="gameStartDateTime" type="datetime_immutable" nullable="false" unique="false"/>
     <field name="updatedAt" column="updatedAt" type="datetime_immutable" nullable="false" unique="false"/>
-    <many-to-one field="player" target-entity="SuperElf\Player">
+    <many-to-one field="player" target-entity="SuperElf\Player" inversed-by="statistics">
       <join-columns>
         <join-column name="playerId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>

@@ -1,8 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
+use SportsHelpers\Against\Result;
 use SportsHelpers\Identifiable;
 use SuperElf\Player as S11Player;
 
@@ -11,7 +13,7 @@ class Statistics extends Identifiable
     public function __construct(
         protected S11Player $player,
         protected GameRound $gameRound,
-        protected int $result,
+        protected Result $result,
         protected int $beginMinute,
         protected int $endMinute,
         protected int $nrOfFieldGoals,
@@ -34,7 +36,7 @@ class Statistics extends Identifiable
         return $this->gameRound;
     }
 
-    public function getResult(): int
+    public function getResult(): Result
     {
         return $this->result;
     }
@@ -49,11 +51,10 @@ class Statistics extends Identifiable
         $this->beginMinute = $minute;
     }
 
-    public function isStarting(): bool
-    {
-        return $this->beginMinute === 0;
-    }
-
+    /**
+     * endMinute can not be 0, always -1 or >0
+     * @return int
+     */
     public function getEndMinute(): int
     {
         return $this->endMinute;
@@ -64,14 +65,24 @@ class Statistics extends Identifiable
         $this->endMinute = $minute;
     }
 
-    public function isSubstituted(): bool
+    public function isStarting(): bool
     {
-        return $this->endMinute > 0;
+        return $this->beginMinute === 0;
+    }
+
+    public function isSubstitute(): bool
+    {
+        return $this->beginMinute > 0;
     }
 
     public function hasAppeared(): bool
     {
-        return $this->beginMinute > -1;
+        return $this->isStarting() || $this->isSubstitute();
+    }
+
+    public function isSubstituted(): bool
+    {
+        return $this->endMinute > 0;
     }
 
     public function getNrOfFieldGoals(): int
@@ -132,5 +143,10 @@ class Statistics extends Identifiable
             && $this->hasSpottySheet() === $compare->hasSpottySheet()
             && $this->getNrOfYellowCards() === $compare->getNrOfYellowCards()
             && $this->directRedCard() === $compare->directRedCard();
+    }
+
+    public function getResultNative(): int
+    {
+        return $this->result->value;
     }
 }

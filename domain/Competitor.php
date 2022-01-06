@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
-use SportsHelpers\Identifiable;
-use SuperElf\Pool\User as PoolUser;
 use Sports\Competition;
-use Sports\Competitor\Base;
 use Sports\Competitor as SportsCompetitor;
+use Sports\Competitor\Base;
+use SuperElf\Pool\User as PoolUser;
 
-class Competitor extends Identifiable implements SportsCompetitor
+class Competitor extends Base implements SportsCompetitor
 {
-    use Base;
-
     public function __construct(
         protected PoolUser $poolUser,
         protected Competition $competition,
-        int $pouleNr, int $placeNr)
+        int $pouleNr,
+        int $placeNr
+    )
     {
-        $this->setPouleNr( $pouleNr );
-        $this->setPlaceNr( $placeNr );
+        parent::__construct($pouleNr,$placeNr);
     }
 
     public function getPool(): Pool
@@ -48,7 +46,8 @@ class Competitor extends Identifiable implements SportsCompetitor
         return $this->poolUser->getUser();
     }
 
-    public function getCompetitionId(): int|string|null {
+    public function getCompetitionId(): int|string|null
+    {
         return $this->getCompetition()->getId();
     }
 }

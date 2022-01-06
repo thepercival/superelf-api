@@ -1,37 +1,27 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands\ExternalSource;
 
+use App\Commands\ExternalSource as ExternalSourceCommand;
+use Psr\Container\ContainerInterface;
 use Sports\Association;
-use Sports\Competition;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\League;
+use Sports\Output\ConsoleTable;
 use Sports\Season;
 use Sports\Sport;
 use SportsHelpers\SportRange;
 use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
-use SportsImport\ExternalSource\CacheInfo;
-use Sports\Output\ConsoleTable;
-use Sports\League;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use SportsImport\Attacher\Competition\Repository as CompetitionAttacherRepository;
-use Psr\Container\ContainerInterface;
-use App\Command;
-
 use SportsImport\Entity;
-
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Output\OutputInterface;
-
-use SportsImport\Getter as ImportGetter;
-use SportsImport\ExternalSource\Team as TeamExternalSource;
-
 use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\CompetitionDetails;
-use SportsImport\Importer;
-use App\Commands\ExternalSource as ExternalSourceCommand;
+use SportsImport\Getter as ImportGetter;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Get extends ExternalSourceCommand
 {
@@ -41,13 +31,19 @@ class Get extends ExternalSourceCommand
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var ImportGetter getter */
-        $this->getter = $container->get(ImportGetter::class);
-        /** @var AgainstGameRepository againstGameRepos */
-        $this->againstGameRepos = $container->get(AgainstGameRepository::class);
-        /** @var AgainstGameAttacherRepository againstGameRepos */
-        $this->againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
-        parent::__construct($container, 'command-getexternal');
+        /** @var ImportGetter $getter */
+        $getter = $container->get(ImportGetter::class);
+        $this->getter = $getter;
+
+        /** @var AgainstGameRepository $againstGameRepos */
+        $againstGameRepos = $container->get(AgainstGameRepository::class);
+        $this->againstGameRepos = $againstGameRepos;
+
+        /** @var AgainstGameAttacherRepository $againstGameRepos */
+        $againstGameRepos = $container->get(AgainstGameAttacherRepository::class);
+        $this->againstGameAttacherRepos = $againstGameRepos;
+
+        parent::__construct($container);
     }
 
     protected function configure(): void
@@ -61,22 +57,19 @@ class Get extends ExternalSourceCommand
             // the "--help" option
             ->setHelp('import the objects');
 
-        $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');
-        $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
-
         parent::configure();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLoggerFromInput($input);
+        $this->initLogger($input, 'command-get-external');
 
         $externalSourceName = (string)$input->getArgument('externalSource');
 
         $externalSourceImpl = $this->getExternalSourceImplFromInput($input);
         if ($externalSourceImpl === null) {
             $message = 'voor "' . $externalSourceName . '" kan er geen externe bron worden gevonden';
-            $this->logger->error($message);
+            $this->getLogger()->error($message);
             return -1;
         }
         $externalSource = $externalSourceImpl->getExternalSource();
@@ -176,14 +169,17 @@ class Get extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
-                            $this->getIdFromInput($input)
+                            $this->getIdFromInput($input),
+                            $this->getGameCacheOptionFromInput($input)
                         );
                         return 0;
                 }
             }
             throw new \Exception('objectType "' . $entity . '" kan niet worden opgehaald uit externe bronnen', E_ERROR);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if ($this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
         return 0;
     }
@@ -211,8 +207,7 @@ class Get extends ExternalSourceCommand
         ExternalSource $externalSource,
         Sport $sport,
         Association $association
-    ): void
-    {
+    ): void {
         $externalAssociation = $this->getter->getAssociation($externalSourceCompetitions, $externalSource, $sport, $association);
         $table = new ConsoleTable\Leagues();
         $leagues = array_values($externalSourceCompetitions->getLeagues($externalAssociation));
@@ -224,8 +219,7 @@ class Get extends ExternalSourceCommand
         ExternalSource $externalSource,
         Sport $sport,
         League $league
-    ): void
-    {
+    ): void {
         $externalLeague = $this->getter->getLeague(
             $externalSourceCompetitions,
             $externalSource,
@@ -320,13 +314,13 @@ class Get extends ExternalSourceCommand
         for ($gameRoundNr = $gameRoundRange->getMin(); $gameRoundNr <= $gameRoundRange->getMax(); $gameRoundNr++) {
             if (count(
                 array_filter(
-                        $gameRoundNumbers,
-                        function (int $batchNrIt) use ($gameRoundNr): bool {
+                    $gameRoundNumbers,
+                    function (int $batchNrIt) use ($gameRoundNr): bool {
                             return $batchNrIt === $gameRoundNr;
                         }
-                    )
+                )
             ) === 0) {
-                $this->logger->info('gameRoundNr "' . $gameRoundNr . '" komt niet voor in de externe bron');
+                $this->getLogger()->info('gameRoundNr "' . $gameRoundNr . '" komt niet voor in de externe bron');
             }
             $games = array_merge($games, $externalSourceCompetitionDetails->getAgainstGames($competition, $gameRoundNr));
         }
@@ -343,7 +337,8 @@ class Get extends ExternalSourceCommand
         Sport $sport,
         League $league,
         Season $season,
-        string|int $gameId
+        string|int $gameId,
+        bool $removeFromGameCache
     ): void {
         $competition = $this->getter->getCompetition(
             $externalSourceCompetitions,
@@ -364,7 +359,8 @@ class Get extends ExternalSourceCommand
             $externalSourceCompetitionDetails,
             $externalSource,
             $competition,
-            $gameId
+            $gameId,
+            $removeFromGameCache
         );
 
         $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);

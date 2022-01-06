@@ -1,33 +1,29 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use Selective\Config\Configuration;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use JMS\Serializer\SerializerInterface;
-use Slim\Exception\HttpBadRequestException;
-use Sports\Person;
-use SuperElf\Formation\Place as FormationPlayer;
-use SuperElf\Formation\Editor as FormationEditor;
-use stdClass;
-use SuperElf\Formation;
+use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
+use Sports\Person;
+use Sports\Person\Repository as PersonRepository;
+use SuperElf\Formation;
+use SuperElf\Formation\Editor as FormationEditor;
+use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
+use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Substitute;
-use SuperElf\Substitute\Repository as SubstituteRepository;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\Formation\Repository as FormationRepository;
-use Sports\Person\Repository as PersonRepository;
+use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Pool\User as PoolUser;
-use Sports\Sport\Custom as SportCustom;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
 
 final class FormationAction extends Action
 {
@@ -40,6 +36,7 @@ final class FormationAction extends Action
         protected FormationEditor $formationEditor,
         protected PersonRepository $personRepos,
         protected S11PlayerRepository $s11PlayerRepos,
+        protected S11PlayerSyncer $s11PlayerSyncer,
         protected Configuration $config,
         LoggerInterface $logger,
         SerializerInterface $serializer
@@ -59,21 +56,18 @@ final class FormationAction extends Action
         try {
             /** @var PoolUser $poolUser */
             $poolUser = $request->getAttribute("poolUser");
-
-            $sportsFormation = $this->serializer->deserialize($this->getRawData(), SportsFormation::class, 'json');
+            /** @var SportsFormation $newSportsFormation */
+            $newSportsFormation = $this->serializer->deserialize($this->getRawData(), SportsFormation::class, 'json');
 
             if (!$poolUser->getPool()->getAssemblePeriod()->contains()) {
                 throw new \Exception("je kan alleen een formatie wijzigen tijdens de periode waarin je een team samenstelt");
             }
             $assembleFormation = $poolUser->getAssembleFormation();
 
-            if ($assembleFormation !== null) {
-                $removedFormationPlaces = $this->formationEditor->updateAssemble($assembleFormation, $sportsFormation);
-                foreach( $removedFormationPlaces as $removedFormationPlace) {
-                    $this->formationPlaceRepos->remove($removedFormationPlace);
-                }
+            if ($assembleFormation === null) {
+                $assembleFormation = $this->formationEditor->createAssemble($poolUser, $newSportsFormation);
             } else {
-                $assembleFormation = $this->formationEditor->createAssemble($poolUser, $sportsFormation);
+                $this->editAssemable($assembleFormation, $newSportsFormation);
             }
 
             $this->poolUserRepos->save($poolUser);
@@ -81,6 +75,21 @@ final class FormationAction extends Action
             return $this->respondWithJson($response, $this->serializer->serialize($assembleFormation, 'json'));
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    protected function editAssemable(Formation $formation, SportsFormation $newSportsFormation): void
+    {
+        $removedFormationPlaces = $this->formationEditor->removeAssemble($formation, $newSportsFormation);
+        /* SAVE REMOVED FORMATIONPLACES TO DATABASE */
+        foreach ($removedFormationPlaces as $removedFormationPlace) {
+            $this->formationPlaceRepos->remove($removedFormationPlace);
+        }
+
+        $addedFormationPlaces = $this->formationEditor->addAssemble($formation, $newSportsFormation);
+        /* SAVE ADDED FORMATIONPLACES TO DATABASE */
+        foreach ($addedFormationPlaces as $addedFormationPlace) {
+            $this->formationPlaceRepos->save($addedFormationPlace);
         }
     }
 
@@ -116,7 +125,7 @@ final class FormationAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
-    public function addPlayer(Request $request, Response $response, array $args): Response
+    public function editPlace(Request $request, Response $response, array $args): Response
     {
         try {
             /** @var PoolUser $poolUser */
@@ -132,97 +141,58 @@ final class FormationAction extends Action
             if ($formation === null) {
                 throw new \Exception("je moet eerst een formatie kiezen voordat je een speler kan toevoegen");
             }
-            $formationLine = $formation->getLine((int) $args["lineNumber"]);
 
-            $serPerson = $this->serializer->deserialize(
-                $this->getRawData(),
-                Person::class,
-                'json'
-            );
-            $person = $this->personRepos->find($serPerson->getId());
-            if ($person === null) {
-                throw new \Exception("de persoon kan niet gevonden worden", E_ERROR);
+            $placeId = (int) $args["placeId"];
+            if ($placeId === 0) {
+                throw new \Exception("de formatie-plaats-id is niet opgegeven", E_ERROR);
+            }
+            $formationPlace = $this->formationPlaceRepos->find($placeId);
+            if ($formationPlace === null) {
+                throw new \Exception("de formatie-plaats kan niet gevonden worden", E_ERROR);
             }
 
-            $player = $this->oneTeamSimultaneous->getPlayer($person);
-            if ($player === null) {
-                throw new \Exception('"' . $person->getName() .'" speelt niet voor een team', E_ERROR);
-            }
-            $personSameTeam = $formation->getPerson($player->getTeam());
-            if ($personSameTeam !== null) {
-                throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR);
+            if ($formation !== $formationPlace->getFormationLine()->getFormation()) {
+                throw new \Exception("je mag alleem eem plaats van je eigen formatie wijzigen");
             }
 
-            $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
-            $s11Player = $this->getPlayer($viewPeriod, $player->getPerson());
-            new FormationPlayer($formationLine, $s11Player);
+            $rawData = $this->getRawData();
+            $person = null;
+            if (strlen($rawData) > 0) {
+                /** @var Person $serPerson */
+                $serPerson = $this->serializer->deserialize(
+                    $rawData,
+                    Person::class,
+                    'json'
+                );
+                $person = $this->personRepos->find($serPerson->getId());
+            }
 
+            $s11Player = null;
+            if ($person !== null) {
+                $player = $this->oneTeamSimultaneous->getPlayer($person);
+                if ($player === null) {
+                    throw new \Exception('"' . $person->getName() . '" speelt niet voor een team', E_ERROR);
+                }
+                $personSameTeam = $formation->getPerson($player->getTeam());
+                if ($personSameTeam !== null) {
+                    throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR);
+                }
+                $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
+                $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $player->getPerson());
+            }
+            $formationPlace->setPlayer($s11Player);
 
-            $this->formationRepos->save($formation);
+            $this->formationPlaceRepos->save($formationPlace);
 
+            if ($s11Player === null) {
+                return $response->withStatus(200);
+            }
             $json = $this->serializer->serialize($s11Player, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
     }
-
-//    /**
-//     * @param Request $request
-//     * @param Response $response
-//     * @param array<string, int|string> $args
-//     * @return Response
-//     */
-//    public function addSubstitute(Request $request, Response $response, array $args): Response
-//    {
-//        try {
-//            /** @var PoolUser $poolUser */
-//            $poolUser = $request->getAttribute("poolUser");
-//
-//            $assemblePeriod = $poolUser->getPool()->getAssemblePeriod();
-//
-//            if (!$assemblePeriod->contains()) {
-//                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
-//            }
-//
-//            $formation = $poolUser->getAssembleFormation();
-//            if ($formation === null) {
-//                throw new \Exception("je moet eerst een formatie kiezen voordat je een speler kan toevoegen");
-//            }
-//            $formationLine = $formation->getLine((int) $args["lineNumber"]);
-//
-//            $serPerson = $this->serializer->deserialize(
-//                $this->getRawData(),
-//                Person::class,
-//                'json'
-//            );
-//            $person = $this->personRepos->find($serPerson->getId());
-//            if ($person === null) {
-//                throw new \Exception("de persoon kan niet gevonden worden", E_ERROR);
-//            }
-//
-//            $player = $this->oneTeamSimultaneous->getPlayer($person);
-//            if ($player === null) {
-//                throw new \Exception('"' . $person->getName() .'" speelt niet voor een team', E_ERROR);
-//            }
-//
-//            $personSameTeam = $formation->getPerson($player->getTeam());
-//            if ($personSameTeam !== null) {
-//                throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR);
-//            }
-//
-//            $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
-//            $substitute = $this->getPlayer($viewPeriod, $player->getPerson());
-//            $formationLine->setSubstitute($substitute);
-//
-//            $this->formationRepos->save($formation);
-//
-//            $json = $this->serializer->serialize($substitute, 'json');
-//            return $this->respondWithJson($response, $json);
-//        } catch (\Exception $e) {
-//            return new ErrorResponse($e->getMessage(), 422);
-//        }
-//    }
 
     protected function getPlayer(ViewPeriod $viewPeriod, Person $person): S11Player
     {
@@ -232,82 +202,6 @@ final class FormationAction extends Action
         }
         return $s11Player;
     }
-
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @param array<string, int|string> $args
-     * @return Response
-     */
-    public function removePlayer(Request $request, Response $response, array $args): Response
-    {
-        try {
-            /** @var PoolUser $poolUser */
-            $poolUser = $request->getAttribute("poolUser");
-
-            if (!$poolUser->getPool()->getAssemblePeriod()->contains()) {
-                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
-            }
-
-            $formation = $poolUser->getAssembleFormation();
-            if ($formation === null) {
-                throw new \Exception("je moet eerst een formatie kiezen voordat je een speler kan verwijderen");
-            }
-            $formationLine = $formation->getLine((int) $args["lineNumber"]);
-
-            $number = (int) $args["number"];
-            if ($number < 1 || $number > $formationLine->getPlaces()->count() - 1) {
-                throw new \Exception("de te verwijderen speler kan niet gevonden worden", E_ERROR);
-            }
-
-            $formationPlayer = $formationLine->getPlace($number);
-            $formationLine->getPlaces()->removeElement($formationPlayer);
-
-            $this->formationRepos->save($formation);
-
-            return $response->withStatus(200);
-        } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
-        }
-    }
-
-//    /**
-//     * @param Request $request
-//     * @param Response $response
-//     * @param array<string, int|string> $args
-//     * @return Response
-//     */
-//    public function removeSubstitute(Request $request, Response $response, array $args): Response
-//    {
-//        try {
-//            $substistute = $this->s11PlayerRepos->find((int) $args["substistuteId"]);
-//            if ($substistute === null) {
-//                throw new \Exception("de te verwijderen wissel kan niet gevonden worden", E_ERROR);
-//            }
-//
-//            /** @var PoolUser $poolUser */
-//            $poolUser = $request->getAttribute("poolUser");
-//
-//            if (!$poolUser->getPool()->getAssemblePeriod()->contains()) {
-//                throw new \Exception("je kan alleen een formatie vewijderen tijdens de periode waarin je een team samenstelt");
-//            }
-//
-//            $formation = $poolUser->getAssembleFormation();
-//            if ($formation === null) {
-//                throw new \Exception("je moet eerst een formatie kiezen voordat je een speler kan verwijderen");
-//            }
-//            $formationLine = $formation->getLine((int) $args["lineNumber"]);
-//
-//            $formationLine->setSubstitute(null);
-//
-//            $this->formationRepos->save($formation);
-//
-//            return $response->withStatus(200);
-//        } catch (\Exception $e) {
-//            return new ErrorResponse($e->getMessage(), 422);
-//        }
-//    }
-
 
 
 //    protected function getDeserializationContext(User $user = null)

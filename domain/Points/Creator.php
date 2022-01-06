@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Points;
 
 use Sports\Season;
-use SuperElf\Points;
 use SuperElf\Defaults;
+use SuperElf\Points;
 use SuperElf\Points\Repository as PointsRepository;
 
 class Creator

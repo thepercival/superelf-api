@@ -1,13 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Player;
 
 use Doctrine\ORM\EntityRepository;
-use SuperElf\Period\View as ViewPeriod;
 use Sports\Team;
-use SuperElf\Player as S11Player;
 use SportsHelpers\Repository as BaseRepository;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Player as S11Player;
 
 /**
  * @template-extends EntityRepository<S11Player>

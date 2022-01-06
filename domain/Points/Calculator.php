@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Points;
 
 use SportsHelpers\Against\Result as AgainstResult;
-use SuperElf\Statistics;
 use SuperElf\Points;
+use SuperElf\Statistics;
 
 class Calculator
 {
@@ -27,9 +28,9 @@ class Calculator
     protected function getResultPoints(Statistics $statistics, Points $points): int
     {
         $result = $statistics->getResult();
-        if ($result === AgainstResult::WIN) {
+        if ($result === AgainstResult::Win) {
             return  $points->getResultWin();
-        } elseif ($result === AgainstResult::DRAW) {
+        } elseif ($result === AgainstResult::Draw) {
             return  $points->getResultDraw();
         }
         return 0;

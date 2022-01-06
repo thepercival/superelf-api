@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
 use SuperElf\Pool;
-use SuperElf\User;
 use SuperElf\Role;
+use SuperElf\User;
 
 class Shell
 {
@@ -22,10 +23,10 @@ class Shell
 
         $this->roles = 0;
         if ($user !== null) {
-            $poolUser = $pool->getUser( $user );
+            $poolUser = $pool->getUser($user);
             if ($poolUser !== null) {
                 $this->roles = Role::COMPETITOR;
-                if( $poolUser->getAdmin() ) {
+                if ($poolUser->getAdmin()) {
                     $this->roles += Role::ADMIN;
                 }
             }

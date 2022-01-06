@@ -1,10 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
-
-use Sports\Season;
-use SportsHelpers\Identifiable;
 
 class Defaults
 {

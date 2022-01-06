@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
+use App\Mailer;
 use Doctrine\ORM\EntityManager;
 use Exception;
-use SuperElf\Auth\SyncService as AuthSyncService;
-use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
-use SuperElf\Pool\Repository as PoolRepository;
 use Firebase\JWT\JWT;
 use Selective\Config\Configuration;
+use SuperElf\Auth\SyncService as AuthSyncService;
+use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\User;
+use SuperElf\User\Repository as UserRepository;
 use Tuupola\Base62;
-use App\Mailer;
 
 class Service
 {
@@ -35,11 +36,11 @@ class Service
             );
         }
         $userTmp = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
-        if ($userTmp) {
+        if ($userTmp !== null) {
             throw new Exception("het emailadres is al in gebruik", E_ERROR);
         }
         $userTmp = $this->userRepos->findOneBy(array('name' => $name));
-        if ($userTmp) {
+        if ($userTmp !== null) {
             throw new Exception("de naam is al in gebruik", E_ERROR);
         }
         $salt = bin2hex(random_bytes(15));
@@ -68,17 +69,18 @@ EOT;
         $this->mailer->send($subject, $bodyBegin . $bodyMiddle . $bodyEnd, $emailaddress);
     }
 
-    protected function getValidateKey(string $emailaddress): string {
-        return hash( "sha1", $this->config->getString("auth.validatesecret") . $emailaddress );
+    protected function getValidateKey(string $emailaddress): string
+    {
+        return hash("sha1", $this->config->getString("auth.validatesecret") . $emailaddress);
     }
 
     public function validate(string $emailaddress, string $key): User
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
-        if ($user === null || $user->getValidated() ) {
+        if ($user === null || $user->getValidated()) {
             throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
-        if( $key !== $this->getValidateKey($emailaddress) ) {
+        if ($key !== $this->getValidateKey($emailaddress)) {
             throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
         $user->setValidated(true);
@@ -88,7 +90,7 @@ EOT;
     public function sendPasswordCode(string $emailAddress): bool
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailAddress));
-        if (!$user) {
+        if ($user === null) {
             throw new \Exception('kan geen code versturen', E_ERROR);
         }
         $conn = $this->entityManager->getConnection();
@@ -99,7 +101,7 @@ EOT;
             $this->mailPasswordCode($user);
             $conn->commit();
         } catch (\Exception $e) {
-            $conn->rollback();
+            $conn->rollBack();
             throw $e;
         }
 
@@ -108,7 +110,7 @@ EOT;
 
     public function createToken(User $user): string
     {
-        $jti = (new Base62)->encode(random_bytes(16));
+        $jti = (new Base62())->encode(random_bytes(16));
 
         $now = new \DateTimeImmutable();
         $future = $now->modify("+11 months");
@@ -153,7 +155,7 @@ EOT;
     public function changePassword(string $emailAddress, string $password, string $code): User
     {
         $user = $this->userRepos->findOneBy(array('emailaddress' => $emailAddress));
-        if (!$user) {
+        if ($user === null) {
             throw new \Exception("het wachtwoord kan niet gewijzigd worden");
         }
         // check code and deadline

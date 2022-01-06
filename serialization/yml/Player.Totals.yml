@@ -12,6 +12,10 @@ SuperElf\Player\Totals:
       type: integer
     nrOfTimesSubstituted:
       type: integer
+    nrOfTimesSubstitute:
+      type: integer
+    nrOfTimesNotAppeared:
+      type: integer
     nrOfFieldGoals:
       type: integer
     nrOfAssists:

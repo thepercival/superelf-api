@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Monolog\Logger;
@@ -83,7 +84,7 @@ return [
         ]
     ],
     'images' => [
-        'personsSuffix' => 'images/persons/',
+        'playersSuffix' => 'images/players/',
         'teamsSuffix' => 'images/teams/',
     ],
     'proxy' => [
@@ -99,7 +100,7 @@ return [
         'user' => 'guest',
         'pass' => 'guest',
         'persisted' => false,
-        'queueSuffix' => $_ENV['QUEUE_NAME_SUFFIX']
+        'suffix' => $_ENV['QUEUE_NAME_SUFFIX']
     ],
     'periods' => [
         'createAndJoinStart' => $_ENV['PERIODSTART_CREATE_AND_JOIN'],

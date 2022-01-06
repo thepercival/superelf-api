@@ -5,6 +5,8 @@
     <field name="nrOfDraws" column="nrOfDraws" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfTimesStarted" column="nrOfTimesStarted" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfTimesSubstituted" column="nrOfTimesSubstituted" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfTimesSubstitute" column="nrOfTimesSubstitute" type="smallint" nullable="false" unique="false"/>
+    <field name="nrOfTimesNotAppeared" column="nrOfTimesNotAppeared" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfFieldGoals" column="nrOfFieldGoals" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfAssists" column="nrOfAssists" type="smallint" nullable="false" unique="false"/>
     <field name="nrOfPenalties" column="nrOfPenalties" type="smallint" nullable="false" unique="false"/>

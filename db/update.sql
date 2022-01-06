@@ -1,5 +1,7 @@
 -- PRE PRE PRE doctrine-update =============================================================
 
+
+
 -- POST POST POST doctrine-update ===========================================================
 INSERT INTO externalSystems (name,website,username,password,apiurl,apikey) VALUES ('SofaScore','https://www.sofascore.com/',null,null,'https://api.sofascore.com/api/v1/',null);
 

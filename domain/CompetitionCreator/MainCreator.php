@@ -1,19 +1,16 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\CompetitionCreator;
 
-use Sports\Association;
 use Sports\Competition;
 use Sports\Competition\Sport as CompetitionSport;
-use Sports\Competition\Sport\Service as CompetitionSportService;
 use Sports\League;
 use Sports\Poule;
 use Sports\Sport;
 use SportsHelpers\GameMode;
 use SportsHelpers\Sport\PersistVariant;
-use SportsHelpers\Sport\PersistVariant as SportPersistVariant;
-use SuperElf\CompetitionType;
 use SuperElf\Competitor;
 use SuperElf\Pool;
 
@@ -48,7 +45,7 @@ abstract class MainCreator
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
     {
         return $sport->createTogetherPersistVariant(
-            GameMode::ALL_IN_ONE_GAME,
+            GameMode::AllInOneGame,
             0,
             1
         );

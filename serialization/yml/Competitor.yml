@@ -4,10 +4,6 @@ SuperElf\Competitor:
   access_type: public_property
 
   properties:
-    pouleNr:
-      type: integer
-    placeNr:
-      type: integer
   #    abbreviation:
   #      type: string
   #    registered:

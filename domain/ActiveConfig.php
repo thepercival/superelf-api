@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
 use DateTimeImmutable;
 use League\Period\Period;
-use Sports\Competition;
 use Sports\Formation;
 
 class ActiveConfig

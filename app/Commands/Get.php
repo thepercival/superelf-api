@@ -1,34 +1,33 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands;
 
-use Sports\Association;
-use Sports\Game;
-use Sports\Season;
-use SportsHelpers\SportRange;
-use Sports\Competitor\Team as TeamCompetitor;
-use Sports\League;
-use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Structure\Repository as StructureRepository;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\Team\Repository as TeamRepository;
-use Psr\Container\ContainerInterface;
 use App\Command;
+use Psr\Container\ContainerInterface;
+use Sports\Association;
+use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Game;
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Game\Together as TogetherGame;
+use Sports\League;
 use Sports\Output\ConsoleTable;
-
+use Sports\Season;
+use Sports\Structure\Repository as StructureRepository;
+use Sports\Team\Repository as TeamRepository;
+use SportsHelpers\SportRange;
 use SportsImport\Entity;
 use stdClass;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Sports\Game\Against as AgainstGame;
-use Sports\Game\Together as TogetherGame;
-
-class Get extends ExternalSource
+class Get extends Command
 {
+    use EntityTrait;
     protected CompetitionRepository $competitionRepos;
     protected StructureRepository $structureRepos;
     protected AgainstGameRepository $againstGameRepos;
@@ -36,16 +35,23 @@ class Get extends ExternalSource
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var CompetitionRepository competitionRepos */
-        $this->competitionRepos = $container->get(CompetitionRepository::class);
-        /** @var AgainstGameRepository againstGameRepos */
-        $this->againstGameRepos = $container->get(AgainstGameRepository::class);
-        /** @var StructureRepository structureRepos */
-        $this->structureRepos = $container->get(StructureRepository::class);
-        /** @var TeamRepository teamRepos */
-        $this->teamRepos = $container->get(TeamRepository::class);
+        /** @var CompetitionRepository $competitionRepos */
+        $competitionRepos = $container->get(CompetitionRepository::class);
+        $this->competitionRepos = $competitionRepos;
 
-        parent::__construct($container, 'command-get');
+        /** @var AgainstGameRepository $againstGameRepos */
+        $againstGameRepos = $container->get(AgainstGameRepository::class);
+        $this->againstGameRepos = $againstGameRepos;
+
+        /** @var StructureRepository $structureRepos */
+        $structureRepos = $container->get(StructureRepository::class);
+        $this->structureRepos = $structureRepos;
+
+        /** @var TeamRepository $teamRepos */
+        $teamRepos = $container->get(TeamRepository::class);
+        $this->teamRepos = $teamRepos;
+
+        parent::__construct($container);
     }
 
     protected function configure(): void
@@ -68,7 +74,7 @@ class Get extends ExternalSource
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLoggerFromInput($input);
+        $this->initLogger($input, 'command-get');
 
         $entity = $this->getEntityFromInput($input);
 
@@ -93,18 +99,20 @@ class Get extends ExternalSource
                     $this->showTeamCompetitors($league, $season);
                 } elseif ($entity === Entity::STRUCTURE) {
                     $this->showStructure($league, $season);
-                } elseif ($entity === Entity::GAMES ) {
+                } elseif ($entity === Entity::GAMES) {
                     $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
                     $this->showAgainstGames($league, $season, $gameRoundRange);
                 } elseif ($entity === Entity::GAMEDETAILS) {
                     $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
                 } else {
                     $message = 'objectType "'. $entity . '" kan niet worden opgehaald uit bronnen';
-                    $this->logger->error($message);
+                    $this->getLogger()->error($message);
                 }
             }
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if ($this->logger !== null) {
+                $this->logger->error($e->getMessage());
+            }
         }
 
 //        if ($input->getOption("structures")) {
@@ -116,7 +124,7 @@ class Get extends ExternalSource
 
         return 0;
     }
-    
+
 
 
     protected function showSports(InputInterface $input): void
@@ -165,7 +173,7 @@ class Get extends ExternalSource
     {
         $inputFilterAsArray = [];
 
-        /** @var string|null $competitionFilter */
+        /** @var string|null $inputFilter */
         $inputFilter = $input->getOption("filter");
         if (!is_string($inputFilter) || strlen($inputFilter) === 0) {
             return $inputFilterAsArray;
@@ -186,7 +194,7 @@ class Get extends ExternalSource
     {
         $teams = $this->teamRepos->findBy(['association' => $association]);
         $table = new ConsoleTable\Teams();
-        $table->display(array_values($teams));
+        $table->display($teams);
     }
 
     protected function showTeamCompetitors(League $league, Season $season): void
@@ -220,7 +228,7 @@ class Get extends ExternalSource
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
         }
         $structure = $this->structureRepos->getStructure($competition);
-        $games = array_values($structure->getFirstRoundNumber()->getGames(Game\Order::ByBatch));
+        $games = $structure->getFirstRoundNumber()->getGames(Game\Order::ByBatch);
         $againstGames = array_filter($games, function (AgainstGame|TogetherGame $game): bool {
             return $game instanceof AgainstGame;
         });

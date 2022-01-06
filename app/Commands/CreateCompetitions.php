@@ -4,29 +4,18 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
-use App\QueueService;
-use League\Period\Period;
-use Psr\Container\ContainerInterface;
 use App\Command;
-
-use Sports\Association;
-use Sports\League;
-use SuperElf\Pool;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool\Administrator as PoolAdministrator;
+use App\QueueService;
+use Psr\Container\ContainerInterface;
 use Sports\Season;
-use SuperElf\CompetitionsCreator;
-use Sports\Sport;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Output\OutputInterface;
-
-use SportsImport\ExternalSource\Competitions;
-use SportsImport\ExternalSource\Implementation;
-use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource;
 use SportsImport\Importer;
+use SuperElf\CompetitionsCreator;
+use SuperElf\Pool;
+use SuperElf\Pool\Administrator as PoolAdministrator;
+use SuperElf\Pool\Repository as PoolRepository;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class CreateCompetitions extends Command
 {
@@ -37,13 +26,19 @@ class CreateCompetitions extends Command
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var PoolRepository poolRepos */
-        $this->poolRepos = $container->get(PoolRepository::class);
-        /** @var PoolAdministrator poolAdmin */
-        $this->poolAdmin = $container->get(PoolAdministrator::class);
-        /** @var Importer importer */
-        $this->importer = $container->get(Importer::class);
-        parent::__construct($container, 'command-create-competitions');
+        /** @var PoolRepository $poolRepos */
+        $poolRepos = $container->get(PoolRepository::class);
+        $this->poolRepos = $poolRepos;
+
+        /** @var PoolAdministrator $poolAdmin */
+        $poolAdmin = $container->get(PoolAdministrator::class);
+        $this->poolAdmin = $poolAdmin;
+
+        /** @var Importer $importer */
+        $importer = $container->get(Importer::class);
+        $this->importer = $importer;
+
+        parent::__construct($container);
         $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
         $this->competitionsCreator = new CompetitionsCreator();
     }
@@ -67,7 +62,7 @@ class CreateCompetitions extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLoggerFromInput($input);
+        $this->initLogger($input, 'command-create-competitions');
         // loop door alle pools van een bepaald seizoen
         // per pool de competities verwijderen en weer opnieuw aanmaken
 
@@ -81,7 +76,7 @@ class CreateCompetitions extends Command
             }
             $pools = $this->getPools($input, $season);
             foreach ($pools as $pool) {
-                $this->logger->info("create competitions for pool " . $pool->getName() . "(".(string)$pool->getId().")");
+                $this->getLogger()->info("create competitions for pool " . $pool->getName() . "(".(string)$pool->getId().")");
                 $this->competitionsCreator->recreateDetails($pool);
             }
         } catch (\Exception $e) {
@@ -214,9 +209,9 @@ class CreateCompetitions extends Command
 //    protected function importImages(Implementation $externalSourceImpl, League $league, Season $season)
 //    {
 //        $localPath = $this->config->getString('www.apiurl-localpath');
-//        $localPath .= $this->config->getString('images.personsSuffix');
+//        $localPath .= $this->config->getString('images.playersSuffix');
 //        $publicPath = $this->config->getString('www.apiurl');
-//        $publicPath .= $this->config->getString('images.personsSuffix');
+//        $publicPath .= $this->config->getString('images.playersSuffix');
 //        $maxWidth = 150;
 //        $this->importer->importPersonImages(
 //            $externalSourceImpl,

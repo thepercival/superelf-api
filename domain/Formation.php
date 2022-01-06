@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
+use Doctrine\Common\Collections\Collection;
 use Sports\Person;
 use Sports\Team;
 use Sports\Team\Player;
@@ -15,10 +16,9 @@ use SuperElf\Period\View as ViewPeriod;
 class Formation extends Identifiable
 {
     /**
-     * @var ArrayCollection<int|string, Line>|PersistentCollection<int|string, Line>
-     * @psalm-var ArrayCollection<int|string, Line>
+     * @var Collection<int|string, Line>
      */
-    protected ArrayCollection|PersistentCollection $lines;
+    protected Collection $lines;
 
     public function __construct(protected ViewPeriod $viewPeriod)
     {
@@ -31,10 +31,9 @@ class Formation extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Line>|PersistentCollection<int|string, Line>
-     * @psalm-return ArrayCollection<int|string, Line>
+     * @return Collection<int|string, Line>
      */
-    public function getLines(): ArrayCollection|PersistentCollection
+    public function getLines(): Collection
     {
         return $this->lines;
     }
@@ -76,7 +75,7 @@ class Formation extends Identifiable
         foreach ($this->lines as $line) {
             $persons = array_merge($persons, $line->getAllPersons());
         }
-        return array_values($persons);
+        return $persons;
     }
 
     public function getPerson(Team $team, \DateTimeImmutable $date = null): ?Person

@@ -1,11 +1,9 @@
-SuperElf\ScoutedPerson:
+SuperElf\ScoutedPlayer:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
   properties:
-    id:
-      type: integer
-    person:
-      type: Sports\Person
+    s11Player:
+      type: SuperElf\Player
     nrOfStars:
       type: integer

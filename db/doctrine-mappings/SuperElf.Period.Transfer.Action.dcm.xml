@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <mapped-superclass name="SuperElf\Period\Transfer\Action" >
-    <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="transfers">
-      <cascade>
-        <cascade-persist/>
-        <cascade-remove/>
-      </cascade>
-      <join-columns>
-        <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
-      </join-columns>
-    </many-to-one>
     <many-to-one field="transferPeriod" target-entity="SuperElf\Period\Transfer">
       <cascade>
         <cascade-persist/>

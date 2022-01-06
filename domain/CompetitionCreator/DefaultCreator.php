@@ -1,22 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\CompetitionCreator;
 
+use Sports\Competition;
 use Sports\Competition\Sport\Service as CompetitionSportService;
+use Sports\Game\Place\Together as TogetherGamePlace;
+use Sports\Game\Together as TogetherGame;
 use Sports\Planning\Config\Service as PlanningConfigService;
-use SportsHelpers\Sport\PersistVariant as SportPersistVariant;
+use Sports\Poule;
+use Sports\Sport;
+use Sports\Structure\Editor as StructureEditor;
 use SuperElf\CompetitionType;
 use SuperElf\Competitor;
-use Sports\Sport;
-use Sports\Competition;
-use Sports\Structure\Editor as StructureEditor;
-use Sports\Game\Together as TogetherGame;
-use Sports\Game\Place\Together as TogetherGamePlace;
-use Sports\Poule;
 use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Pool;
-use SuperElf\PoolCollection;
 
 class DefaultCreator extends MainCreator
 {

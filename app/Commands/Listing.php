@@ -1,16 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands;
 
-use DateTimeImmutable;
-use Psr\Container\ContainerInterface;
 use App\Command;
-use Selective\Config\Configuration;
-
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Listing extends Command
@@ -21,7 +18,7 @@ class Listing extends Command
      */
     public function __construct(protected ContainerInterface $container, protected array $commandKeys)
     {
-        parent::__construct($container, 'command-listing');
+        parent::__construct($container);
     }
 
     protected function configure(): void
@@ -45,20 +42,20 @@ class Listing extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->initLoggerFromInput($input);
+        $this->initLogger($input, 'command-listing');
         $commandFilter = $this->getCommandFilterFromInput($input);
 
-        foreach( $this->commandKeys as $commandKey ) {
+        foreach ($this->commandKeys as $commandKey) {
             /** @var Command $command */
             $command = $this->container->get($commandKey);
-            if( $commandFilter !== null && $command->getName() !== $commandFilter) {
+            if ($commandFilter !== null && $command->getName() !== $commandFilter) {
                 continue;
             }
             echo $commandKey . " (" . $command->getDescription() . ")" . PHP_EOL;
-            foreach( $command->getDefinition()->getArguments() as $argument ) {
+            foreach ($command->getDefinition()->getArguments() as $argument) {
                 echo "  " . $argument->getName() . " (" . $argument->getDescription() . ")" . PHP_EOL;
             }
-            foreach( $command->getDefinition()->getOptions() as $option ) {
+            foreach ($command->getDefinition()->getOptions() as $option) {
                 echo " --" . $option->getName() . " (" . $option->getDescription() . ")" . PHP_EOL;
             }
             echo PHP_EOL;

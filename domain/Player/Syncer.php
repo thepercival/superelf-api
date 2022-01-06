@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Player;
@@ -56,20 +57,24 @@ class Syncer
     protected function syncS11Players(ViewPeriod $viewPeriod, AgainstGamePlace $gamePlace): void
     {
         $this->logInfo('syncing s11Players ..');
+        if ($gamePlace->getParticipations()->count() === 0) {
+            $this->logWarning('no game-participations');
+        }
         foreach ($gamePlace->getParticipations() as $gameParticipation) {
             $this->syncS11Player($viewPeriod, $gameParticipation->getPlayer()->getPerson());
         }
-        $this->logInfo('sync s11Players');
+        $this->logInfo('synced s11Players');
     }
 
-    protected function syncS11Player(ViewPeriod $viewPeriod, Person $person): void
+    public function syncS11Player(ViewPeriod $viewPeriod, Person $person): S11Player
     {
         $s11Player = $this->s11PlayerRepos->findOneBy(["viewPeriod" => $viewPeriod, "person" => $person ]);
         if ($s11Player !== null) {
-            return;
+            return $s11Player;
         }
         $s11Player = new S11Player($viewPeriod, $person, new Totals());
         $this->logCreateS11Player($this->s11PlayerRepos->save($s11Player));
+        return $s11Player;
     }
     /**
      * @param S11Player $s11Player
@@ -78,7 +83,7 @@ class Syncer
      */
     protected function getGameParticipation(S11Player $s11Player, array $gameParticipations): GameParticipation|null
     {
-        $filtered = array_filter($gameParticipations, function (GameParticipation $gameParticipation) use ($s11Player) : bool {
+        $filtered = array_filter($gameParticipations, function (GameParticipation $gameParticipation) use ($s11Player): bool {
             return $s11Player->getPerson() === $gameParticipation->getPlayer()->getPerson();
         });
         if (count($filtered) > 0) {
@@ -123,5 +128,13 @@ class Syncer
             return;
         }
         $this->logger->info($info);
+    }
+
+    protected function logWarning(string $warning): void
+    {
+        if ($this->logger === null) {
+            return;
+        }
+        $this->logger->warning($warning);
     }
 }

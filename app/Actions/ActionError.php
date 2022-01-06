@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Actions;
@@ -19,7 +20,6 @@ class ActionError implements JsonSerializable
 
     public function __construct(private string $type, private string|null $description)
     {
-
     }
 
     public function getType(): string
@@ -53,12 +53,12 @@ class ActionError implements JsonSerializable
     }
 
     /**
-     * @return array
+     * @return array<string, string|null>
      */
     public function jsonSerialize()
     {
         $payload = [
-                'type' => $this->type,
+            'type' => $this->type,
             'description' => $this->description,
         ];
 

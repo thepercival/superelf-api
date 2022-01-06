@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Period\View;
@@ -6,8 +7,8 @@ namespace SuperElf\Period\View;
 use Doctrine\ORM\EntityRepository;
 use Sports\Competition;
 use Sports\Poule;
-use SportsHelpers\Sport\Variant\Against as AgainstSportVariant;
 use SportsHelpers\Repository as BaseRepository;
+use SportsHelpers\Sport\Variant\Against as AgainstSportVariant;
 use SuperElf\Period\View as ViewPeriod;
 
 /**

@@ -1,27 +1,26 @@
 <?php
+
 declare(strict_types=1);
 
+use App\Mailer;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\ORM\EntityManager;
+use JMS\Serializer\DeserializationContext;
+use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\SerializerInterface;
-use Psr\Container\ContainerInterface;
-use Doctrine\ORM\EntityManager;
-
-use DI\ContainerBuilder;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-
-use App\Mailer;
-use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
-use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
-use JMS\Serializer\SerializationContext;
-use JMS\Serializer\DeserializationContext;
 use Selective\Config\Configuration;
 use Slim\App;
 use Slim\Factory\AppFactory;
+use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
+use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
+use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 
 return [
     // Application settings
@@ -35,7 +34,7 @@ return [
         $config = $container->get(Configuration::class);
         if ($config->getString("environment") === "production") {
             $routeCacheFile = $config->getString('router.cache_file');
-            if ($routeCacheFile) {
+            if (strlen($routeCacheFile) > 0 ) {
                 $app->getRouteCollector()->setCacheFile($routeCacheFile);
             }
         }
@@ -78,6 +77,28 @@ return [
         $connectionParams = $doctrineAppConfig['connection'];
         $em = Doctrine\ORM\EntityManager::create($connectionParams, $doctrineConfig);
         // $em->getConnection()->setAutoCommit(false);
+
+        Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');
+        Type::addType('enum_AgainstResult', SportsHelpers\Against\ResultType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstResult');
+        Type::addType('enum_GamePlaceStrategy', SportsPlanning\Combinations\GamePlaceStrategyType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GamePlaceStrategy');
+        Type::addType('enum_GameMode', SportsHelpers\GameModeType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameMode');
+        Type::addType('enum_SelfReferee', SportsHelpers\SelfRefereeType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_SelfReferee');
+        Type::addType('enum_EditMode', Sports\Planning\EditModeType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_EditMode');
+        Type::addType('enum_QualifyTarget', Sports\Qualify\TargetType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_QualifyTarget');
+        Type::addType('enum_AgainstRuleSet', Sports\Ranking\AgainstRuleSetType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstRuleSet');
+        Type::addType('enum_PointsCalculation', Sports\Ranking\PointsCalculationType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PointsCalculation');
+        Type::addType('enum_PlanningState', SportsPlanning\Planning\StateType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PlanningState');
+
         return $em;
     },
     SerializerInterface::class => function (ContainerInterface $container): SerializerInterface {

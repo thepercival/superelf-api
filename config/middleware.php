@@ -1,19 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
+use App\Middleware\CorsMiddleware;
+use App\Response\ErrorResponse;
+use App\Response\UnauthorizedResponse;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use App\Response\UnauthorizedResponse;
-use App\Response\ErrorResponse;
+use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Tuupola\Middleware\JwtAuthentication;
-use App\Middleware\CorsMiddleware;
+use Slim\App;
 use Slim\Exception\HttpMethodNotAllowedException;
 use Slim\Exception\HttpNotFoundException;
-use Psr\Log\LoggerInterface;
-use Slim\App;
 use SuperElf\Auth\Token as AuthToken;
+use Tuupola\Middleware\JwtAuthentication;
 
 // middleware is executed by LIFO
 /** @psalm-suppress UnusedClosureParam */

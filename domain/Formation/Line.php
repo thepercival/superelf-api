@@ -1,30 +1,28 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Formation;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
+use Doctrine\Common\Collections\Collection;
 use Sports\Person;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
-use SuperElf\GameRound;
-use SuperElf\Player as S11Player;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\GameRound;
 use SuperElf\Substitute\Appearance;
 
 class Line extends Identifiable
 {
     /**
-     * @var ArrayCollection<int|string, FormationPlace>|PersistentCollection<int|string, FormationPlace>
-     * @psalm-var ArrayCollection<int|string, FormationPlace>
+     * @var Collection<int|string, FormationPlace>
      */
-    protected ArrayCollection|PersistentCollection $places;
+    protected Collection $places;
     /**
-     * @var ArrayCollection<int|string, Appearance>|PersistentCollection<int|string, Appearance>
-     * @psalm-var ArrayCollection<int|string, Appearance>
+     * @var Collection<int|string, Appearance>
      */
-    protected ArrayCollection|PersistentCollection $substituteAppearances;
+    protected Collection $substituteAppearances;
 
     private const SUBSTITUTE_NUMBER = 0;
 
@@ -48,19 +46,17 @@ class Line extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, FormationPlace>|PersistentCollection<int|string, FormationPlace>
-     * @psalm-return ArrayCollection<int|string, FormationPlace>
+     * @return Collection<int|string, FormationPlace>
      */
-    public function getPlaces(): ArrayCollection|PersistentCollection
+    public function getPlaces(): Collection
     {
         return $this->places;
     }
 
     /**
-     * @return ArrayCollection<int|string, FormationPlace>
-     * @psalm-return ArrayCollection<int|string, FormationPlace>
+     * @return Collection<int|string, FormationPlace>
      */
-    public function getStartingPlaces(): ArrayCollection
+    public function getStartingPlaces(): Collection
     {
         return $this->places->filter(function (FormationPlace $formationPlace): bool {
             return $formationPlace->getNumber() > self::SUBSTITUTE_NUMBER;
@@ -110,10 +106,9 @@ class Line extends Identifiable
 //    }
 
     /**
-     * @return ArrayCollection<int|string, Appearance>|PersistentCollection<int|string, Appearance>
-     * @psalm-return ArrayCollection<int|string, Appearance>
+     * @return Collection<int|string, Appearance>
      */
-    public function getSubstituteAppearances(): ArrayCollection|PersistentCollection
+    public function getSubstituteAppearances(): Collection
     {
         return $this->substituteAppearances;
     }

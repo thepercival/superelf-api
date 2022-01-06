@@ -1,34 +1,34 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
-use Sports\Season;
+use Doctrine\Common\Collections\Collection;
 use Sports\Competition;
+use Sports\Season;
 use SportsHelpers\Identifiable;
-use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Pool\User as PoolUser;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Pool\GameRoundScore;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Pool\User as PoolUser;
 
 class Pool extends Identifiable
 {
     /**
-     * @var ArrayCollection<int|string, PoolUser>|PersistentCollection<int|string, PoolUser>
-     * @psalm-var ArrayCollection<int|string, PoolUser>
+     * @var Collection<int|string, PoolUser>
      */
-    protected $users;
+    protected Collection $users;
 //    /**
-//     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
+//     * @var Collection<int|string, GameRoundScore>
 //     */
 //    protected $scores;
 
     public function __construct(
         protected PoolCollection $collection,
         protected Competition $sourceCompetition,
+        protected Points $points,
         protected ViewPeriod $createAndJoinPeriod,
         protected AssemblePeriod $assemblePeriod,
         protected TransferPeriod $transferPeriod
@@ -57,8 +57,14 @@ class Pool extends Identifiable
         return $this->sourceCompetition;
     }
 
-    public function getSourceCompetitionId(): int {
+    public function getSourceCompetitionId(): int
+    {
         return (int)$this->sourceCompetition->getId();
+    }
+
+    public function getPoints(): Points
+    {
+        return $this->points;
     }
 
     public function getAssemblePeriod(): AssemblePeriod
@@ -77,17 +83,16 @@ class Pool extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, PoolUser>|PersistentCollection<int|string, PoolUser>
-     * @psalm-return ArrayCollection<int|string, PoolUser>
+     * @return Collection<int|string, PoolUser>
      */
-    public function getUsers(): ArrayCollection|PersistentCollection
+    public function getUsers(): Collection
     {
         return $this->users;
     }
 
     public function getUser(User $user): ?PoolUser
     {
-        $filtered = $this->getUsers()->filter(function (PoolUser $poolUser) use ($user) : bool {
+        $filtered = $this->getUsers()->filter(function (PoolUser $poolUser) use ($user): bool {
             return $poolUser->getUser() === $user;
         });
         $firstPoolUser = $filtered->first();
@@ -160,10 +165,9 @@ class Pool extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Pool>|PersistentCollection<int|string, Pool>
-     * @psalm-return ArrayCollection<int|string, Pool>
+     * @return Collection<int|string, Pool>
      */
-    public function getSiblings(): ArrayCollection|PersistentCollection
+    public function getSiblings(): Collection
     {
         return $this->getCollection()->getPools();
     }

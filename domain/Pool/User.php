@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
+use Doctrine\Common\Collections\Collection;
 use Sports\Competition;
 use SportsHelpers\Identifiable;
 use SuperElf\Competitor;
@@ -20,20 +21,17 @@ class User extends Identifiable
     protected Formation|null $assembleFormation = null;
     protected Formation|null $transferFormation = null;
     /**
-     * @var ArrayCollection<int|string, Transfer>|PersistentCollection<int|string, Transfer>
-     * @psalm-var ArrayCollection<int|string, Transfer>
+     * @var Collection<int|string, Transfer>
      */
-    protected ArrayCollection|PersistentCollection $transfers;
+    protected Collection $transfers;
     /**
-     * @var ArrayCollection<int|string, Substitution>|PersistentCollection<int|string, Substitution>
-     * @psalm-var ArrayCollection<int|string, Substitution>|
+     * @var ArrayCollection<int|string, Substitution>
      */
-    protected ArrayCollection|PersistentCollection $substitutions;
+    protected Collection $substitutions;
     /**
-     * @var ArrayCollection<int|string, Competitor>|PersistentCollection<int|string, Competitor>
-     * @psalm-var ArrayCollection<int|string, Competitor>|
+     * @var ArrayCollection<int|string, Competitor>
      */
-    protected ArrayCollection|PersistentCollection $competitors;
+    protected Collection $competitors;
 //    /**
 //     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
 //     * @psalm-var ArrayCollection<int|string, GameRoundScore>|
@@ -73,10 +71,9 @@ class User extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Competitor>|PersistentCollection<int|string, Competitor>
-     * @psalm-return ArrayCollection<int|string, Competitor>
+     * @return Collection<int|string, Competitor>
      */
-    public function getCompetitors(): ArrayCollection|PersistentCollection
+    public function getCompetitors(): Collection
     {
         return $this->competitors;
     }
@@ -91,10 +88,9 @@ class User extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Transfer>|PersistentCollection<int|string, Transfer>
-     * @psalm-return ArrayCollection<int|string, Transfer>
+     * @return Collection<int|string, Transfer>
      */
-    public function getTransfers(bool $outHasTeam = null): ArrayCollection|PersistentCollection
+    public function getTransfers(bool $outHasTeam = null): Collection
     {
         if ($outHasTeam === null) {
             return $this->transfers;
@@ -105,10 +101,9 @@ class User extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Substitution>|PersistentCollection<int|string, Substitution>
-     * @psalm-return ArrayCollection<int|string, Substitution>
+     * @return Collection<int|string, Substitution>
      */
-    public function getSubstitutions(): ArrayCollection|PersistentCollection
+    public function getSubstitutions(): Collection
     {
         return $this->substitutions;
     }

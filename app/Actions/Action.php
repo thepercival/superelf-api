@@ -1,38 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Actions;
 
 use App\Domain\DomainException\DomainRecordNotFoundException;
-use mysql_xdevapi\Exception;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpNotFoundException;
-use Slim\Exception\HttpMethodNotAllowedException;
-use JMS\Serializer\SerializerInterface;
 
 abstract class Action
 {
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-    /**
-     * @var SerializerInterface
-     */
-    protected $serializer;
-
-    /**
-     * Action constructor.
-     * @param LoggerInterface $logger
-     * @param SerializerInterface $serializer
-     */
-    public function __construct(LoggerInterface $logger, SerializerInterface $serializer)
+    public function __construct(protected LoggerInterface $logger, protected SerializerInterface $serializer)
     {
-        $this->logger = $logger;
-        $this->serializer = $serializer;
     }
 
     /**
@@ -58,6 +42,12 @@ abstract class Action
 //    abstract protected function remove( Request $request, Response $response, $args ): Response;
 //
 
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
     public function options(Request $request, Response $response, $args): Response
     {
         return $response;
@@ -111,5 +101,14 @@ abstract class Action
     {
         $response->getBody()->write($json);
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * @param array<array-key, mixed> $groups
+     * @return SerializationContext
+     */
+    protected function getSerializationContext(array $groups): SerializationContext
+    {
+        return SerializationContext::create()->setGroups(array_merge(['Default'], $groups));
     }
 }

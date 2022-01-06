@@ -1,15 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf\Statistics;
 
-use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
-use Sports\Competition;
-use Sports\Person;
-use SuperElf\Statistics;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Player\GameRoundScore as BaseGameRoundScore;
+use SuperElf\Statistics;
 
 /**
  * @template-extends EntityRepository<Statistics>

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Commands;
@@ -14,7 +15,7 @@ class UpdateSitemap extends Command
 {
     public function __construct(ContainerInterface $container)
     {
-        parent::__construct($container, 'command-update-sitemap');
+        parent::__construct($container);
     }
 
     protected function configure(): void
@@ -32,7 +33,7 @@ class UpdateSitemap extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLoggerFromInput($input);
+        $this->initLogger($input, 'command-update-sitemap');
         try {
             $url = $this->config->getString('www.wwwurl');
             $distPath = $this->config->getString('www.wwwurl-localpath');
@@ -57,7 +58,7 @@ class UpdateSitemap extends Command
 //            chown($distPath . "sitemap.txt", "coen");
 //            chgrp($distPath . "sitemap.txt", "coen");
         } catch (\Exception $e) {
-            if( $this->logger !== null ) {
+            if ($this->logger !== null) {
                 $this->logger->error($e->getMessage());
             }
         }

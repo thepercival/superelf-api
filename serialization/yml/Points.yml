@@ -1,0 +1,42 @@
+SuperElf\Points:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    resultWin:
+      type: int
+    resultDraw:
+      type: int
+    fieldGoalGoalkeeper:
+      type: int
+    fieldGoalDefender:
+      type: int
+    fieldGoalMidfielder:
+      type: int
+    fieldGoalForward:
+      type: int
+    assistGoalkeeper:
+      type: int
+    assistDefender:
+      type: int
+    assistMidfielder:
+      type: int
+    assistForward:
+      type: int
+    penalty:
+      type: int
+    ownGoal:
+      type: int
+    cleanSheetGoalkeeper:
+        type: int
+    cleanSheetDefender:
+      type: int
+    spottySheetGoalkeeper:
+      type: int
+    spottySheetDefender:
+      type: int
+    cardYellow:
+      type: int
+    cardRed:
+      type: int

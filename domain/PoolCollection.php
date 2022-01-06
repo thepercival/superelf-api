@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace SuperElf;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
+use Doctrine\Common\Collections\Collection;
 use Sports\Association;
 use Sports\League;
 use SportsHelpers\Identifiable;
@@ -13,10 +14,9 @@ class PoolCollection extends Identifiable
 {
     protected Association $association;
     /**
-     * @var ArrayCollection<int|string, Pool>|PersistentCollection<int|string, Pool>
-     * @psalm-var ArrayCollection<int|string, Pool>
+     * @var Collection<int|string, Pool>
      */
-    protected ArrayCollection|PersistentCollection $pools;
+    protected Collection $pools;
 
     protected const MIN_LENGTH_NAME = 3;
     protected const MAX_LENGTH_NAME = 20;
@@ -33,7 +33,7 @@ class PoolCollection extends Identifiable
         return $this->association;
     }
 
-    public function getName():string
+    public function getName(): string
     {
         return $this->getAssociation()->getName();
     }
@@ -48,7 +48,7 @@ class PoolCollection extends Identifiable
     public function getLeague(int $leagueNr): ?League
     {
         $name = $this->getLeagueName($leagueNr);
-        $filtered = $this->getAssociation()->getLeagues()->filter(function (League $league) use ($name) : bool {
+        $filtered = $this->getAssociation()->getLeagues()->filter(function (League $league) use ($name): bool {
             return $league->getName() === $name;
         });
         $firstFiltered = $filtered->first();
@@ -66,10 +66,9 @@ class PoolCollection extends Identifiable
     }
 
     /**
-     * @return ArrayCollection<int|string, Pool>|PersistentCollection<int|string, Pool>
-     * @psalm-return ArrayCollection<int|string, Pool>
+     * @return Collection<int|string, Pool>
      */
-    public function getPools(): ArrayCollection|PersistentCollection
+    public function getPools(): Collection
     {
         return $this->pools;
     }

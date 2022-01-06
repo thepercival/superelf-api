@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
-use Sports\Season;
-use SuperElf\PoolCollection;
-use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use Sports\Association\Repository as AssociationRepository;
+use Sports\Season;
+use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\User;
 
 class AvailabilityChecker
@@ -17,7 +16,8 @@ class AvailabilityChecker
 
     public function __construct(
         AssociationRepository $associationRepos,
-        PoolCollectionRepository $poolCollectionRepos)
+        PoolCollectionRepository $poolCollectionRepos
+    )
     {
         $this->associationRepos = $associationRepos;
         $this->poolCollectionRepos = $poolCollectionRepos;
@@ -25,24 +25,24 @@ class AvailabilityChecker
 
     public function check(Season $season, string $name, User $user): void
     {
-        $association = $this->associationRepos->findOneBy( ["name" => $name ] );
-        if( $association === null ) {
+        $association = $this->associationRepos->findOneBy(["name" => $name ]);
+        if ($association === null) {
             return;
         }
-        $poolCollection = $this->poolCollectionRepos->findOneBy( ["association" => $association ] );
-        if( $poolCollection === null ) {
+        $poolCollection = $this->poolCollectionRepos->findOneBy(["association" => $association ]);
+        if ($poolCollection === null) {
             return;
         }
         $latestPool = $poolCollection->getLatestPool();
-        if( $latestPool === null ) {
+        if ($latestPool === null) {
             return;
         }
-        if( $latestPool->getSeason() === $season ) {
-            throw new \Exception("de pool met naam ".$name." en seizoen ".$season->getName()." bestaat al", E_ERROR );
+        if ($latestPool->getSeason() === $season) {
+            throw new \Exception("de pool met naam ".$name." en seizoen ".$season->getName()." bestaat al", E_ERROR);
         }
-        $poolUser = $latestPool->getUser( $user );
-        if( $poolUser === null || !$poolUser->getAdmin() ) {
-            throw new \Exception("alleen de beheerder van het vorige seizoen van pool ".$name." kan de nieuwe pool aanmaken", E_ERROR );
+        $poolUser = $latestPool->getUser($user);
+        if ($poolUser === null || !$poolUser->getAdmin()) {
+            throw new \Exception("alleen de beheerder van het vorige seizoen van pool ".$name." kan de nieuwe pool aanmaken", E_ERROR);
         }
     }
 }

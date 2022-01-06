@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App;
 
 use Enqueue\AmqpLib\AmqpConnectionFactory;
-use Interop\Amqp\AmqpQueue;
 use Interop\Amqp\AmqpContext;
+use Interop\Amqp\AmqpQueue;
 use Interop\Amqp\AmqpTopic;
 use Interop\Amqp\Impl\AmqpBind;
-use Sports\Competition;
 use Sports\Game;
-use SportsImport\Queue\Game\ImportEvent as ImportGameEvent;
 use SportsImport\Queue\Game\ImportDetailsEvent as ImportGameDetailsEvent;
-use Interop\Queue\Message;
-use Interop\Queue\Consumer;
+use SportsImport\Queue\Game\ImportEvent as ImportGameEvent;
 
 /**
  * sudo rabbitmqctl list_queues
@@ -26,20 +23,21 @@ use Interop\Queue\Consumer;
  */
 class QueueService implements ImportGameEvent, ImportGameDetailsEvent
 {
-    protected array $options;
-    protected string $queueSuffix = '';
+    private string $queueSuffix = '';
 
     public const NAME_UPDATE_GAME_QUEUE = 'update-gamedetails-queue';
     public const NAME_UPDATE_GAMEDETAILS_QUEUE = 'update-gamedetails-queue';
 
-    public function __construct(array $options)
+    /**
+     * @param array<array-key, mixed> $amqpOptions
+     */
+    public function __construct(private array $amqpOptions)
     {
-        if (array_key_exists("queueSuffix", $options)) {
-            /** @var string queueSuffix */
-            $this->queueSuffix = $options["queueSuffix"];
-            unset($options["queueSuffix"]);
+        if (array_key_exists('suffix', $amqpOptions) === false) {
+            throw new \Exception('option queue:suffix is missing', E_ERROR);
         }
-        $this->options = $options;
+        $this->queueSuffix = (string)$amqpOptions['suffix'];
+        unset($amqpOptions['suffix']);
     }
 
     public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null): void
@@ -57,6 +55,13 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         $this->sendEventHelper(self::NAME_UPDATE_GAMEDETAILS_QUEUE, $content);
     }
 
+    /**
+     * @param string $queueName
+     * @param array<string, mixed> $content
+     * @throws \Interop\Queue\Exception
+     * @throws \Interop\Queue\Exception\InvalidDestinationException
+     * @throws \Interop\Queue\Exception\InvalidMessageException
+     */
     protected function sendEventHelper(string $queueName, array $content): void
     {
         $context = $this->getContext();
@@ -89,7 +94,7 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
 
     protected function getContext(): AmqpContext
     {
-        $factory = new AmqpConnectionFactory($this->options);
+        $factory = new AmqpConnectionFactory($this->amqpOptions);
         return $factory->createContext();
     }
 

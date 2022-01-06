@@ -19,19 +19,12 @@ use SuperElf\User;
 
 final class UserAction extends Action
 {
-    /**
-     * @var PoolUserRepository
-     */
-    private $poolUserRepos;
-
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        PoolUserRepository $poolUserRepos
+        protected PoolUserRepository $poolUserRepos
     ) {
         parent::__construct($logger, $serializer);
-        $this->poolUserRepos = $poolUserRepos;
-        $this->serializer = $serializer;
     }
 
     /**
@@ -53,7 +46,8 @@ final class UserAction extends Action
             if ($poolUser->getPool() !== $pool) {
                 return new ForbiddenResponse("de pool komt niet overeen met de pool van de deelnemer");
             }
-            return $this->fetchOneHelper($response, $poolUser);
+            // alleen als je zelf admin bent
+            return $this->fetchOneHelper($response, $poolUser, false);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);
         }
@@ -74,23 +68,27 @@ final class UserAction extends Action
             $user = $request->getAttribute("user");
 
             $poolUser = $pool->getUser($user);
-            if ($poolUser === null ) {
+            if ($poolUser === null) {
                 return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
             }
 
-            return $this->fetchOneHelper($response, $poolUser);
+            return $this->fetchOneHelper($response, $poolUser, true);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);
         }
     }
 
-    public function fetchOneHelper(Response $response, PoolUser $poolUser ): Response
+    public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self): Response
     {
+        $serGroups = ['formations','players'];
+        if ($self) {
+            $serGroups[] = 'admin';
+        }
         try {
             $json = $this->serializer->serialize(
                 $poolUser,
                 'json',
-                $this->getSerializationContext(['formations','players'])
+                $this->getSerializationContext($serGroups)
             );
 
             return $this->respondWithJson($response, $json);
@@ -150,14 +148,5 @@ final class UserAction extends Action
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
         }
-    }
-
-    /**
-     * @param array | string[] $groups
-     * @return SerializationContext
-     */
-    protected function getSerializationContext( array $groups ): SerializationContext
-    {
-        return SerializationContext::create()->setGroups( array_merge( ['Default'], $groups ) );
     }
 }
