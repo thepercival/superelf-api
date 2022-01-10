@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Tests;
+namespace SuperElf\CompetitionConfig;
 
-class PoolTest extends \PHPUnit\Framework\TestCase
+class AdminstatorTest extends \PHPUnit\Framework\TestCase
 {
-    public function testWinnersOrLosersDescription(): void
+    public function testCreateSeasonOverlap(): void
     {
+//        $admin = new Administrator()
 //        $season = new Season(
 //            "20/21",
 //            new Period(new DateTimeImmutable(), (new DateTimeImmutable())->modify("+1 year"))

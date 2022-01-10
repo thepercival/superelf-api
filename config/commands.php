@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Commands\CompetitionConfig as CompetitionConfigCommand;
 use App\Commands\ExternalSource\Get as GetExternalCommand;
 use App\Commands\ExternalSource\Import as ImportCommand;
 use App\Commands\ExternalSource\ImportImage as ImportImageCommand;
@@ -35,9 +36,14 @@ $commands = [
     "app:validate-game-participations" => function (ContainerInterface $container): ValidateGameParticipationsCommand {
         return new ValidateGameParticipationsCommand($container);
     },
-    "app:validate-person-playerperiods" => function (ContainerInterface $container): ValidatePersonPlayerPeriodsCommand {
+    "app:validate-person-playerperiods" => function (ContainerInterface $container
+    ): ValidatePersonPlayerPeriodsCommand {
         return new ValidatePersonPlayerPeriodsCommand($container);
+    },
+    "app:competitionconfig" => function (ContainerInterface $container): CompetitionConfigCommand {
+        return new CompetitionConfigCommand($container);
     }
+
 ];
 
 $commands["app:list"] = function (ContainerInterface $container) use ($commands): ListingCommand {

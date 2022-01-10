@@ -6,6 +6,8 @@ namespace App\Commands;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
+use SuperElf\CompetitionConfig;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
@@ -20,6 +22,7 @@ class PlayerTotals extends Command
     protected S11PlayerRepository $s11PlayerRepos;
     protected S11PlayerTotalsRepository $s11PlayerTotalsRepos;
     protected PointsCreator $pointsCreator;
+    protected CompetitionConfigRepository $competitionConfigRepos;
     protected PlayerTotalsCalculator $playerTotalsCalculator;
 
     public function __construct(ContainerInterface $container)
@@ -37,6 +40,10 @@ class PlayerTotals extends Command
         /** @var S11PlayerTotalsRepository $s11PlayerTotalsRepos */
         $s11PlayerTotalsRepos = $container->get(S11PlayerTotalsRepository::class);
         $this->s11PlayerTotalsRepos = $s11PlayerTotalsRepos;
+
+        /** @var CompetitionConfigRepository $competitionConfigRepos */
+        $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
+        $this->competitionConfigRepos = $competitionConfigRepos;
 
         /** @var PointsCreator $pointsCreator */
         $pointsCreator = $container->get(PointsCreator::class);
@@ -68,20 +75,15 @@ class PlayerTotals extends Command
         $this->getLogger()->info('starting command app:update-playertotals');
 
         try {
-            $competition = $this->getCompetitionFromInput($input);
-            if ($competition === null) {
-                throw new \Exception('competition not found', E_ERROR);
-            }
+            $compConfig = $this->getCompetitionConfigFromInput($input);
 
-            $seasonPoints = $this->pointsCreator->get($competition->getSeason());
-
-            $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $competition]);
+            $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {
                 $this->getLogger()->info('viewPeriod: ' . $viewPeriod);
                 $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod);
                 foreach ($s11Players as $s11Player) {
                     $this->playerTotalsCalculator->updateTotals($s11Player);
-                    $this->playerTotalsCalculator->updateTotalPoints($seasonPoints, $s11Player);
+                    $this->playerTotalsCalculator->updateTotalPoints($compConfig->getPoints(), $s11Player);
                     $this->s11PlayerTotalsRepos->save($s11Player->getTotals(), true);
                     $this->s11PlayerRepos->save($s11Player, true);
                     $p = $s11Player->getTotalPoints();
@@ -94,5 +96,18 @@ class PlayerTotals extends Command
             }
         }
         return 0;
+    }
+
+    protected function getCompetitionConfigFromInput(InputInterface $input): CompetitionConfig
+    {
+        $competition = $this->getCompetitionFromInput($input);
+        if ($competition === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        $competitionConfig = $this->competitionConfigRepos->findOneBy(['competition' => $competition]);
+        if ($competitionConfig === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        return $competitionConfig;
     }
 }

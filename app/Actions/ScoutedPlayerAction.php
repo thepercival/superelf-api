@@ -54,8 +54,7 @@ final class ScoutedPlayerAction extends Action
 
             $scoutedPlayers = $this->scoutedPlayerRepos->findByExt($user, $viewPeriod);
 
-            $serContext = $this->getSerializationContext(['players']);
-            $json = $this->serializer->serialize($scoutedPlayers, 'json', $serContext);
+            $json = $this->serializer->serialize($scoutedPlayers, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);

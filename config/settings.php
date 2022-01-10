@@ -102,12 +102,5 @@ return [
         'persisted' => false,
         'suffix' => $_ENV['QUEUE_NAME_SUFFIX']
     ],
-    'periods' => [
-        'createAndJoinStart' => $_ENV['PERIODSTART_CREATE_AND_JOIN'],
-        'assembleStart' => $_ENV['PERIODSTART_ASSEMBLE'],
-        'assembleEnd' => $_ENV['PERIODEND_ASSEMBLE'],
-        'transfersStart' => $_ENV['PERIODSTART_TRANSFER'],
-        'transfersEnd' => $_ENV['PERIODEND_TRANSFER'],
-    ],
     'availableFormations' => ['1-3-4-3', '1-3-5-2', '1-4-3-3', '1-4-4-2', '1-5-3-2']
 ];

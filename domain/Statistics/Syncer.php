@@ -6,25 +6,25 @@ namespace SuperElf\Statistics;
 
 use DateTime;
 use Psr\Log\LoggerInterface;
+use Sports\Competitor\Map as CompetitorMap;
+use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Person;
 use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
-use SportsHelpers\Against\Result;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Points as SeasonPoints;
-use SuperElf\Statistics\Repository as StatisticsRepository;
-use SuperElf\Points\Creator as PointsCreator;
-use SuperElf\Player as S11Player;
-use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
 use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player as S11Player;
+use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
+use SuperElf\Points;
 use SuperElf\Points\Calculator as PointsCalculator;
-use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Competitor\Map as CompetitorMap;
+use SuperElf\Points\Creator as PointsCreator;
+use SuperElf\Statistics\Repository as StatisticsRepository;
 
 class Syncer
 {
@@ -34,6 +34,7 @@ class Syncer
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
+        protected CompetitionConfigRepository $competitionConfigRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
@@ -46,14 +47,22 @@ class Syncer
     public function sync(AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
-        // viewperiods for season
 
+        $competitionConfig = $this->competitionConfigRepos->findOneBy(['competition' => $competition]);
+        if ($competitionConfig === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+
+        $points = $competitionConfig->getPoints();
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new CompetitorMap($competitors);
 //
         $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
         if ($viewPeriod === null) {
-            throw new \Exception('the viewperiod should be found for date: ' . $game->getStartDateTime()->format(DateTime::ISO8601), E_ERROR);
+            throw new \Exception(
+                'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(DateTime::ISO8601),
+                E_ERROR
+            );
         }
         // foreach ([AgainstSide::HOME, AgainstSide::AWAY] as $homeAway) {
         foreach ($game->getPlaces(/*$homeAway*/) as $gamePlace) {
@@ -61,7 +70,7 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-            $this->syncStatistics($viewPeriod, $gamePlace, $teamCompetitor->getTeam());
+            $this->syncStatistics($viewPeriod, $points, $gamePlace, $teamCompetitor->getTeam());
         }
         // }
         $this->s11PlayerRepos->flush();
@@ -70,10 +79,11 @@ class Syncer
 
     protected function syncStatistics(
         ViewPeriod $viewPeriod,
+        Points $points,
         AgainstGamePlace $gamePlace,
         Team $team
     ): void {
-        $this->logInfo('calculating statistics ..');
+        $this->logInfo('calculating statistics ' . $team->getName() . ' ..');
         $game = $gamePlace->getGame();
         // $competition = $game->getRound()->getNumber()->getCompetition();
 
@@ -86,9 +96,6 @@ class Syncer
         if ($gameRound === null) {
             return;
         }
-        $season = $viewPeriod->getSourceCompetition()->getSeason();
-        $seasonPoints = $this->pointsCreator->get($season);
-
         $gameParticipations = array_values($gamePlace->getParticipations()->toArray());
         $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team);
         foreach ($s11Players as $s11Player) {
@@ -116,7 +123,7 @@ class Syncer
 
             if ($oldStatistics === null || !$statistics->equals($oldStatistics)) {
                 $this->playerTotalsCalculator->updateTotals($s11Player);
-                $this->playerTotalsCalculator->updateTotalPoints($seasonPoints, $s11Player);
+                $this->playerTotalsCalculator->updateTotalPoints($points, $s11Player);
                 $this->s11PlayerRepos->save($s11Player, true);
             }
         }

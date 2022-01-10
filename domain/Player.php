@@ -48,7 +48,7 @@ class Player extends Identifiable
     }
 
     /**
- * @return Collection<int|string, Statistics>
+     * @return Collection<int|string, Statistics>
      */
     public function getStatistics(): Collection
     {
@@ -82,5 +82,13 @@ class Player extends Identifiable
     public function setTotalPoints(int $totalPoints): void
     {
         $this->totalPoints = $totalPoints;
+    }
+
+    /**
+     * @return Collection<int|string, TeamPlayer>
+     */
+    public function getPlayers(): Collection
+    {
+        return $this->getPerson()->getPlayers(null, $this->getViewPeriod()->getPeriod());
     }
 }

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Actions\ActiveConfigAction;
 use App\Actions\AuthAction;
+use App\Actions\CompetitionConfigAction;
 use App\Actions\FormationAction;
 use App\Actions\PlayerAction;
 use App\Actions\Pool\ShellAction;
@@ -59,8 +59,8 @@ return function (App $app): void {
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
-    $app->options('/activeconfig', ActiveConfigAction::class . ':options');
-    $app->get('/activeconfig', ActiveConfigAction::class . ':fetchOne')->add(VersionMiddleware::class);
+    $app->options('/competitionconfig', CompetitionConfigAction::class . ':options');
+    $app->get('/competitionconfig', CompetitionConfigAction::class . ':fetchOne')->add(VersionMiddleware::class);
 
     $app->group(
         '/users/{userId}',

@@ -5,10 +5,12 @@ namespace App\Commands\Validator;
 use App\Command;
 use Psr\Container\ContainerInterface;
 use Sports\Competitor\Map as CompetitorMap;
+use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Output\Game\Against as AgainstGameOutput;
 use Sports\Output\Team\Player as TeamPlayerOutput;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
+use SportsHelpers\Against\Side;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -60,21 +62,40 @@ class GameParticipations extends Command
 
                 foreach ($games as $game) {
                     $againstGameOutput->output($game, 'validating ');
-                    foreach ($game->getPlaces() as $gamePlace) {
-                        foreach ($gamePlace->getParticipations() as $gameParticipation) {
-                            $teamPlayer = $gameParticipation->getPlayer();
-                            if (!$teamPlayer->getPeriod()->contains($game->getStartDateTime())) {
-                                $message = 'game is outside playerperiod ' . $teamPlayerOutput->getString($teamPlayer, '');
-                                $this->getLogger()->error($message);
-                                // $teamPlayerOutput->
+                    foreach ([Side::Home, Side::Away] as $side) {
+                        foreach ($game->getSidePlaces($side) as $gamePlace) {
+                            /** @var TeamCompetitor|null $teamCompetitor */
+                            $teamCompetitor = $competitorMap->getCompetitor($gamePlace->getPlace());
+                            if ($teamCompetitor === null) {
+                                throw new \Exception('team could not be found', E_ERROR);
                             }
-                            if (!$seasonPeriod->contains($teamPlayer->getPeriod())) {
-                                $message = 'player-period ' . $teamPlayerOutput->getString($teamPlayer, '') . ' is outside season ' . $seasonPeriod->format('Y-m-d');
-                                $this->getLogger()->error($message);
-                                // $teamPlayerOutput->
+                            foreach ($gamePlace->getParticipations() as $gameParticipation) {
+                                $teamPlayer = $gameParticipation->getPlayer();
+                                if ($teamPlayer->getTeam() !== $teamCompetitor->getTeam()) {
+                                    $message = 'teams of player and gameparticipation are not equal';
+                                    $this->getLogger()->error($message);
+                                    continue;
+                                }
+
+                                if (!$teamPlayer->getPeriod()->contains($game->getStartDateTime())) {
+                                    $message = 'game is outside playerperiod ' . $teamPlayerOutput->getString(
+                                            $teamPlayer,
+                                            ''
+                                        );
+                                    $this->getLogger()->error($message);
+                                    continue;
+                                }
+                                if (!$seasonPeriod->contains($teamPlayer->getPeriod())) {
+                                    $message = 'player-period ' . $teamPlayerOutput->getString(
+                                            $teamPlayer,
+                                            ''
+                                        ) . ' is outside season ' . $seasonPeriod->format('Y-m-d');
+                                    $this->getLogger()->error($message);
+                                }
                             }
                         }
                     }
+
 //                try {
 //                    $teamPlayerOutput->output($teamPlayer, 'validating ' );
 //                    $gameParticipations = $this->gameParticipationRepos->findBy(['player'=>$teamPlayer]);

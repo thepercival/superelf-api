@@ -17,7 +17,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CreateCompetitions extends Command
+class PoolCompetitions extends Command
 {
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdmin;
@@ -47,12 +47,12 @@ class CreateCompetitions extends Command
     {
         $this
             // the name of the command (the part after "bin/console")
-            ->setName('app:create-competitions')
+            ->setName('app:create-pool-competitions')
             // the short description shown while running "php bin/console list"
-            ->setDescription('creates the superelf-competitions')
+            ->setDescription('creates the superelf-pool-competitions')
             // the full command description shown when running the command with
             // the "--help" option
-            ->setHelp('creates the superelf-competitions');
+            ->setHelp('creates the superelf-pool-competitions');
 
         $this->addArgument('poolId', InputArgument::REQUIRED, 'create for one pool');
         // $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
@@ -62,7 +62,7 @@ class CreateCompetitions extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLogger($input, 'command-create-competitions');
+        $this->initLogger($input, 'command-create-pool-competitions');
         // loop door alle pools van een bepaald seizoen
         // per pool de competities verwijderen en weer opnieuw aanmaken
 

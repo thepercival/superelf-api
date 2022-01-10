@@ -31,6 +31,10 @@ abstract class ExternalSource extends Command
         $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');
         $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
 
+        $this->addOption('sport', null, InputOption::VALUE_OPTIONAL, 'the name of the sport');
+        $this->addOption('association', null, InputOption::VALUE_OPTIONAL, 'the name of the association');
+        $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
+        $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
         $this->addOption('no-game-cache', null, InputOption::VALUE_NONE, 'no-game-cache');
 
         parent::configure();

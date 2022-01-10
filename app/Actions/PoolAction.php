@@ -12,9 +12,9 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Sports\Competition\Repository as CompetitionRepository;
 use stdClass;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
@@ -29,7 +29,7 @@ final class PoolAction extends Action
         SerializerInterface $serializer,
         protected PoolRepository $poolRepos,
         protected PoolUserRepository $poolUserRepos,
-        protected CompetitionRepository $competitionRepos,
+        protected CompetitionConfigRepository $competitionConfigRepos,
         protected PoolAvailabilityChecker $poolAvailabilityChecker,
         protected PoolAdministrator $poolAdministrator,
         protected ActiveConfigService $activeConfigService,
@@ -62,24 +62,24 @@ final class PoolAction extends Action
         }
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @param array<string, int|string> $args
-     * @return Response
-     */
-    public function canCreate(Request $request, Response $response, array $args): Response
-    {
-        try {
-            $now = new \DateTimeImmutable();
-            $inCreatePeriod = $this->activeConfigService->getCreatePeriod()->contains($now);
-            $json = $this->serializer->serialize($inCreatePeriod, 'json');
-            return $this->respondWithJson($response, $json);
-        } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
-        }
-    }
-
+//    /**
+//     * @param Request $request
+//     * @param Response $response
+//     * @param array<string, int|string> $args
+//     * @return Response
+//     */
+//    public function canCreate(Request $request, Response $response, array $args): Response
+//    {
+//        try {
+//            $now = new \DateTimeImmutable();
+//            // for eredivise do check
+//            $inCreatePeriod = $this->activeConfigService->getCreatePeriod()->contains($now);
+//            $json = $this->serializer->serialize($inCreatePeriod, 'json');
+//            return $this->respondWithJson($response, $json);
+//        } catch (\Exception $e) {
+//            return new ErrorResponse($e->getMessage(), 400);
+//        }
+//    }
 
 
     /**
@@ -99,19 +99,19 @@ final class PoolAction extends Action
             if (property_exists($poolData, "name") === false) {
                 throw new \Exception("geen naam ingevoerd");
             }
-            if (property_exists($poolData, "sourceCompetitionId") === false) {
+            if (property_exists($poolData, "competitionConfigId") === false) {
                 throw new \Exception("geen bron-competitie ingevoerd");
             }
 
-
-            $sourceCompetition = $this->competitionRepos->find((int)$poolData->sourceCompetitionId);
-            if ($sourceCompetition === null) {
+            $competitionConfig = $this->competitionConfigRepos->find((int)$poolData->competitionConfigId);
+            if ($competitionConfig === null) {
                 throw new \Exception("er kan geen bron-competitie gevonden worden", E_ERROR);
             }
             $poolName = (string)$poolData->name;
 
+            $sourceCompetition = $competitionConfig->getSourceCompetition();
             $this->poolAvailabilityChecker->check($sourceCompetition->getSeason(), $poolName, $user);
-            $pool = $this->poolAdministrator->createPool($sourceCompetition, $poolName, $user);
+            $pool = $this->poolAdministrator->createPool($competitionConfig, $poolName, $user);
 
             // $this->poolRepos->save($pool);
             $serializationContext = $this->getPoolSerializationContext($pool, $user);

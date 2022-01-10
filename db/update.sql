@@ -3,12 +3,11 @@
 
 
 -- POST POST POST doctrine-update ===========================================================
+-- STEP 2
 INSERT INTO externalSystems (name,website,username,password,apiurl,apikey) VALUES ('SofaScore','https://www.sofascore.com/',null,null,'https://api.sofascore.com/api/v1/',null);
 
-
+-- STEP 4 : ONE TIME AFTER IMPORT SPORTS
 INSERT INTO sports(name,team,defaultGameMode,defaultNrOfSidePlaces, customId) values('superelf', false, 3, 0, 0);
-
--- ONE TIME AFTER IMPORT SPORTS
 update sports set customId = 11 where name = 'football';
 
 -- INSERT INTO formations(name, sportId)

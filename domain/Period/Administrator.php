@@ -4,16 +4,10 @@ declare(strict_types=1);
 
 namespace SuperElf\Period;
 
-use League\Period\Period;
 use Selective\Config\Configuration;
-use Sports\Competition;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
-use SuperElf\Defaults;
-use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
-use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
-use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Pool\Repository as PoolRepository;
 
@@ -28,7 +22,7 @@ class Administrator
         protected Configuration $config
     ) {
     }
-
+/*
     public function getCreateAndJoinPeriod(Competition $sourceCompetition): ViewPeriod
     {
         $period = $this->activeConfigService->getCreateAndJoinPeriod();
@@ -84,5 +78,5 @@ class Administrator
         );
 
         return $this->transferPeriodRepos->save($transferPeriod);
-    }
+    }*/
 }

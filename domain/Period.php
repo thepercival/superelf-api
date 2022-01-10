@@ -7,7 +7,6 @@ namespace SuperElf;
 use DateTime;
 use DateTimeImmutable;
 use League\Period\Period as BasePeriod;
-use Sports\Competition;
 use SportsHelpers\Identifiable;
 use Stringable;
 
@@ -16,15 +15,10 @@ abstract class Period extends Identifiable implements Stringable
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
 
-    public function __construct(protected Competition $sourceCompetition, BasePeriod $period)
+    public function __construct(BasePeriod $period)
     {
         $this->startDateTime = $period->getStartDate();
         $this->endDateTime = $period->getEndDate();
-    }
-
-    public function getSourceCompetition(): Competition
-    {
-        return $this->sourceCompetition;
     }
 
     public function getStartDateTime(): DateTimeImmutable

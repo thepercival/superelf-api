@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Commands\CompetitionConfig;
+use DateTimeImmutable;
 use Exception;
+use League\Period\Period;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
@@ -81,12 +84,8 @@ class Command extends SymCommand
         $this->addOption('logtofile', null, InputOption::VALUE_NONE, 'logtofile?');
         $this->addOption('loglevel', null, InputOption::VALUE_OPTIONAL, '' . Logger::INFO);
 
-        $this->addOption('sport', null, InputOption::VALUE_OPTIONAL, 'the name of the sport');
-        $this->addOption('association', null, InputOption::VALUE_OPTIONAL, 'the name of the association');
-        $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
-        $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
-        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
-        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+//        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+//        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
     }
 
     protected function getLogger(): LoggerInterface
@@ -242,5 +241,46 @@ class Command extends SymCommand
             return $fallBackValue;
         }
         return $idOption;
+    }
+
+    protected function getDateTimeFromInput(InputInterface $input, string $optionName): DateTimeImmutable
+    {
+        $optionValue = $input->getOption($optionName);
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+        }
+        $dateTime = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $optionValue);
+        if ($dateTime === false) {
+            throw new Exception('invalid datetime "' . $optionName . '" given', E_ERROR);
+        }
+        return $dateTime;
+    }
+
+    protected function getPeriodFromInput(InputInterface $input, string $optionName): Period
+    {
+        $optionValue = $input->getOption($optionName);
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+        }
+        if (!str_contains($optionValue, '=>')) {
+            throw new Exception('invalid "' . $optionName . '"-option given', E_ERROR);
+        }
+        $dateTimes = explode('=>', $optionName);
+        if (count($dateTimes) !== 2) {
+            throw new Exception('invalid "' . $optionName . '"-option given', E_ERROR);
+        }
+
+        $start = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $dateTimes[0]);
+        if ($start === false) {
+            throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
+        }
+        $end = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $dateTimes[1]);
+        if ($end === false) {
+            throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
+        }
+        if ($start->getTimestamp() > $end->getTimestamp()) {
+            throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
+        }
+        return new Period($start, $end);
     }
 }

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace SuperElf\Formation;
 
+use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
+use Sports\Formation\Line as SportsFormationLine;
 use Sports\Sport\Custom as CustomSport;
-use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\Formation;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
@@ -16,9 +17,34 @@ use SuperElf\Pool\User as PoolUser;
 
 class Editor
 {
-    public function __construct(
-        protected ActiveConfigService $activeConfigService
-    ) {
+    /**
+     * @var list<SportsFormation>
+     */
+    protected array $availableFormations;
+
+    public function __construct(Configuration $config)
+    {
+        /** @var list<string> $formations */
+        $formations = $config->getArray('availableFormations');
+        $this->initAvailableFormations($formations);
+    }
+
+    /**
+     * @param list<string> $formationNames
+     */
+    protected function initAvailableFormations(array $formationNames): void
+    {
+        $this->availableFormations = [];
+        foreach ($formationNames as $formationName) {
+            $formation = new SportsFormation();
+            new SportsFormationLine(
+                $formation, CustomSport::Football_Line_GoalKepeer, (int)substr($formationName, 0, 1)
+            );
+            new SportsFormationLine($formation, CustomSport::Football_Line_Defense, (int)substr($formationName, 2, 1));
+            new SportsFormationLine($formation, CustomSport::Football_Line_Midfield, (int)substr($formationName, 4, 1));
+            new SportsFormationLine($formation, CustomSport::Football_Line_Forward, (int)substr($formationName, 6, 1));
+            $this->availableFormations[] = $formation;
+        }
     }
 
     public function createAssemble(PoolUser $poolUser, SportsFormation $sportsFormation): Formation
@@ -154,11 +180,28 @@ class Editor
             if ($nrOfPersons !== 11) {
                 throw new \Exception('het aantal teamleden moet 11 zijn', E_ERROR);
             }
-            if (!$this->activeConfigService->isAvailable($sportsFormation)) {
+            if (!$this->isAvailable($sportsFormation)) {
                 throw new \Exception('de formatie "' . $sportsFormation->getName() . '" is niet beschikbaar', E_ERROR);
             }
         } catch (\Exception $e) {
             throw new \Exception('de formatie is onjuist: ' . $e->getMessage(), E_ERROR);
         }
     }
+
+    /**
+     * @param SportsFormation $sportsFormation
+     * @return bool
+     */
+    public function isAvailable(SportsFormation $sportsFormation): bool
+    {
+        $name = $sportsFormation->getName();
+        foreach ($this->availableFormations as $availableFormation) {
+            if ($availableFormation->getName() === $name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }

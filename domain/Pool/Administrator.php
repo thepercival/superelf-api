@@ -6,10 +6,10 @@ namespace SuperElf\Pool;
 
 use Selective\Config\Configuration;
 use Sports\Association;
-use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\League\Repository as LeagueRepository;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
+use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
 use SuperElf\Period\Administrator as PeriodAdministrator;
 use SuperElf\Points\Creator as PointsCreator;
@@ -39,7 +39,7 @@ class Administrator
         protected Configuration $config
     ) {
         $this->competitionsCreator = new CompetitionsCreator();
-        $this->pointsCreator = new PointsCreator($this->pointsRepository);
+        $this->pointsCreator = new PointsCreator();
     }
 
     public function createCollection(string $name): PoolCollection
@@ -52,17 +52,19 @@ class Administrator
         return $poolCollection;
     }
 
-    public function createPool(Competition $sourceCompetition, string $name, User $user): Pool
+    public function createPool(CompetitionConfig $competitionConfig, string $name, User $user): Pool
     {
         $poolCollection = $this->createCollection($name);
-        $pool = new Pool(
-            $poolCollection,
-            $sourceCompetition,
-            $this->pointsCreator->get($sourceCompetition->getSeason()),
-            $this->periodAdministrator->getCreateAndJoinPeriod($sourceCompetition),
-            $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
-            $this->periodAdministrator->getTransferPeriod($sourceCompetition)
-        );
+
+//        $competitionConfig = new CompetitionConfig(
+//            $sourceCompetition,
+//            $this->pointsCreator->get($sourceCompetition->getSeason()),
+//            $this->periodAdministrator->getCreateAndJoinPeriod($sourceCompetition),
+//            $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
+//            $this->periodAdministrator->getTransferPeriod($sourceCompetition)
+//        );
+
+        $pool = new Pool($poolCollection, $competitionConfig);
 
         $this->addUser($pool, $user, true);
         $this->poolRepos->save($pool, true);

@@ -15,3 +15,7 @@ SuperElf\Player:
     totalPoints:
       type: integer
       read_only: true
+  virtual_properties:
+    getPlayers:
+      type: ArrayCollection<Sports\Team\Player>
+      serialized_name: players

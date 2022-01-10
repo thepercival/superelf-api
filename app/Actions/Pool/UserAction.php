@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Actions\Pool;
 
-use App\Response\ForbiddenResponse;
-use JMS\Serializer\SerializationContext;
-use JMS\Serializer\SerializerInterface;
+use App\Actions\Action;
 use App\Response\ErrorResponse;
+use App\Response\ForbiddenResponse;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
-use App\Actions\Action;
-use Psr\Log\LoggerInterface;
 use SuperElf\User;
 
 final class UserAction extends Action
@@ -80,7 +79,7 @@ final class UserAction extends Action
 
     public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self): Response
     {
-        $serGroups = ['formations','players'];
+        $serGroups = ['formations'];
         if ($self) {
             $serGroups[] = 'admin';
         }

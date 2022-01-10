@@ -6,9 +6,8 @@ namespace SuperElf\Period;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Sports\Competition;
-use SuperElf\GameRound;
 use League\Period\Period as BasePeriod;
+use SuperElf\GameRound;
 use SuperElf\Period as PeriodBase;
 
 class View extends PeriodBase
@@ -18,9 +17,9 @@ class View extends PeriodBase
      */
     protected Collection $gameRounds;
 
-    public function __construct(Competition $competition, BasePeriod $period)
+    public function __construct(BasePeriod $period)
     {
-        parent::__construct($competition, $period);
+        parent::__construct($period);
 
         $this->gameRounds = new ArrayCollection();
     }

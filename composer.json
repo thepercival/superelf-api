@@ -72,7 +72,7 @@
     }
   },
   "scripts": {
-    "start":  [
+    "start": [
       "Composer\\Config::disableProcessTimeout",
       "php -S localhost:2997 -t public/"
     ],
@@ -81,8 +81,9 @@
     ],
     "stan": "XDEBUG_MODE=off vendor/bin/phpstan analyse",
     "psalm": "XDEBUG_MODE=off vendor/bin/psalm --output-format=phpstorm --show-info=true --no-diff",
-    "doctrine-try": "vendor/bin/doctrine orm:schema-tool:update --dump-sql",
-    "doctrine-update": "vendor/bin/doctrine orm:schema-tool:update --force",
+    "doctrine-try": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --dump-sql",
+    "doctrine-update": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --force",
+    "doctrine-validate": "XDEBUG_MODE=off vendor/bin/doctrine orm:validate-schema",
     "cs-fix": "php-cs-fixer fix .",
     "post-install-cmd": [
       "App\\Handlers\\ComposerPostInstall::execute",

@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace SuperElf\Points;
 
-use Sports\Season;
 use SuperElf\Defaults;
 use SuperElf\Points;
-use SuperElf\Points\Repository as PointsRepository;
 
 class Creator
 {
-    public function __construct(protected PointsRepository $pointsRepos)
+    public function __construct()
     {
     }
 
-    public function get(Season $season): Points
+    public function createDefault(): Points
     {
-        $points = $this->pointsRepos->findOneBy(["season" => $season ]);
-        if ($points !== null) {
-            return $points;
-        }
-        $points = new Points(
-            $season,
+        return new Points(
             Defaults::POINTS_WIN,
             Defaults::POINTS_DRAW,
             Defaults::GOAL_GOALKEEPER,
@@ -42,7 +35,5 @@ class Creator
             Defaults::CARD_YELLOW,
             Defaults::CARD_RED
         );
-        $this->pointsRepos->save($points);
-        return $points;
     }
 }

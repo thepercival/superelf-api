@@ -11,7 +11,6 @@ use Sports\Season;
 use SportsHelpers\Identifiable;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Period\View as ViewPeriod;
 use SuperElf\Pool\User as PoolUser;
 
 class Pool extends Identifiable
@@ -20,31 +19,22 @@ class Pool extends Identifiable
      * @var Collection<int|string, PoolUser>
      */
     protected Collection $users;
-//    /**
-//     * @var Collection<int|string, GameRoundScore>
-//     */
-//    protected $scores;
 
     public function __construct(
         protected PoolCollection $collection,
-        protected Competition $sourceCompetition,
-        protected Points $points,
-        protected ViewPeriod $createAndJoinPeriod,
-        protected AssemblePeriod $assemblePeriod,
-        protected TransferPeriod $transferPeriod
+        protected CompetitionConfig $competitionConfig
     ) {
         $this->users = new ArrayCollection();
-//        $this->scores = new ArrayCollection();
-    }
-
-    public function getCreateAndJoinPeriod(): ViewPeriod
-    {
-        return $this->createAndJoinPeriod;
     }
 
     public function getCollection(): PoolCollection
     {
         return $this->collection;
+    }
+
+    public function getCompetitionConfig(): CompetitionConfig
+    {
+        return $this->competitionConfig;
     }
 
     public function getSeason(): Season
@@ -54,33 +44,13 @@ class Pool extends Identifiable
 
     public function getSourceCompetition(): Competition
     {
-        return $this->sourceCompetition;
+        return $this->getCompetitionConfig()->getSourceCompetition();
     }
 
-    public function getSourceCompetitionId(): int
-    {
-        return (int)$this->sourceCompetition->getId();
-    }
-
-    public function getPoints(): Points
-    {
-        return $this->points;
-    }
-
-    public function getAssemblePeriod(): AssemblePeriod
-    {
-        return $this->assemblePeriod;
-    }
-
-    public function getTransferPeriod(): TransferPeriod
-    {
-        return $this->transferPeriod;
-    }
-
-    public function isInAssembleOrTransferPeriod(): bool
-    {
-        return $this->getAssemblePeriod()->contains() || $this->getTransferPeriod()->contains();
-    }
+//    public function getSourceCompetitionId(): int
+//    {
+//        return (int)$this->sourceCompetition->getId();
+//    }
 
     /**
      * @return Collection<int|string, PoolUser>
@@ -170,5 +140,20 @@ class Pool extends Identifiable
     public function getSiblings(): Collection
     {
         return $this->getCollection()->getPools();
+    }
+
+    public function getPoints(): Points
+    {
+        return $this->competitionConfig->getPoints();
+    }
+
+    public function getAssemblePeriod(): AssemblePeriod
+    {
+        return $this->competitionConfig->getAssemblePeriod();
+    }
+
+    public function getTransferPeriod(): TransferPeriod
+    {
+        return $this->competitionConfig->getTransferPeriod();
     }
 }

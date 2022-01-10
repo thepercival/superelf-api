@@ -53,6 +53,8 @@ use SportsImport\CacheItemDb;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SuperElf\CompetitionConfig;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Competitor;
 use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Formation;
@@ -234,6 +236,13 @@ return [
         /** @psalm-var ClassMetadata<Competitor> $metaData */
         $metaData = $entityManager->getClassMetadata(Competitor::class);
         return new CompetitorRepository($entityManager, $metaData);
+    },
+    CompetitionConfigRepository::class => function (ContainerInterface $container): CompetitionConfigRepository {
+        /** @var EntityManager $entityManager */
+        $entityManager = $container->get(EntityManager::class);
+        /** @psalm-var ClassMetadata<Competitor> $metaData */
+        $metaData = $entityManager->getClassMetadata(CompetitionConfig::class);
+        return new CompetitionConfigRepository($entityManager, $metaData);
     },
     SportRepository::class => function (ContainerInterface $container): SportRepository {
         /** @var EntityManager $entityManager */

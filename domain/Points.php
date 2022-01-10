@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
-use Sports\Season;
 use Sports\Sport;
 use SportsHelpers\Identifiable;
 
 class Points extends Identifiable
 {
     public function __construct(
-        protected Season $season,
         protected int $resultWin,
         protected int $resultDraw,
         protected int $fieldGoalGoalkeeper,
@@ -171,10 +169,5 @@ class Points extends Identifiable
     public function getCardRed(): int
     {
         return $this->cardRed;
-    }
-
-    public function getSeason(): Season
-    {
-        return $this->season;
     }
 }

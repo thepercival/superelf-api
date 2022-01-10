@@ -9,23 +9,27 @@
     <field name="fieldGoalForward" column="fieldGoalForward" type="smallint" nullable="false" unique="false"/>
     <field name="assistGoalkeeper" column="assistGoalkeeper" type="smallint" nullable="false" unique="false"/>
     <field name="assistDefender" column="assistDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="assistMidfielder" column="assistMidfielder" type="smallint" nullable="false" unique="false"/>
-    <field name="assistForward" column="assistForward" type="smallint" nullable="false" unique="false"/>
-    <field name="penalty" column="penalty" type="smallint" nullable="false" unique="false"/>
-    <field name="ownGoal" column="ownGoal" type="smallint" nullable="false" unique="false"/>
-    <field name="cleanSheetGoalkeeper" column="cleanSheetGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="cleanSheetDefender" column="cleanSheetDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="spottySheetGoalkeeper" column="spottySheetGoalkeeper" type="smallint" nullable="false" unique="false"/>
-    <field name="spottySheetDefender" column="spottySheetDefender" type="smallint" nullable="false" unique="false"/>
-    <field name="cardYellow" column="cardYellow" type="smallint" nullable="false" unique="false"/>
-    <field name="cardRed" column="cardRed" type="smallint" nullable="false" unique="false"/>
-    <many-to-one field="season" target-entity="Sports\Season">
-      <join-columns>
-        <join-column name="seasonId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
-      </join-columns>
-    </many-to-one>
-    <unique-constraints>
-      <unique-constraint columns="seasonId" name="main_u_idx"/>
-    </unique-constraints>
+      <field name="assistMidfielder" column="assistMidfielder" type="smallint" nullable="false" unique="false"/>
+      <field name="assistForward" column="assistForward" type="smallint" nullable="false" unique="false"/>
+      <field name="penalty" column="penalty" type="smallint" nullable="false" unique="false"/>
+      <field name="ownGoal" column="ownGoal" type="smallint" nullable="false" unique="false"/>
+      <field name="cleanSheetGoalkeeper" column="cleanSheetGoalkeeper" type="smallint" nullable="false" unique="false"/>
+      <field name="cleanSheetDefender" column="cleanSheetDefender" type="smallint" nullable="false" unique="false"/>
+      <field name="spottySheetGoalkeeper" column="spottySheetGoalkeeper" type="smallint" nullable="false"
+             unique="false"/>
+      <field name="spottySheetDefender" column="spottySheetDefender" type="smallint" nullable="false" unique="false"/>
+      <field name="cardYellow" column="cardYellow" type="smallint" nullable="false" unique="false"/>
+      <field name="cardRed" column="cardRed" type="smallint" nullable="false" unique="false"/>
+      <!--    <many-to-one field="competitionConfig" target-entity="SuperElf\CompetitionConfig">-->
+      <!--      <cascade>-->
+      <!--        <cascade-persist/>-->
+      <!--      </cascade>-->
+      <!--      <join-columns>-->
+      <!--        <join-column name="competitionConfigId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>-->
+      <!--      </join-columns>-->
+      <!--    </many-to-one>-->
+      <!--    <unique-constraints>-->
+      <!--      <unique-constraint columns="competitionConfigId" name="main_u_idx"/>-->
+      <!--    </unique-constraints>-->
   </entity>
 </doctrine-mapping>
