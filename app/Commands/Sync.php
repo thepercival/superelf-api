@@ -15,14 +15,17 @@ use Psr\Container\ContainerInterface;
 use Sports\Competition;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\State;
+use Sports\Game\State as GameState;
 use SportsHelpers\SportRange;
+use SportsImport\Event\Game;
+use SportsImport\Event\Game as GameEvent;
 use stdClass;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Sync extends Command
@@ -74,6 +77,8 @@ class Sync extends Command
             // the "--help" option
             ->setHelp('syncs superelf-data after game-import');
 
+        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+
         parent::configure();
     }
 
@@ -95,15 +100,17 @@ class Sync extends Command
                 }
             }
 
-
             $gameId = $this->getIdFromInput($input, 0);
-            if ($gameId !== 0) {
-                $this->syncGame($gameId, null);
+            $game = $this->againstGameRepos->find((int)$gameId);
+            if ($game === null) {
+                $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
                 return 0;
             }
+            $this->s11PlayerSyncer->sync($game);
+            $this->statisticsSyncer->sync($game);
+            $this->appearanceSyncer->sync($game);
 
-            $queueName = QueueService::NAME_UPDATE_GAME_QUEUE;
-            $queueService->receive($this->getReceiver(), $timeoutInSeconds, $queueName);
+            $queueService->receive($this->getReceiver(), $timeoutInSeconds, QueueService::GENERAL_QUEUE);
         } catch (\Exception $e) {
             if ($this->logger !== null) {
                 $this->logger->error($e->getMessage());
@@ -129,15 +136,34 @@ class Sync extends Command
             try {
                 /** @var stdClass $content */
                 $content = json_decode($message->getBody());
-                if (!property_exists($content, "gameId")) {
-                    throw new \Exception('no gameId found in queue-message', E_ERROR);
+                if (!property_exists($content, "action")) {
+                    throw new \Exception('no action found in queue-message', E_ERROR);
                 }
-                $gameId = (int)$content->gameId;
-                $oldStartDateTime = null;
-                if (property_exists($content, "oldTimestamp")) {
-                    $oldStartDateTime = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
+
+                try {
+                    $game = $this->getGameFromQueueMessage($content);
+                } catch (\Exception $e) {
+                    $this->getLogger()->error($e->getMessage());
+                    $consumer->acknowledge($message);
+                    return;
                 }
-                $this->syncGame($gameId, $oldStartDateTime);
+
+                $event = GameEvent::from((string)$content->action);
+                if ($event === GameEvent::Create || $event === GameEvent::UpdateBasics || $event === GameEvent::Reschedule) {
+                    $oldStartDateTime = null;
+                    if (property_exists($content, "oldTimestamp")) {
+                        $oldStartDateTime = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
+                    }
+
+                    $this->gameRoundSyncer->sync($game, $oldStartDateTime);
+                    $this->s11PlayerSyncer->sync($game);
+                    $this->statisticsSyncer->sync($game);
+                    $this->appearanceSyncer->sync($game);
+                } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
+                    $this->s11PlayerSyncer->sync($game);
+                    $this->statisticsSyncer->sync($game);
+                    $this->appearanceSyncer->sync($game);
+                }
                 $consumer->acknowledge($message);
                 die();
             } catch (\Exception $e) {
@@ -147,7 +173,7 @@ class Sync extends Command
         };
     }
 
-    protected function syncGame(string|int $gameId, \DateTimeImmutable|null $oldStartDateTime): void
+    protected function syncRescheduleGame(string|int $gameId, \DateTimeImmutable $oldStartDateTime): void
     {
         $game = $this->againstGameRepos->find((int)$gameId);
         if ($game === null) {
@@ -158,6 +184,19 @@ class Sync extends Command
         $this->s11PlayerSyncer->sync($game);
         $this->statisticsSyncer->sync($game);
         $this->appearanceSyncer->sync($game);
+    }
+
+    protected function getGameFromQueueMessage(stdClass $queueMessage): AgainstGame
+    {
+        if (!property_exists($queueMessage, "gameId")) {
+            throw new \Exception('no gameId found in queue-message', E_ERROR);
+        }
+        $gameId = (int)$queueMessage->gameId;
+        $game = $this->againstGameRepos->find($gameId);
+        if ($game === null) {
+            throw new \Exception('game with gameId ' . (string)$gameId . ' not found', E_ERROR);
+        }
+        return $game;
     }
 
     /**
@@ -188,7 +227,7 @@ class Sync extends Command
         foreach ($gameRoundNrRange->toArray() as $gameRoundNumber) {
             $gameRoundGames = $this->againstGameRepos->getCompetitionGames(
                 $competition,
-                State::Created + State::InProgress + State::Finished,
+                [GameState::Created, GameState::InProgress, GameState::Finished],
                 $gameRoundNumber,
                 $competition->getSeason()->getPeriod()
             );

@@ -46,6 +46,17 @@ return [
             'proxy_dir' => __DIR__ . '/../cache/proxies',
             'cache' => null,
         ],
+        'migrationconnection' => [
+            'driver' => 'pdo_mysql',
+            'host' => $_ENV['DB_HOST'],
+            'dbname' => $_ENV['DB_MIGRATION_NAME'],
+            'user' => $_ENV['DB_MIGRATION_USERNAME'],
+            'password' => $_ENV['DB_MIGRATION_PASSWORD'],
+            'charset' => 'utf8mb4',
+            'driverOptions' => array(
+                1002 => "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_general_ci'"
+            )
+        ],
         'connection' => [
             'driver' => 'pdo_mysql',
             'host' => $_ENV['DB_HOST'],

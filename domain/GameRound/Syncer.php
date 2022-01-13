@@ -7,7 +7,7 @@ namespace SuperElf\GameRound;
 use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\State;
+use Sports\Game\State as GameState;
 use SuperElf\GameRound;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
@@ -59,7 +59,7 @@ class Syncer
         // if no games for this gameroundnumber in oldviewperiod than remove gameroundnumber
         $againstGames = $this->againstGameRepos->getCompetitionGames(
             $competition,
-            State::Created + State::InProgress + State::Finished,
+            [GameState::Created, GameState::InProgress, GameState::Finished],
             $game->getGameRoundNumber(),
             $oldViewPeriod->getPeriod()
         );

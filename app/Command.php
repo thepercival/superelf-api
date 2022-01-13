@@ -83,9 +83,6 @@ class Command extends SymCommand
     {
         $this->addOption('logtofile', null, InputOption::VALUE_NONE, 'logtofile?');
         $this->addOption('loglevel', null, InputOption::VALUE_OPTIONAL, '' . Logger::INFO);
-
-//        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
-//        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
     }
 
     protected function getLogger(): LoggerInterface
@@ -265,7 +262,7 @@ class Command extends SymCommand
         if (!str_contains($optionValue, '=>')) {
             throw new Exception('invalid "' . $optionName . '"-option given', E_ERROR);
         }
-        $dateTimes = explode('=>', $optionName);
+        $dateTimes = explode('=>', $optionValue);
         if (count($dateTimes) !== 2) {
             throw new Exception('invalid "' . $optionName . '"-option given', E_ERROR);
         }

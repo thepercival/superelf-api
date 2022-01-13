@@ -42,6 +42,10 @@
             </join-columns>
         </one-to-one>
         <one-to-one field="points" target-entity="SuperElf\Points">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
             <join-columns>
                 <join-column name="pointsId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Mailer;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use JMS\Serializer\DeserializationContext;
@@ -98,8 +99,18 @@ return [
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PointsCalculation');
         Type::addType('enum_PlanningState', SportsPlanning\Planning\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PlanningState');
+        Type::addType('enum_GameState', Sports\Game\StateType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
 
         return $em;
+    },
+    DBConnection::class => function (ContainerInterface $container): DBConnection {
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $doctrineAppConfig = $config->getArray('doctrine');
+        /** @var array<string, string|int> $connectionParams */
+        $connectionParams = $doctrineAppConfig['migrationconnection'];
+        return \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
     },
     SerializerInterface::class => function (ContainerInterface $container): SerializerInterface {
         /** @var Configuration $config */

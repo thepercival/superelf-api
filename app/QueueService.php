@@ -10,8 +10,8 @@ use Interop\Amqp\AmqpQueue;
 use Interop\Amqp\AmqpTopic;
 use Interop\Amqp\Impl\AmqpBind;
 use Sports\Game;
-use SportsImport\Queue\Game\ImportDetailsEvent as ImportGameDetailsEvent;
-use SportsImport\Queue\Game\ImportEvent as ImportGameEvent;
+use SportsImport\Event\Game as GameEvent;
+use SportsImport\Queue\Game\ImportEvents as ImportGameEvents;
 
 /**
  * sudo rabbitmqctl list_queues
@@ -21,12 +21,11 @@ use SportsImport\Queue\Game\ImportEvent as ImportGameEvent;
  * Class QueueService
  * @package App
  */
-class QueueService implements ImportGameEvent, ImportGameDetailsEvent
+class QueueService implements ImportGameEvents
 {
     private string $queueSuffix = '';
 
-    public const NAME_UPDATE_GAME_QUEUE = 'update-gamedetails-queue';
-    public const NAME_UPDATE_GAMEDETAILS_QUEUE = 'update-gamedetails-queue';
+    public const GENERAL_QUEUE = 'game-events-queue';
 
     /**
      * @param array<array-key, mixed> $amqpOptions
@@ -40,19 +39,38 @@ class QueueService implements ImportGameEvent, ImportGameDetailsEvent
         unset($amqpOptions['suffix']);
     }
 
-    public function sendUpdateGameEvent(Game $game, \DateTimeImmutable $oldStartDateTime = null): void
+    public function sendCreateEvent(Game $newGame): void
     {
-        $content = ["gameId" => $game->getId() ];
-        if ($oldStartDateTime !== null) {
-            $content["oldTimestamp"] = $oldStartDateTime->getTimestamp();
-        }
-        $this->sendEventHelper(self::NAME_UPDATE_GAME_QUEUE, $content);
+        $content = ['action' => GameEvent::Create->value, 'gameId' => $newGame->getId()];
+        $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
-    public function sendUpdateGameDetailsEvent(Game $game): void
+    public function sendRescheduleEvent(\DateTimeImmutable $oldStartDateTime, Game $updatedGame): void
     {
-        $content = ["gameId" => $game->getId()];
-        $this->sendEventHelper(self::NAME_UPDATE_GAMEDETAILS_QUEUE, $content);
+        $content = [
+            'action' => GameEvent::Reschedule->value,
+            'oldTimestamp' => $oldStartDateTime->getTimestamp(),
+            'gameId' => $updatedGame->getId()
+        ];
+        $this->sendEventHelper(self::GENERAL_QUEUE, $content);
+    }
+
+    public function sendUpdateBasicsEvent(Game $updatedGame): void
+    {
+        $content = [
+            'action' => GameEvent::UpdateBasics->value,
+            'gameId' => $updatedGame->getId()
+        ];
+        $this->sendEventHelper(self::GENERAL_QUEUE, $content);
+    }
+
+    public function sendUpdateScoresLineupsAndEventsEvent(Game $updatedGame): void
+    {
+        $content = [
+            'action' => GameEvent::UpdateScoresLineupsAndEvents->value,
+            'gameId' => $updatedGame->getId()
+        ];
+        $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
     /**

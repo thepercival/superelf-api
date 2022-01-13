@@ -16,7 +16,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * create --league=eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --assemblePeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
+ * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --assemblePeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
+ * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2015/2016 --createAndJoinStart="2015-07-31 12:00" --assemblePeriod="2015-09-01 06:00=>2015-09-12 16:00" --transferPeriod="2016-02-01 06:00=>2016-02-05 18:30" --loglevel=200
  */
 class CompetitionConfig extends Command
 {
@@ -103,19 +104,22 @@ class CompetitionConfig extends Command
             throw new \Exception('competition not found', E_ERROR);
         }
         $admin = $this->getAdministrator($competition);
-        $admin->create(
+        $competitionConfig = $admin->create(
             $competition,
             $this->getDateTimeFromInput($input, 'createAndJoinStart'),
             $this->getPeriodFromInput($input, 'assemblePeriod'),
-            $this->getPeriodFromInput($input, 'transferPeriod')
+            $this->getPeriodFromInput($input, 'transferPeriod'),
+            $this->againstGameRepos->getCompetitionGames($competition)
         );
+        $this->competitionConfigRepos->save($competitionConfig);
+        $this->getLogger()->info('competitionConfig created and saved');
         // throw new \Exception('implement', E_ERROR);
         return 0;
     }
 
     protected function getAdministrator(Competition $competition): Administrator
     {
-        $existingCompetitionConfigs = $this->competitionConfigRepos->findBy(['competition' => $competition]);
+        $existingCompetitionConfigs = $this->competitionConfigRepos->findBy(['sourceCompetition' => $competition]);
         return new Administrator($existingCompetitionConfigs);
     }
 

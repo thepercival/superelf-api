@@ -11,9 +11,9 @@ use Sports\League;
 use Sports\Season;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
+use SportsImport\ExternalSource\GamesAndPlayers;
 use SportsImport\Importer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -61,7 +61,7 @@ class ImportImage extends ExternalSourceCommand
         try {
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof CompetitionDetails) {
+                $externalSourceImpl instanceof GamesAndPlayers) {
                 $league = $this->getLeagueFromInput($input);
                 $season = $this->getSeasonFromInput($input);
                 if ($entity === Entity::TEAMS) {
@@ -110,7 +110,7 @@ class ImportImage extends ExternalSourceCommand
     }
 
     protected function importPlayerImages(
-        CompetitionDetails $externalSourceCompetitionDetails,
+        GamesAndPlayers $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         League $league,
         Season $season
@@ -118,7 +118,7 @@ class ImportImage extends ExternalSourceCommand
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.playersSuffix');
         $this->importer->importPlayerImages(
-            $externalSourceCompetitionDetails,
+            $externalSourceGamesAndPlayers,
             $externalSource,
             $league,
             $season,

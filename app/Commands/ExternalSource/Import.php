@@ -12,11 +12,12 @@ use Sports\Season;
 use Sports\Sport;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
+use SportsImport\ExternalSource\GamesAndPlayers;
 use SportsImport\Importer;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Import extends ExternalSourceCommand
@@ -28,8 +29,8 @@ class Import extends ExternalSourceCommand
         /** @var Importer $importer */
         $importer = $container->get(Importer::class);
         $this->importer = $importer;
+
         parent::__construct($container);
-        $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
     }
 
     protected function configure(): void
@@ -42,6 +43,10 @@ class Import extends ExternalSourceCommand
             // the full command description shown when running the command with
             // the "--help" option
             ->setHelp('import the objects');
+
+        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+        $this->addOption('no-events', null, InputOption::VALUE_NONE, 'no-events');
 
         parent::configure();
     }
@@ -56,6 +61,12 @@ class Import extends ExternalSourceCommand
                 $message = "voor '" . $externalSourceName . "' kan er geen externe bron worden gevonden";
                 $this->getLogger()->error($message);
                 return -1;
+            }
+
+            /** @var bool|null $noEvents */
+            $noEvents = $input->getOption('no-events');
+            if ($noEvents !== true) {
+                $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
             }
 
             $entity = $this->getEntityFromInput($input);
@@ -136,13 +147,13 @@ class Import extends ExternalSourceCommand
             }
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof CompetitionDetails) {
+                $externalSourceImpl instanceof GamesAndPlayers) {
                 $sport = $this->getSportFromInput($input);
                 $league = $this->getLeagueFromInput($input);
                 $season = $this->getSeasonFromInput($input);
                 switch ($entity) {
-                    case Entity::GAMES:
-                        $this->importer->importSchedule(
+                    case Entity::GAMES_BASICS:
+                        $this->importer->importGamesBasics(
                             $externalSourceImpl,
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -150,11 +161,25 @@ class Import extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
+                            $this->getGameCacheOptionFromInput($input),
                             $this->getGameRoundNrRangeFromInput($input)
                         );
                         return 0;
-                    case Entity::GAMEDETAILS:
-                        $this->importAgainstGameDetails(
+                    case Entity::GAMES_COMPLEET:
+                        $this->importer->importGamesComplete(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season,
+                            $this->getGameCacheOptionFromInput($input),
+                            $this->getGameRoundNrRangeFromInput($input)
+                        );
+                        return 0;
+                    case Entity::GAME:
+                        $this->importGame(
                             $externalSourceImpl,
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -177,16 +202,16 @@ class Import extends ExternalSourceCommand
         return 0;
     }
 
-    protected function importAgainstGameDetails(
+    protected function importGame(
         Competitions $externalSourceCompetitions,
         CompetitionStructure $externalSourceCompetitionStructure,
-        CompetitionDetails $externalSourceCompetitionDetails,
+        GamesAndPlayers $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
         Season $season,
         string $externalGameId,
-        bool $removeFromGameCache
+        bool $dontUseCache
     ): void {
         // bepaal de period waarin gezocht moet worden
         // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
@@ -220,16 +245,16 @@ class Import extends ExternalSourceCommand
 
         // $externalGameId
 
-        $this->importer->importAgainstGameDetails(
+        $this->importer->importAgainstGameLineupsAndEvents(
             $externalSourceCompetitions,
             $externalSourceCompetitionStructure,
-            $externalSourceCompetitionDetails,
+            $externalSourceGamesAndPlayers,
             $externalSource,
             $sport,
             $league,
             $season,
             $externalGameId,
-            $removeFromGameCache
+            $dontUseCache
         );
     }
 }

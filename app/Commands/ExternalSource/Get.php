@@ -16,11 +16,12 @@ use SportsHelpers\SportRange;
 use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\CompetitionDetails;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
+use SportsImport\ExternalSource\GamesAndPlayers;
 use SportsImport\Getter as ImportGetter;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Get extends ExternalSourceCommand
@@ -56,6 +57,9 @@ class Get extends ExternalSourceCommand
             // the full command description shown when running the command with
             // the "--help" option
             ->setHelp('import the objects');
+
+        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
 
         parent::configure();
     }
@@ -142,14 +146,14 @@ class Get extends ExternalSourceCommand
             }
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof CompetitionDetails) {
+                $externalSourceImpl instanceof GamesAndPlayers) {
                 $sport = $this->getSportFromInput($input);
                 $league = $this->getLeagueFromInput($input);
                 $season = $this->getSeasonFromInput($input);
                 switch ($entity) {
-                    case Entity::GAMES:
+                    case Entity::GAMES_BASICS:
                         $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
-                        $this->showAgainstGames(
+                        $this->showAgainstGamesBasics(
                             $externalSourceImpl,
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -160,7 +164,7 @@ class Get extends ExternalSourceCommand
                             $gameRoundRange !== null ? $gameRoundRange : new SportRange(1, 1)
                         );
                         return 0;
-                    case Entity::GAMEDETAILS:
+                    case Entity::GAME:
                         $this->showAgainstGame(
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -291,10 +295,10 @@ class Get extends ExternalSourceCommand
         $table->display($competition, $structure, $teamCompetitors);
     }
 
-    protected function showAgainstGames(
+    protected function showAgainstGamesBasics(
         Competitions $externalSourceCompetitions,
         CompetitionStructure $externalSourceCompetitionStructure,
-        CompetitionDetails $externalSourceCompetitionDetails,
+        GamesAndPlayers $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
@@ -309,20 +313,21 @@ class Get extends ExternalSourceCommand
             $season
         );
 
-        $gameRoundNumbers = $externalSourceCompetitionDetails->getGameRoundNumbers($competition);
+        $gameRoundNumbers = $externalSourceGamesAndPlayers->getGameRoundNumbers($competition);
         $games = [];
         for ($gameRoundNr = $gameRoundRange->getMin(); $gameRoundNr <= $gameRoundRange->getMax(); $gameRoundNr++) {
             if (count(
-                array_filter(
-                    $gameRoundNumbers,
-                    function (int $batchNrIt) use ($gameRoundNr): bool {
+                    array_filter(
+                        $gameRoundNumbers,
+                        function (int $batchNrIt) use ($gameRoundNr): bool {
                             return $batchNrIt === $gameRoundNr;
                         }
-                )
-            ) === 0) {
+                    )
+                ) === 0) {
                 $this->getLogger()->info('gameRoundNr "' . $gameRoundNr . '" komt niet voor in de externe bron');
             }
-            $games = array_merge($games, $externalSourceCompetitionDetails->getAgainstGames($competition, $gameRoundNr));
+            $gameRoundGames = $externalSourceGamesAndPlayers->getAgainstGamesBasics($competition, $gameRoundNr);
+            $games = array_merge($games, $gameRoundGames);
         }
         $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
         $table = new ConsoleTable\AgainstGames();
@@ -332,13 +337,13 @@ class Get extends ExternalSourceCommand
     protected function showAgainstGame(
         Competitions $externalSourceCompetitions,
         CompetitionStructure $externalSourceCompetitionStructure,
-        CompetitionDetails $externalSourceCompetitionDetails,
+        GamesAndPlayers $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
         Season $season,
         string|int $gameId,
-        bool $removeFromGameCache
+        bool $resetCache
     ): void {
         $competition = $this->getter->getCompetition(
             $externalSourceCompetitions,
@@ -356,11 +361,11 @@ class Get extends ExternalSourceCommand
 //        }
 
         $externalGame = $this->getter->getAgainstGame(
-            $externalSourceCompetitionDetails,
+            $externalSourceGamesAndPlayers,
             $externalSource,
             $competition,
             $gameId,
-            $removeFromGameCache
+            $resetCache
         );
 
         $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);

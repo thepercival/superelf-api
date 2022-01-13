@@ -7,6 +7,8 @@ namespace SuperElf\CompetitionConfig;
 use DateTimeImmutable;
 use League\Period\Period;
 use Sports\Competition;
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\State as GameState;
 use SuperElf\CompetitionConfig;
 use SuperElf\Defaults;
 use SuperElf\Period\Assemble as AssemblePeriod;
@@ -16,12 +18,6 @@ use SuperElf\Points\Creator as PointsCreator;
 
 class Administrator
 {
-    //PERIODSTART_CREATE_AND_JOIN="2021-08-01 07:00:00"
-    //PERIODSTART_ASSEMBLE="2021-12-10 22:00:00"
-    //PERIODEND_ASSEMBLE="2022-12-28 18:00:00"
-    //PERIODSTART_TRANSFER="2022-02-01 07:00:00"
-    //PERIODEND_TRANSFER="2022-02-05 12:00:00"
-
 //    protected CompetitionsCreator $competitionsCreator;
 //    protected PointsCreator $pointsCreator;
 
@@ -45,30 +41,149 @@ class Administrator
 //        $this->pointsCreator = new PointsCreator($this->pointsRepository);
     }
 
+    /**
+     * @param Competition $sourceCompetition
+     * @param DateTimeImmutable $createAndJoinStart
+     * @param Period $assemblePeriodInput
+     * @param Period $transferPeriodInput
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @return CompetitionConfig
+     * @throws \League\Period\Exception
+     */
     public function create(
         Competition $sourceCompetition,
         DateTimeImmutable $createAndJoinStart,
-        Period $assemblePeriodParam,
-        Period $transferPeriodParam
+        Period $assemblePeriodInput,
+        Period $transferPeriodInput,
+        array $sourceCompetitionGames
     ): CompetitionConfig {
-        $assembleStart = new DateTimeImmutable();
-        $assembleEnd = new DateTimeImmutable();
-        $assembleViewPeriod = new ViewPeriod(new Period($assembleStart, $assembleEnd));
-        $assemblePeriod = new AssemblePeriod($assemblePeriodParam, $assembleViewPeriod);
+        $this->validateNonexistance($sourceCompetition);
 
-        $transferStart = new DateTimeImmutable();
-        $transferEnd = new DateTimeImmutable();
-        $transferViewPeriod = new ViewPeriod(new Period($transferStart, $transferEnd));
-        $transferPeriod = new TransferPeriod($transferPeriodParam, $transferViewPeriod, Defaults::MAXNROFTRANSFERS);
+        $assembleStart = $assemblePeriodInput->getStartDate();
+        $seasonStart = $sourceCompetition->getSeason()->getPeriod()->getStartDate();
+        $this->validateCreateAndJoinStart($createAndJoinStart, $seasonStart, $assembleStart);
+        $transferStart = $transferPeriodInput->getStartDate();
+        $this->validateAssemblePeriod(
+            $assemblePeriodInput,
+            $createAndJoinStart,
+            $transferStart,
+            $sourceCompetitionGames
+        );
+        $assembleEnd = $assemblePeriodInput->getEndDate();
+        $seasonEnd = $sourceCompetition->getSeason()->getPeriod()->getEndDate();
+        $this->validateTransferPeriod($transferPeriodInput, $assembleEnd, $seasonEnd, $sourceCompetitionGames);
 
-        return new CompetitionConfig(
+        $assembleEnd = $assemblePeriodInput->getEndDate();
+        $assembleViewPeriod = new ViewPeriod(new Period($assembleEnd, $transferPeriodInput->getStartDate()));
+        $assemblePeriod = new AssemblePeriod($assemblePeriodInput, $assembleViewPeriod);
+        $transferEnd = $transferPeriodInput->getEndDate();
+        $transferViewPeriod = new ViewPeriod(new Period($transferEnd, $seasonEnd));
+        $transferPeriod = new TransferPeriod($transferPeriodInput, $transferViewPeriod, Defaults::MAXNROFTRANSFERS);
+
+        $newCompetitionConfig = new CompetitionConfig(
             $sourceCompetition,
             (new PointsCreator())->createDefault(),
-            new ViewPeriod(new Period($createAndJoinStart, $assemblePeriod->getEndDateTime())),
+            new ViewPeriod(new Period($createAndJoinStart, $assembleEnd)),
             $assemblePeriod,
             $transferPeriod
         );
+        $this->existingCompetitionConfigs[] = $newCompetitionConfig;
+        return $newCompetitionConfig;
     }
+
+    protected function validateNonexistance(Competition $sourceCompetition): void
+    {
+        foreach ($this->existingCompetitionConfigs as $competitionConfig) {
+            if ($competitionConfig->getSourceCompetition() === $sourceCompetition) {
+                $msg = 'competitionConfig for competition "' . $sourceCompetition->getName() . '" already exists';
+                throw new \Exception($msg, E_ERROR);
+            }
+        }
+    }
+
+    protected function validateCreateAndJoinStart(
+        DateTimeImmutable $createAndJoinStart,
+        DateTimeImmutable $seasonStart,
+        DateTimeImmutable $assembleStart
+    ): void {
+        if ($createAndJoinStart < $seasonStart) {
+            $msg = 'createAndJoinStart "' . $createAndJoinStart->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'after seasonStart "' . $seasonStart->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+        if ($createAndJoinStart > $assembleStart) {
+            $msg = 'createAndJoinStart "' . $createAndJoinStart->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'before assembleStart "' . $assembleStart->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+    }
+
+    /**
+     * @param Period $assemblePeriod
+     * @param DateTimeImmutable $createAndJoinStart
+     * @param DateTimeImmutable $transferStart
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @throws \Exception
+     */
+    protected function validateAssemblePeriod(
+        Period $assemblePeriod,
+        DateTimeImmutable $createAndJoinStart,
+        DateTimeImmutable $transferStart,
+        array $sourceCompetitionGames
+    ): void {
+        if ($assemblePeriod->getStartDate() < $createAndJoinStart) {
+            $msg = 'assembleStart "' . $assemblePeriod->getStartDate()->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'after createAndJoinStart "' . $createAndJoinStart->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+        if ($assemblePeriod->getEndDate() > $transferStart) {
+            $msg = 'assembleEnd "' . $assemblePeriod->getEndDate()->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'before transferStart "' . $transferStart->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+        foreach ($sourceCompetitionGames as $game) {
+            if ($assemblePeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
+                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
+                $msg .= 'before assembleStart "' . $assemblePeriod->getStartDate()->format('Y-m-d H:i') . '"';
+                $msg .= ' or after assembleEnd "' . $assemblePeriod->getEndDate()->format('Y-m-d H:i') . '"';
+                throw new \Exception($msg, E_ERROR);
+            }
+        }
+    }
+
+    /**
+     * @param Period $transferPeriod
+     * @param DateTimeImmutable $assembleEnd
+     * @param DateTimeImmutable $seasonEnd
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @throws \Exception
+     */
+    protected function validateTransferPeriod(
+        Period $transferPeriod,
+        DateTimeImmutable $assembleEnd,
+        DateTimeImmutable $seasonEnd,
+        array $sourceCompetitionGames
+    ): void {
+        if ($transferPeriod->getStartDate() < $assembleEnd) {
+            $msg = 'transferStart "' . $transferPeriod->getStartDate()->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'after assembleEnd "' . $assembleEnd->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+        if ($transferPeriod->getEndDate() > $seasonEnd) {
+            $msg = 'transferEnd "' . $transferPeriod->getEndDate()->format('Y-m-d H:i') . '" should be ';
+            $msg .= 'before seasonEnd "' . $seasonEnd->format('Y-m-d H:i') . '"';
+            throw new \Exception($msg, E_ERROR);
+        }
+        foreach ($sourceCompetitionGames as $game) {
+            if ($transferPeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
+                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
+                $msg .= 'before transferStart "' . $transferPeriod->getStartDate()->format('Y-m-d H:i') . '"';
+                $msg .= ' or after transferEnd "' . $transferPeriod->getEndDate()->format('Y-m-d H:i') . '"';
+                throw new \Exception($msg, E_ERROR);
+            }
+        }
+    }
+
 
 //    public function createCollection(string $name): PoolCollection
 //    {

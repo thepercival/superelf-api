@@ -10,6 +10,7 @@ trait EntityTrait
     protected function getEntityFromInput(InputInterface $input): int
     {
         $objectType = (string)$input->getArgument('objectType');
+        $message = 'objectType "' . $objectType . '" kan niet worden opgehaald uit externe bronnen';
 
         switch ($objectType) {
             case 'sports':
@@ -28,16 +29,16 @@ trait EntityTrait
                 return Entity::TEAMCOMPETITORS;
             case 'teams':
                 return Entity::TEAMS;
-            case 'games':
-                return Entity::GAMES;
+            case 'games-basics':
+                return Entity::GAMES_BASICS;
+            case 'games-complete':
+                return Entity::GAMES_COMPLEET;
             case 'game':
-                return Entity::GAMEDETAILS;
+                return Entity::GAME;
             case 'players':
                 return Entity::PLAYERS;
-            default:
-                $message = 'objectType "' . $objectType . '" kan niet worden opgehaald uit externe bronnen';
-                $this->getLogger()->error($message);
         }
-        return 0;
+        $this->getLogger()->error($message);
+        throw new \Exception($message, E_ERROR);
     }
 }

@@ -8,6 +8,7 @@ use App\Commands\ExternalSource\Import as ImportCommand;
 use App\Commands\ExternalSource\ImportImage as ImportImageCommand;
 use App\Commands\Get as GetCommand;
 use App\Commands\Listing as ListingCommand;
+use App\Commands\Migration\Users as MigrateUsersCommand;
 use App\Commands\PlayerTotals as UpdatePlayerTotalsCommand;
 use App\Commands\Sync as SyncCommand;
 use App\Commands\Validator\GameParticipations as ValidateGameParticipationsCommand;
@@ -42,7 +43,11 @@ $commands = [
     },
     "app:competitionconfig" => function (ContainerInterface $container): CompetitionConfigCommand {
         return new CompetitionConfigCommand($container);
+    },
+    "app:migrate-users" => function (ContainerInterface $container): MigrateUsersCommand {
+        return new MigrateUsersCommand($container);
     }
+
 
 ];
 

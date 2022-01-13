@@ -240,7 +240,7 @@ return [
     CompetitionConfigRepository::class => function (ContainerInterface $container): CompetitionConfigRepository {
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
-        /** @psalm-var ClassMetadata<Competitor> $metaData */
+        /** @psalm-var ClassMetadata<CompetitionConfig> $metaData */
         $metaData = $entityManager->getClassMetadata(CompetitionConfig::class);
         return new CompetitionConfigRepository($entityManager, $metaData);
     },

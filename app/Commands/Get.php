@@ -71,6 +71,8 @@ class Get extends Command
         $this->addOption('association', null, InputOption::VALUE_OPTIONAL, 'the name of the association');
         $this->addOption('league', null, InputOption::VALUE_OPTIONAL, 'the name of the league');
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
+        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
         $this->addOption('filter', null, InputOption::VALUE_OPTIONAL, 'the json filter');
 
         parent::configure();
@@ -103,13 +105,13 @@ class Get extends Command
                     $this->showTeamCompetitors($league, $season);
                 } elseif ($entity === Entity::STRUCTURE) {
                     $this->showStructure($league, $season);
-                } elseif ($entity === Entity::GAMES) {
+                } elseif ($entity === Entity::GAMES_BASICS) {
                     $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
                     $this->showAgainstGames($league, $season, $gameRoundRange);
-                } elseif ($entity === Entity::GAMEDETAILS) {
+                } elseif ($entity === Entity::GAME) {
                     $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
                 } else {
-                    $message = 'objectType "'. $entity . '" kan niet worden opgehaald uit bronnen';
+                    $message = 'objectType "' . $entity . '" kan niet worden opgehaald uit bronnen';
                     $this->getLogger()->error($message);
                 }
             }
