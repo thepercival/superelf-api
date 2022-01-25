@@ -31,6 +31,10 @@ execute : sql-commands in db/update.sql
 # php bin/console.php app:import sofascore leagues --sport=football --association=Netherlands
 # php bin/console.php app:get leagues
 
+-- STEP 8 => MIGRATE USERS (2 USERNAMES MADE SHORTER)
+# php bin/console.php app:migrate-users --loglevel=200
+$ sql: update users set salt = '??????';
+
 ###### PER SEASON (ITERATE) ######################
                                                  #
                                             /\   #
@@ -63,24 +67,19 @@ execute : sql-commands in db/update.sql
 
 -- STEP 6 => IMPORT GAMES-BASICS
 # php bin/console.php app:import sofascore games-basics --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=1-4 --no-events
-# php bin/console.php app:import sofascore games-basics --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=5-14 --no-events
-# php bin/console.php app:import sofascore games-basics --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=14-24 --no-events
-# php bin/console.php app:import sofascore games-basics --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=25-34 --no-events
 
 -- STEP 7 => CREATE COMPETITIONCONFIGS(ONLY 1 FOR ERE)
 php bin/console.php app:competitionconfig create --league=Eredivisie --season=2015/2016 --createAndJoinStart="2015-07-31 12:00" --assemblePeriod="2015-09-01 06:00=>2015-09-12 16:00" --transferPeriod="2016-02-01 06:00=>2016-02-05 18:30"
 
--- STEP 8 => IMPORT POOLUSERS
+-- STEP 8 => IMPORT GAMES-SCORESLINEUPSANDEVENTS UNTIL TRANSFERS
+# php bin/console.php app:import sofascore games-complete --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=1-4 --no-events
+# TO IMPORT ONE GAME ### php bin/console.php app:get game --league=Eredivisie --season=2015/2016 --sport=football --id=36
 
+-- STEP 9 => IMPORT POOLS(USERS + ASSEMBLEFORMATION + TRANSFERFORMATION
+php bin/console.php app:migrate-pools --league=Eredivisie --season=2015/2016 --loglevel=200
 
+-- STEP 10 => VALIDATE
+php bin/console.php app:validate-team-players --league=Eredivisie --season=2015/2016
+php bin/console.php app:validate-competitionconfig --league=Eredivisie --season=2015/2016
 
-# php bin/console.php app:get games-basics --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=1-4
-# # NOW IMPORT DETAILS ALSO
-# php bin/console.php app:import sofascore games-complete --league=Eredivisie --season=2015/2016 --sport=football --gameRoundRange=1-4
-# # TO IMPORT ONE GAME
-# php bin/console.php app:get game --league=Eredivisie --season=2015/2016 --sport=football --id=36
-
-migrate competitionconfigs
-migrate pools
-migrate poolusers
-...
+###### END SEASON ITERATION ######################

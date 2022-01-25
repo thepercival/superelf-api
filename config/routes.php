@@ -42,8 +42,11 @@ return function (App $app): void {
                 $group->options('/passwordchange', AuthAction::class . ':options');
                 $group->post('/passwordchange', AuthAction::class . ':passwordchange');
             });
-            $group->options('/cancreate', ShellAction::class . ':options');
-            $group->get('/cancreate', PoolAction::class . ':canCreate')->add(VersionMiddleware::class);
+            $group->options('/cancreateandjoinpool', CompetitionConfigAction::class . ':options');
+            $group->get('/cancreateandjoinpool', CompetitionConfigAction::class . ':canCreateAndJoinPool')->add(
+                VersionMiddleware::class
+            );
+
             $group->options('/shells', ShellAction::class . ':options');
             $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
         }
@@ -59,8 +62,18 @@ return function (App $app): void {
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
-    $app->options('/competitionconfig', CompetitionConfigAction::class . ':options');
-    $app->get('/competitionconfig', CompetitionConfigAction::class . ':fetchOne')->add(VersionMiddleware::class);
+    $app->options('/competitionconfigs/active', CompetitionConfigAction::class . ':options');
+    $app->get('/competitionconfigs/active', CompetitionConfigAction::class . ':fetchActive')->add(
+        VersionMiddleware::class
+    );
+    $app->group(
+        '/competitionconfigs/{competitionConfigId}/availableformations',
+        function (Group $group): void {
+            $group->options('', CompetitionConfigAction::class . ':options');
+            $group->get('', CompetitionConfigAction::class . ':fetchAvailableFormations');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+
 
     $app->group(
         '/users/{userId}',

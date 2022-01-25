@@ -13,6 +13,7 @@
 <!--        <directory name="serialization/handler/"/>-->
         <ignoreFiles>
             <directory name="vendor"/>
+            <directory name="app/Commands/Migration"/>
         </ignoreFiles>
     </projectFiles>
     <plugins>

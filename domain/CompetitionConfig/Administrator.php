@@ -18,27 +18,14 @@ use SuperElf\Points\Creator as PointsCreator;
 
 class Administrator
 {
-//    protected CompetitionsCreator $competitionsCreator;
-//    protected PointsCreator $pointsCreator;
 
     /**
      * @param list<CompetitionConfig> $existingCompetitionConfigs
      */
     public function __construct(
         protected array $existingCompetitionConfigs
-//        protected PoolRepository $poolRepos,
-//        protected PointsRepository $pointsRepository,
-//        protected PeriodAdministrator $periodAdministrator,
-//        protected SportAdministrator $sportAdministrator,
-//        protected PoolCollectionRepository $poolCollectionRepos,
-//        protected LeagueRepository $leagueRepos,
-//        protected CompetitionRepository $competitionRepos,
-//        protected ActiveConfigService $activeConfigService,
-//        protected Configuration $config
     )
     {
-//        $this->competitionsCreator = new CompetitionsCreator();
-//        $this->pointsCreator = new PointsCreator($this->pointsRepository);
     }
 
     /**
@@ -60,7 +47,8 @@ class Administrator
         $this->validateNonexistance($sourceCompetition);
 
         $assembleStart = $assemblePeriodInput->getStartDate();
-        $seasonStart = $sourceCompetition->getSeason()->getPeriod()->getStartDate();
+        $season = $sourceCompetition->getSeason();
+        $seasonStart = $season->getPeriod()->getStartDate();
         $this->validateCreateAndJoinStart($createAndJoinStart, $seasonStart, $assembleStart);
         $transferStart = $transferPeriodInput->getStartDate();
         $this->validateAssemblePeriod(
@@ -70,7 +58,7 @@ class Administrator
             $sourceCompetitionGames
         );
         $assembleEnd = $assemblePeriodInput->getEndDate();
-        $seasonEnd = $sourceCompetition->getSeason()->getPeriod()->getEndDate();
+        $seasonEnd = $season->getPeriod()->getEndDate();
         $this->validateTransferPeriod($transferPeriodInput, $assembleEnd, $seasonEnd, $sourceCompetitionGames);
 
         $assembleEnd = $assemblePeriodInput->getEndDate();
@@ -82,7 +70,7 @@ class Administrator
 
         $newCompetitionConfig = new CompetitionConfig(
             $sourceCompetition,
-            (new PointsCreator())->createDefault(),
+            (new PointsCreator())->createDefault($season),
             new ViewPeriod(new Period($createAndJoinStart, $assembleEnd)),
             $assemblePeriod,
             $transferPeriod

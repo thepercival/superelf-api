@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Commands\CompetitionConfig;
+use App\Commands\CompetitionConfig as CompetitionConfigCommand;
 use DateTimeImmutable;
 use Exception;
 use League\Period\Period;
@@ -26,6 +26,7 @@ use Sports\Sport;
 use Sports\Sport\Repository as SportRepository;
 use SportsHelpers\SportRange;
 use SportsImport\Attacher\Association\Repository as AssociationAttacherRepository;
+use SuperElf\CompetitionConfig;
 use Symfony\Component\Console\Command\Command as SymCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -220,11 +221,22 @@ class Command extends SymCommand
         return new SportRange((int)$minMax[0], (int)$minMax[1]);
     }
 
-    /**
-     * @param InputInterface $input
-     * @return int|string
-     * @throws Exception
-     */
+    protected function getStringFromInput(
+        InputInterface $input,
+        string $optionName,
+        string $fallBackValue = null
+    ): string {
+        /** @var string|null $optionValue */
+        $optionValue = $input->getOption($optionName);
+        if (is_string($optionValue)) {
+            return $optionValue;
+        }
+        if ($fallBackValue === null) {
+            throw new Exception('option "' . $optionName . '"  not found');
+        }
+        return $fallBackValue;
+    }
+
     protected function getIdFromInput(InputInterface $input, int|string $fallBackValue = null): int|string
     {
         $idOption = $input->getOption("id");
@@ -240,13 +252,16 @@ class Command extends SymCommand
         return $idOption;
     }
 
-    protected function getDateTimeFromInput(InputInterface $input, string $optionName): DateTimeImmutable
-    {
+    protected function getDateTimeFromInput(
+        InputInterface $input,
+        string $optionName,
+        string $format = CompetitionConfigCommand::DateTimeFormat
+    ): DateTimeImmutable {
         $optionValue = $input->getOption($optionName);
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
             throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
         }
-        $dateTime = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $optionValue);
+        $dateTime = DateTimeImmutable::createFromFormat($format, $optionValue);
         if ($dateTime === false) {
             throw new Exception('invalid datetime "' . $optionName . '" given', E_ERROR);
         }
@@ -267,11 +282,11 @@ class Command extends SymCommand
             throw new Exception('invalid "' . $optionName . '"-option given', E_ERROR);
         }
 
-        $start = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $dateTimes[0]);
+        $start = DateTimeImmutable::createFromFormat(CompetitionConfigCommand::DateTimeFormat, $dateTimes[0]);
         if ($start === false) {
             throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
         }
-        $end = DateTimeImmutable::createFromFormat(CompetitionConfig::DateTimeFormat, $dateTimes[1]);
+        $end = DateTimeImmutable::createFromFormat(CompetitionConfigCommand::DateTimeFormat, $dateTimes[1]);
         if ($end === false) {
             throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
         }
@@ -279,5 +294,18 @@ class Command extends SymCommand
             throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
         }
         return new Period($start, $end);
+    }
+
+    protected function getCompetitionConfigFromInput(InputInterface $input): CompetitionConfig
+    {
+        $competition = $this->getCompetitionFromInput($input);
+        if ($competition === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        $competitionConfig = $this->competitionConfigRepos->findOneBy(['sourceCompetition' => $competition]);
+        if ($competitionConfig === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        return $competitionConfig;
     }
 }

@@ -12,7 +12,7 @@ use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Pool;
 use SuperElf\Substitution;
-use SuperElf\Period\Transfer\Transfer;
+use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
 
 class User extends Identifiable
@@ -90,14 +90,14 @@ class User extends Identifiable
     /**
      * @return Collection<int|string, Transfer>
      */
-    public function getTransfers(bool $outHasTeam = null): Collection
+    public function getTransfers(/*bool $outHasTeam = null*/): Collection
     {
-        if ($outHasTeam === null) {
-            return $this->transfers;
-        }
-        return $this->transfers->filter(function (Transfer $transfer) use ($outHasTeam): bool {
-            return $transfer->outHasTeam() === $outHasTeam;
-        });
+//      if ($outHasTeam === null) {
+        return $this->transfers;
+//      }
+//        return $this->transfers->filter(function (Transfer $transfer) use ($outHasTeam): bool {
+//            return $transfer->outHasTeam() === $outHasTeam;
+//        });
     }
 
     /**
@@ -134,10 +134,10 @@ class User extends Identifiable
         return $formation !== null ? $formation->getNrOfPersons() : 0;
     }
 
-    public function getNrOfTransferedWithTeam(): int
+    /*public function getNrOfTransferedWithTeam(): int
     {
         return $this->getTransfers(true)->count();
-    }
+    }*/
 
 //    /**
 //     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>

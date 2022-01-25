@@ -62,26 +62,6 @@ final class PoolAction extends Action
         }
     }
 
-//    /**
-//     * @param Request $request
-//     * @param Response $response
-//     * @param array<string, int|string> $args
-//     * @return Response
-//     */
-//    public function canCreate(Request $request, Response $response, array $args): Response
-//    {
-//        try {
-//            $now = new \DateTimeImmutable();
-//            // for eredivise do check
-//            $inCreatePeriod = $this->activeConfigService->getCreatePeriod()->contains($now);
-//            $json = $this->serializer->serialize($inCreatePeriod, 'json');
-//            return $this->respondWithJson($response, $json);
-//        } catch (\Exception $e) {
-//            return new ErrorResponse($e->getMessage(), 400);
-//        }
-//    }
-
-
     /**
      * @param Request $request
      * @param Response $response

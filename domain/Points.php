@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
-use Sports\Sport;
+use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 
 class Points extends Identifiable
@@ -61,19 +61,19 @@ class Points extends Identifiable
         return $this->fieldGoalForward;
     }
 
-    public function getFieldGoal(int $line): int
+    public function getFieldGoal(FootballLine $line): int
     {
         switch ($line) {
-            case Sport\Custom::Football_Line_GoalKepeer:
+            case FootballLine::GoalKeeper:
                 return $this->getFieldGoalGoalkeeper();
-            case Sport\Custom::Football_Line_Defense:
+            case FootballLine::Defense:
                 return $this->getFieldGoalDefender();
-            case Sport\Custom::Football_Line_Midfield:
+            case FootballLine::Midfield:
                 return $this->getFieldGoalMidfielder();
-            case Sport\Custom::Football_Line_Forward:
+            case FootballLine::Forward:
                 return $this->getFieldGoalForward();
         }
-        throw new \Exception('incorrect line('.$line.') to get fieldGoalPoints', E_ERROR);
+        throw new \Exception('incorrect line(' . $line->name . ') to get fieldGoalPoints', E_ERROR);
     }
 
     public function getAssistGoalkeeper(): int
@@ -96,19 +96,19 @@ class Points extends Identifiable
         return $this->assistForward;
     }
 
-    public function getAssist(int $line): int
+    public function getAssist(FootballLine $line): int
     {
         switch ($line) {
-            case Sport\Custom::Football_Line_GoalKepeer:
+            case FootballLine::GoalKeeper:
                 return $this->getAssistGoalkeeper();
-            case Sport\Custom::Football_Line_Defense:
+            case FootballLine::Defense:
                 return $this->getAssistDefender();
-            case Sport\Custom::Football_Line_Midfield:
+            case FootballLine::Midfield:
                 return $this->getAssistMidfielder();
-            case Sport\Custom::Football_Line_Forward:
+            case FootballLine::Forward:
                 return $this->getAssistForward();
         }
-        throw new \Exception('incorrect line('.$line.') to get assists', E_ERROR);
+        throw new \Exception('incorrect line(' . $line->name . ') to get assists', E_ERROR);
     }
 
     public function getPenalty(): int
@@ -131,11 +131,11 @@ class Points extends Identifiable
         return $this->cleanSheetDefender;
     }
 
-    public function getCleanSheet(int $line): int
+    public function getCleanSheet(FootballLine $line): int
     {
-        if ($line === Sport\Custom::Football_Line_GoalKepeer) {
+        if ($line === FootballLine::GoalKeeper) {
             return $this->getCleanSheetGoalkeeper();
-        } elseif ($line === Sport\Custom::Football_Line_Defense) {
+        } elseif ($line === FootballLine::Defense) {
             return $this->getCleanSheetDefender();
         }
         return 0;
@@ -151,11 +151,11 @@ class Points extends Identifiable
         return $this->spottySheetDefender;
     }
 
-    public function getSpottySheet(int $line): int
+    public function getSpottySheet(FootballLine $line): int
     {
-        if ($line === Sport\Custom::Football_Line_GoalKepeer) {
+        if ($line === FootballLine::GoalKeeper) {
             return $this->getSpottySheetGoalkeeper();
-        } elseif ($line === Sport\Custom::Football_Line_Defense) {
+        } elseif ($line === FootballLine::Defense) {
             return $this->getSpottySheetDefender();
         }
         return 0;

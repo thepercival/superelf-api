@@ -19,6 +19,7 @@ class Pool extends Identifiable
      * @var Collection<int|string, PoolUser>
      */
     protected Collection $users;
+    protected bool $halted = false;
 
     public function __construct(
         protected PoolCollection $collection,
@@ -120,18 +121,18 @@ class Pool extends Identifiable
 //        return $this->scores;
 //    }
 
-    public function getPrevious(): Pool|null
+    public function getUnhaltedPrevious(): Pool|null
     {
-        $previousEndDateTime = $this->getSeason()->getStartDateTime();
-        $previousStartDateTime = $previousEndDateTime->modify('-2 days');
-        $endPeriod = new \League\Period\Period($previousStartDateTime, $previousEndDateTime);
-
+        $previous = null;
+        $seasonStartDateTime = $this->getSeason()->getStartDateTime();
         foreach ($this->getSiblings() as $sibling) {
-            if ($endPeriod->contains($sibling->getSeason()->getEndDateTime())) {
-                return $sibling;
+            $siblingStart = $sibling->getSeason()->getStartDateTime();
+            if ($siblingStart < $seasonStartDateTime && !$sibling->isHalted()
+                && ($previous === null || $siblingStart > $previous->getSeason()->getStartDateTime())) {
+                $previous = $sibling;
             }
         }
-        return null;
+        return $previous;
     }
 
     /**
@@ -155,5 +156,15 @@ class Pool extends Identifiable
     public function getTransferPeriod(): TransferPeriod
     {
         return $this->competitionConfig->getTransferPeriod();
+    }
+
+    public function isHalted(): bool
+    {
+        return $this->halted;
+    }
+
+    public function halt(): void
+    {
+        $this->halted = true;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\Statistics;
 
 use DateTime;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Competitor\Map as CompetitorMap;
 use Sports\Competitor\Team as TeamCompetitor;
@@ -14,6 +15,7 @@ use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Person;
 use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
+use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Period\View as ViewPeriod;
@@ -44,20 +46,18 @@ class Syncer
         $this->playerTotalsCalculator = new PlayerTotalsCalculator();
     }
 
-    public function sync(AgainstGame $game): void
+    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
-
-        $competitionConfig = $this->competitionConfigRepos->findOneBy(['competition' => $competition]);
-        if ($competitionConfig === null) {
-            throw new \Exception('competition not found', E_ERROR);
+        if ($competitionConfig->getSourceCompetition() !== $competition) {
+            throw new Exception('the game is from another competitonconfig', E_ERROR);
         }
 
         $points = $competitionConfig->getPoints();
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new CompetitorMap($competitors);
 //
-        $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
+        $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
             throw new \Exception(
                 'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(DateTime::ISO8601),

@@ -21,21 +21,7 @@ class Repository extends EntityRepository
      */
     use BaseRepository;
 
-    public function findOneByDate(Competition $competition, \DateTimeImmutable $dateTime): ?ViewPeriod
-    {
-        $query = $this->createQueryBuilder('vp')
-            ->where('vp.startDateTime <= :gameStart')
-            ->andWhere('vp.endDateTime >= :gameStart')
-            ->andWhere('vp.sourceCompetition = :competition')
-            ;
-        $query = $query->setParameter('gameStart', $dateTime);
-        $query = $query->setParameter('competition', $competition);
 
-        /** @var list<ViewPeriod> $viewPeriods */
-        $viewPeriods = $query->getQuery()->getResult();
-        $viewPeriod = reset($viewPeriods);
-        return $viewPeriod === false ? null : $viewPeriod;
-    }
 
     public function findOneByGameRoundNumber(Competition $competition, int $gameRoundNumber): ?ViewPeriod
     {

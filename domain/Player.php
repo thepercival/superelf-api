@@ -7,6 +7,7 @@ namespace SuperElf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Person as BasePerson;
+use Sports\Sport\FootballLine;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Identifiable;
 use SuperElf\Period\View as ViewPeriod;
@@ -14,6 +15,7 @@ use SuperElf\Player\Totals;
 
 class Player extends Identifiable
 {
+    protected Totals $totals;
     protected int $totalPoints = 0;
     /**
      * @var Collection<int|string, Statistics>
@@ -23,9 +25,13 @@ class Player extends Identifiable
     public function __construct(
         protected ViewPeriod $viewPeriod,
         protected BasePerson $person,
-        protected Totals $totals
+        Totals|null $totals = null
     ) {
         $this->statistics = new ArrayCollection();
+        if ($totals === null) {
+            $totals = new Totals();
+        }
+        $this->totals = $totals;
     }
 
     public function getViewPeriod(): ViewPeriod
@@ -38,13 +44,13 @@ class Player extends Identifiable
         return $this->person;
     }
 
-    public function getLine(): int
+    public function getLine(): FootballLine
     {
         $player = $this->getPerson()->getPlayers()->first();
         if (!($player instanceof TeamPlayer)) {
             throw new \Exception('s11player should always have a line', E_ERROR);
         }
-        return $player->getLine();
+        return FootballLine::from($player->getLine());
     }
 
     /**

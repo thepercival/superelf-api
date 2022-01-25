@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Player;
 
+use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Points;
 
@@ -193,7 +194,7 @@ class Totals extends Identifiable
         $this->updatedAt = $updatedAt;
     }
 
-    public function getPoints(int $line, Points $points): int
+    public function getPoints(FootballLine $line, Points $points): int
     {
         return $this->getNrOfWins() * $points->getResultWin()
             + $this->getNrOfDraws() * $points->getResultDraw()

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period\Transfer\Substitution;
+namespace SuperElf\Substitution;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Period\Transfer\Substitution;
+use SuperElf\Substitution;
 
 /**
  * @template-extends EntityRepository<Substitution>

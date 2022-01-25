@@ -8,11 +8,14 @@ use App\Commands\ExternalSource\Import as ImportCommand;
 use App\Commands\ExternalSource\ImportImage as ImportImageCommand;
 use App\Commands\Get as GetCommand;
 use App\Commands\Listing as ListingCommand;
+use App\Commands\Migration\Pools as MigratePoolsCommand;
 use App\Commands\Migration\Users as MigrateUsersCommand;
 use App\Commands\PlayerTotals as UpdatePlayerTotalsCommand;
+use App\Commands\S11Player as S11PlayerCommand;
 use App\Commands\Sync as SyncCommand;
+use App\Commands\Validator\CompetitionConfig as ValidateCompetitionConfigCommand;
 use App\Commands\Validator\GameParticipations as ValidateGameParticipationsCommand;
-use App\Commands\Validator\PersonPlayerPeriods as ValidatePersonPlayerPeriodsCommand;
+use App\Commands\Validator\TeamPlayers as ValidateTeamPlayersCommand;
 use Psr\Container\ContainerInterface;
 
 $commands = [
@@ -37,18 +40,28 @@ $commands = [
     "app:validate-game-participations" => function (ContainerInterface $container): ValidateGameParticipationsCommand {
         return new ValidateGameParticipationsCommand($container);
     },
-    "app:validate-person-playerperiods" => function (ContainerInterface $container
-    ): ValidatePersonPlayerPeriodsCommand {
-        return new ValidatePersonPlayerPeriodsCommand($container);
+    "app:validate-team-players" => function (
+        ContainerInterface $container
+    ): ValidateTeamPlayersCommand {
+        return new ValidateTeamPlayersCommand($container);
+    },
+    "app:validate-competitionconfig" => function (
+        ContainerInterface $container
+    ): ValidateCompetitionConfigCommand {
+        return new ValidateCompetitionConfigCommand($container);
     },
     "app:competitionconfig" => function (ContainerInterface $container): CompetitionConfigCommand {
         return new CompetitionConfigCommand($container);
     },
+    "app:s11player" => function (ContainerInterface $container): S11PlayerCommand {
+        return new S11PlayerCommand($container);
+    },
     "app:migrate-users" => function (ContainerInterface $container): MigrateUsersCommand {
         return new MigrateUsersCommand($container);
+    },
+    "app:migrate-pools" => function (ContainerInterface $container): MigratePoolsCommand {
+        return new MigratePoolsCommand($container);
     }
-
-
 ];
 
 $commands["app:list"] = function (ContainerInterface $container) use ($commands): ListingCommand {

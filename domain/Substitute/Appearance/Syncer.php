@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace SuperElf\Substitute\Appearance;
 
-use DateTime;
 use DateTimeInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
-use Sports\Sport\Custom;
-use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
+use SuperElf\CompetitionConfig;
 use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Player\Repository as PlayerRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player\Repository as PlayerRepository;
+use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
 
 class Syncer
 {
@@ -27,16 +26,20 @@ class Syncer
     ) {
     }
 
-    public function sync(AgainstGame $game): void
+    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
-        // viewPeriods for season
+        if ($competitionConfig->getSourceCompetition() !== $competition) {
+            throw new Exception('the game is from another competitonconfig', E_ERROR);
+        }
 
-        $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
+        $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
-            throw new Exception('the viewperiod should be found for date: ' . $game->getStartDateTime()->format(
-                DateTimeInterface::ISO8601
-            ), E_ERROR);
+            throw new Exception(
+                'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(
+                    DateTimeInterface::ISO8601
+                ), E_ERROR
+            );
         }
 
         $gameRound = $viewPeriod->getGameRound($game->getGameRoundNumber());

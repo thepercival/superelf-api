@@ -137,12 +137,18 @@ final class AuthAction extends Action
             $password = (string)$authData->password;
             $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
 
-            if ($user === null || !password_verify($user->getSalt() . $password, $user->getPassword())) {
+            if ($user === null ||
+                (!password_verify($user->getSalt() . $password, $user->getPassword())
+                    && hash('sha512', $user->getSalt() . $password) !== $user->getPassword())
+            ) {
                 throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
             }
 
             if (!$user->getValidated()) {
-                throw new \Exception("valideer eerst je emailadres met behulp van de link in je ontvangen email", E_ERROR);
+                throw new \Exception(
+                    "valideer eerst je emailadres met behulp van de link in je ontvangen email",
+                    E_ERROR
+                );
             }
 
             $authItem = new AuthItem($this->authService->createToken($user), $user);

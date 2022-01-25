@@ -17,4 +17,20 @@ class Repository extends EntityRepository
      * @use BaseRepository<CompetitionConfig>
      */
     use BaseRepository;
+
+    /**
+     * @return list<CompetitionConfig>
+     */
+    public function findActive(): array
+    {
+        $queryBuilder = $this->createQueryBuilder('cc')
+            ->join("cc.sourceCompetition", "c")
+            ->join("cc.createAndJoinPeriod", "candj")
+            ->where('candj.startDateTime < :currentDateTime')
+            ->andWhere('candj.endDateTime > :currentDateTime')
+            ->setParameter('currentDateTime', new \DateTimeImmutable());;
+        /** @var list<CompetitionConfig> $competitionConfigs */
+        $competitionConfigs = $queryBuilder->getQuery()->getResult();
+        return $competitionConfigs;
+    }
 }

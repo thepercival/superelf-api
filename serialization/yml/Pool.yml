@@ -6,26 +6,10 @@ SuperElf\Pool:
   properties:
     collection:
       type: SuperElf\PoolCollection
-    sourceCompetition:
-      type: Sports\Competition
-      expose: false
-      read_only: true
-    points:
-      type: SuperElf\Points
-      #expose: false
-      read_only: true
-    createAndJoinPeriod:
-      type: SuperElf\Period\View
-    assemblePeriod:
-      type: SuperElf\Period\Assemble
-      read_only: true
-    transferPeriod:
-      type: SuperElf\Period\Transfer
+    competitionConfig:
+      type: SuperElf\CompetitionConfig
       read_only: true
   virtual_properties:
     getCompetitions:
       type: array<Sports\Competition>
       serialized_name: competitions
-    getSourceCompetitionId:
-      type: integer
-      serialized_name: sourceCompetitionId

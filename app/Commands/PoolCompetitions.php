@@ -9,19 +9,21 @@ use App\QueueService;
 use Psr\Container\ContainerInterface;
 use Sports\Season;
 use SportsImport\Importer;
-use SuperElf\CompetitionsCreator;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\Repository as PoolRepository;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PoolCompetitions extends Command
 {
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdmin;
-    protected CompetitionsCreator $competitionsCreator;
+    protected CompetitorRepository $competitorRepos;
+    protected CompetitionConfigRepository $competitionConfigRepos;
     protected Importer $importer;
 
     public function __construct(ContainerInterface $container)
@@ -34,13 +36,20 @@ class PoolCompetitions extends Command
         $poolAdmin = $container->get(PoolAdministrator::class);
         $this->poolAdmin = $poolAdmin;
 
+        /** @var CompetitionConfigRepository $competitionConfigRepos */
+        $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
+        $this->competitionConfigRepos = $competitionConfigRepos;
+
+        /** @var CompetitorRepository $competitorRepos */
+        $competitorRepos = $container->get(CompetitorRepository::class);
+        $this->competitorRepos = $competitorRepos;
+
         /** @var Importer $importer */
         $importer = $container->get(Importer::class);
         $this->importer = $importer;
 
         parent::__construct($container);
         $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
-        $this->competitionsCreator = new CompetitionsCreator();
     }
 
     protected function configure(): void
@@ -54,8 +63,8 @@ class PoolCompetitions extends Command
             // the "--help" option
             ->setHelp('creates the superelf-pool-competitions');
 
-        $this->addArgument('poolId', InputArgument::REQUIRED, 'create for one pool');
-        // $this->addArgument('objectType', InputArgument::REQUIRED, 'for example associations or competitions');
+        $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
+        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
 
         parent::configure();
     }
@@ -67,17 +76,14 @@ class PoolCompetitions extends Command
         // per pool de competities verwijderen en weer opnieuw aanmaken
 
         try {
-            $season = null;
-            if ($input->getArgument('name') !== null) {
-                $season = $this->seasonRepos->findOneBy(["name" => $input->getArgument('name') ]);
-            }
-            if ($season === null) {
-                throw new \Exception("het seizoen kon niet gevonden worden");
-            }
-            $pools = $this->getPools($input, $season);
+            $compConfig = $this->getCompetitionConfigFromInput($input);
+
+            $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             foreach ($pools as $pool) {
-                $this->getLogger()->info("create competitions for pool " . $pool->getName() . "(".(string)$pool->getId().")");
-                $this->competitionsCreator->recreateDetails($pool);
+                $this->getLogger()->info(
+                    "create competitions for pool " . $pool->getName() . "(" . (string)$pool->getId() . ")"
+                );
+                $this->poolAdmin->removeAndCreateCompetitionDetails($pool);
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {

@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace SuperElf\Period\Transfer;
 
 use SportsHelpers\Identifiable;
+use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Player as S11Player;
 use SuperElf\Pool\User as PoolUser;
 
 class Action extends Identifiable
 {
-    protected bool $outHasTeam = true;
+    // protected bool $outHasTeam = true;
 
     public function __construct(
         protected PoolUser $poolUser,
         protected TransferPeriod $transferPeriod,
-        protected S11Player $playerOut
+        protected FormationPlace $formationPlace
     ) {
     }
 
@@ -30,13 +30,13 @@ class Action extends Identifiable
         return $this->transferPeriod;
     }
 
-    public function getPlayerOut(): S11Player
+    public function getFormationPlace(): FormationPlace
     {
-        return $this->playerOut;
+        return $this->formationPlace;
     }
 
-    public function outHasTeam(): bool
-    {
-        return $this->outHasTeam;
-    }
+//    public function outHasTeam(): bool
+//    {
+//        return $this->outHasTeam;
+//    }
 }

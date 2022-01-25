@@ -13,11 +13,13 @@ use SuperElf\Period\View as ViewPeriod;
 
 class CompetitionConfig extends Identifiable
 {
-//    /**
-//     * @var Collection<int|string, Pool>
-//     */
-//    protected Collection $pools;
-
+    /**
+     * @param Competition $sourceCompetition
+     * @param Points $points
+     * @param ViewPeriod $createAndJoinPeriod
+     * @param AssemblePeriod $assemblePeriod
+     * @param TransferPeriod $transferPeriod
+     */
     public function __construct(
         protected Competition $sourceCompetition,
         protected Points $points,
@@ -66,6 +68,27 @@ class CompetitionConfig extends Identifiable
     public function getTransferPeriod(): TransferPeriod
     {
         return $this->transferPeriod;
+    }
+
+    /**
+     * @return list<ViewPeriod>
+     */
+    public function getViewPeriods(): array
+    {
+        return [
+            $this->getCreateAndJoinPeriod(),
+            $this->getAssemblePeriod()->getViewPeriod(),
+            $this->getTransferPeriod()->getViewPeriod()
+        ];
+    }
+
+    public function getViewPeriodByDate(\DateTimeImmutable $dateTime): ViewPeriod|null
+    {
+        $filtered = array_filter($this->getViewPeriods(), function (ViewPeriod $viewPeriod) use ($dateTime): bool {
+            return $viewPeriod->getPeriod()->contains($dateTime);
+        });
+        $viewPeriod = reset($filtered);
+        return $viewPeriod === false ? null : $viewPeriod;
     }
 
 //    /**

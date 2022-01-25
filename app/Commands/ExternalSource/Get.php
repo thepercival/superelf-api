@@ -59,7 +59,8 @@ class Get extends ExternalSourceCommand
             ->setHelp('import the objects');
 
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
-        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'external-game-id');
+        $this->addOption('internal-id', null, InputOption::VALUE_OPTIONAL, 'internal-game-id');
 
         parent::configure();
     }
@@ -165,6 +166,8 @@ class Get extends ExternalSourceCommand
                         );
                         return 0;
                     case Entity::GAME:
+                        $externalGameId = $this->getExternalGameId($input, $externalSource);
+
                         $this->showAgainstGame(
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -173,7 +176,7 @@ class Get extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
-                            $this->getIdFromInput($input),
+                            $externalGameId,
                             $this->getGameCacheOptionFromInput($input)
                         );
                         return 0;
@@ -353,13 +356,6 @@ class Get extends ExternalSourceCommand
             $season
         );
 
-//        $againstGame = $this->againstGameAttacherRepos->findImportable($externalSource, $gameId);
-//        // $this->againstGameRepos->find($gameId); // only internalId
-//        if ($againstGame === null) {
-//            $this->logger->warning('no ');
-//            return;
-//        }
-
         $externalGame = $this->getter->getAgainstGame(
             $externalSourceGamesAndPlayers,
             $externalSource,
@@ -372,4 +368,25 @@ class Get extends ExternalSourceCommand
         $table = new ConsoleTable\AgainstGame();
         $table->display($competition, $externalGame, $teamCompetitors);
     }
+
+    protected function getExternalGameId(InputInterface $input, ExternalSource $externalSource): string|int
+    {
+        $externalGameId = $this->getIdFromInput($input, '');
+        if (is_string($externalGameId) and strlen($externalGameId) > 0) {
+            return $externalGameId;
+        }
+
+        $internalGameId = $this->getStringFromInput($input, 'internal-id');
+        $againstGame = $this->againstGameRepos->find($internalGameId);
+        if ($againstGame === null) {
+            throw new \Exception('no externalid could be found', E_ERROR);
+        }
+        $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource, $againstGame);
+        if ($externalId === null) {
+            throw new \Exception('no externalid could be found', E_ERROR);
+        }
+        return $externalId;
+    }
+
+
 }

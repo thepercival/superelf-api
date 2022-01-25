@@ -6,7 +6,6 @@ namespace App\Commands;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
-use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
@@ -96,18 +95,5 @@ class PlayerTotals extends Command
             }
         }
         return 0;
-    }
-
-    protected function getCompetitionConfigFromInput(InputInterface $input): CompetitionConfig
-    {
-        $competition = $this->getCompetitionFromInput($input);
-        if ($competition === null) {
-            throw new \Exception('competition not found', E_ERROR);
-        }
-        $competitionConfig = $this->competitionConfigRepos->findOneBy(['competition' => $competition]);
-        if ($competitionConfig === null) {
-            throw new \Exception('competition not found', E_ERROR);
-        }
-        return $competitionConfig;
     }
 }

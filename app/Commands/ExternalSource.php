@@ -23,6 +23,7 @@ abstract class ExternalSource extends Command
         /** @var ExternalSourceFactory $externalSourceFactory */
         $externalSourceFactory = $container->get(ExternalSourceFactory::class);
         $this->externalSourceFactory = $externalSourceFactory;
+
         parent::__construct($container);
     }
 

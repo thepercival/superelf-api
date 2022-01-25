@@ -26,14 +26,14 @@ SuperElf\Pool\User:
       read_only: true
     transferFormation:
       type: SuperElf\Formation
-      groups: [formations]
+      groups: [ formations ]
       read_only: true
   virtual_properties:
     getNrOfAssembled:
       type: integer
       groups: [ admin ]
       serialized_name: nrOfAssembled
-    getNrOfTransferedWithTeam:
-      type: integer
-      groups: [admin]
-      serialized_name: nrOfTransfersWithTeam
+#    getNrOfTransferedWithTeam:
+#      type: integer
+#      groups: [admin]
+#      serialized_name: nrOfTransfersWithTeam

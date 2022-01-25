@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SuperElf\GameRound;
 
+use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State as GameState;
+use SuperElf\CompetitionConfig;
 use SuperElf\GameRound;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Period\View\Repository as ViewPeriodRepository;
@@ -29,11 +31,17 @@ class Syncer
     ) {
     }
 
-    public function sync(AgainstGame $game, \DateTimeImmutable|null $oldGameDate): void
-    {
+    public function sync(
+        CompetitionConfig $competitionConfig,
+        AgainstGame $game,
+        \DateTimeImmutable|null $oldGameDate
+    ): void {
         $competition = $game->getRound()->getNumber()->getCompetition();
+        if ($competitionConfig->getSourceCompetition() !== $competition) {
+            throw new Exception('the game is from another competitonconfig', E_ERROR);
+        }
 
-        $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
+        $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
             throw new \Exception("no viewperiod found for game", E_ERROR);
         }
@@ -51,7 +59,7 @@ class Syncer
         }
 
         // ////////////////// RESCHEDULED ////////////////////////
-        $oldViewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $oldGameDate);
+        $oldViewPeriod = $competitionConfig->getViewPeriodByDate($oldGameDate);
         if ($oldViewPeriod === null || $oldViewPeriod === $viewPeriod) {
             return;
         }

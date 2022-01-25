@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Points;
 
+use Sports\Sport\FootballLine;
 use SportsHelpers\Against\Result as AgainstResult;
 use SuperElf\Points;
 use SuperElf\Statistics;
@@ -14,7 +15,7 @@ class Calculator
     {
     }
 
-    public function getStatisticsPoints(int $line, Statistics $statistics, Points $points): int
+    public function getStatisticsPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         $total = $this->getResultPoints($statistics, $points);
         $total += $this->getGoalPoints($line, $statistics, $points);
@@ -36,7 +37,7 @@ class Calculator
         return 0;
     }
 
-    protected function getGoalPoints(int $line, Statistics $statistics, Points $points): int
+    protected function getGoalPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         $total = $statistics->getNrOfFieldGoals() * $points->getFieldGoal($line);
         $total += $statistics->getNrOfAssists() * $points->getAssist($line);
@@ -46,17 +47,17 @@ class Calculator
     }
 
 
-    protected function getAssistPoints(int $line, Statistics $statistics, Points $points): int
+    protected function getAssistPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         return $statistics->getNrOfAssists() * $points->getAssist($line);
     }
 
-    protected function getCleanSheetPoints(int $line, Statistics $statistics, Points $points): int
+    protected function getCleanSheetPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         return $statistics->hasCleanSheet() ? $points->getCleanSheet($line) : 0;
     }
 
-    protected function getSpottySheetPoints(int $line, Statistics $statistics, Points $points): int
+    protected function getSpottySheetPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         return $statistics->hasSpottySheet() ? $points->getSpottySheet($line) : 0;
     }

@@ -11,8 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --assemblePeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
- * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2015/2016 --createAndJoinStart="2015-07-31 12:00" --assemblePeriod="2015-09-01 06:00=>2015-09-12 16:00" --transferPeriod="2016-02-01 06:00=>2016-02-05 18:30" --loglevel=200
+ * php bin/console.php app:migrate-pools --loglevel=200
  */
 class Users extends Command
 {

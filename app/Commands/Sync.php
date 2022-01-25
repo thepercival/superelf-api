@@ -13,13 +13,15 @@ use Interop\Queue\Consumer;
 use Interop\Queue\Message;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
+use Sports\Game;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State as GameState;
 use SportsHelpers\SportRange;
-use SportsImport\Event\Game;
 use SportsImport\Event\Game as GameEvent;
 use stdClass;
+use SuperElf\CompetitionConfig;
+use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
@@ -35,6 +37,7 @@ class Sync extends Command
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
+    protected CompetitionConfigRepository $competitionConfigRepos;
     protected EntityManager $entityManager;
 
     public function __construct(ContainerInterface $container)
@@ -61,6 +64,10 @@ class Sync extends Command
         $appearanceSyncer = $container->get(AppearanceSyncer::class);
         $this->appearanceSyncer = $appearanceSyncer;
 
+        /** @var CompetitionConfigRepository $competitionConfigRepos */
+        $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
+        $this->competitionConfigRepos = $competitionConfigRepos;
+
         /** @var EntityManager $entityManager */
         $entityManager = $container->get(EntityManager::class);
         $this->entityManager = $entityManager;
@@ -79,6 +86,10 @@ class Sync extends Command
 
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
 
+        $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
+        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
+        $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
+
         parent::configure();
     }
 
@@ -88,27 +99,11 @@ class Sync extends Command
         $this->getLogger()->info('starting command app:sync');
 
         try {
-            $queueService = new QueueService($this->config->getArray('queue'));
-            $timeoutInSeconds = 1;
-
-            $competition = $this->getCompetitionFromInput($input);
-            if ($competition !== null) {
-                $gameRoundNrRange = $this->getGameRoundNrRangeFromInput($input);
-                if ($gameRoundNrRange !== null) {
-                    $this->syncGameRounds($competition, $gameRoundNrRange);
-                    return 0;
-                }
-            }
-
-            $gameId = $this->getIdFromInput($input, 0);
-            $game = $this->againstGameRepos->find((int)$gameId);
-            if ($game === null) {
-                $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
+            if ($this->executeManual($input)) {
                 return 0;
             }
-            $this->s11PlayerSyncer->sync($game);
-            $this->statisticsSyncer->sync($game);
-            $this->appearanceSyncer->sync($game);
+            $queueService = new QueueService($this->config->getArray('queue'));
+            $timeoutInSeconds = 1;
 
             $queueService->receive($this->getReceiver(), $timeoutInSeconds, QueueService::GENERAL_QUEUE);
         } catch (\Exception $e) {
@@ -117,6 +112,39 @@ class Sync extends Command
             }
         }
         return 0;
+    }
+
+    protected function executeManual(InputInterface $input): bool
+    {
+        try {
+            $competitionConfig = $this->getCompetitionConfigFromInput($input);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+
+        $gameRoundNrRange = $this->getGameRoundNrRangeFromInput($input);
+        if ($gameRoundNrRange !== null) {
+            $this->syncGameRounds($competitionConfig, $gameRoundNrRange);
+            return true;
+        }
+
+        $gameIdTmp = $this->getIdFromInput($input, 0);
+        $gameId = (int)$gameIdTmp;
+        if ($gameId === 0) {
+            return false;
+        }
+
+        $game = $this->againstGameRepos->find($gameId);
+        if ($game !== null) {
+            $competitionConfig = $this->getCompetitionConfig($game);
+            $this->s11PlayerSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->appearanceSyncer->sync($competitionConfig, $game);
+        } else {
+            $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
+        }
+        return true;
     }
 
     protected function initLogger(InputInterface $input, string $name, MailHandler|null $mailHandler = null): void
@@ -148,6 +176,7 @@ class Sync extends Command
                     return;
                 }
 
+                $competitionConfig = $this->getCompetitionConfig($game);
                 $event = GameEvent::from((string)$content->action);
                 if ($event === GameEvent::Create || $event === GameEvent::UpdateBasics || $event === GameEvent::Reschedule) {
                     $oldStartDateTime = null;
@@ -155,14 +184,14 @@ class Sync extends Command
                         $oldStartDateTime = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
                     }
 
-                    $this->gameRoundSyncer->sync($game, $oldStartDateTime);
-                    $this->s11PlayerSyncer->sync($game);
-                    $this->statisticsSyncer->sync($game);
-                    $this->appearanceSyncer->sync($game);
+                    $this->gameRoundSyncer->sync($competitionConfig, $game, $oldStartDateTime);
+                    $this->s11PlayerSyncer->sync($competitionConfig, $game);
+                    $this->statisticsSyncer->sync($competitionConfig, $game);
+                    $this->appearanceSyncer->sync($competitionConfig, $game);
                 } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
-                    $this->s11PlayerSyncer->sync($game);
-                    $this->statisticsSyncer->sync($game);
-                    $this->appearanceSyncer->sync($game);
+                    $this->s11PlayerSyncer->sync($competitionConfig, $game);
+                    $this->statisticsSyncer->sync($competitionConfig, $game);
+                    $this->appearanceSyncer->sync($competitionConfig, $game);
                 }
                 $consumer->acknowledge($message);
                 die();
@@ -173,17 +202,20 @@ class Sync extends Command
         };
     }
 
-    protected function syncRescheduleGame(string|int $gameId, \DateTimeImmutable $oldStartDateTime): void
-    {
+    protected function syncRescheduleGame(
+        CompetitionConfig $competitionConfig,
+        string|int $gameId,
+        \DateTimeImmutable $oldStartDateTime
+    ): void {
         $game = $this->againstGameRepos->find((int)$gameId);
         if ($game === null) {
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
             return;
         }
-        $this->gameRoundSyncer->sync($game, $oldStartDateTime);
-        $this->s11PlayerSyncer->sync($game);
-        $this->statisticsSyncer->sync($game);
-        $this->appearanceSyncer->sync($game);
+        $this->gameRoundSyncer->sync($competitionConfig, $game, $oldStartDateTime);
+        $this->s11PlayerSyncer->sync($competitionConfig, $game);
+        $this->statisticsSyncer->sync($competitionConfig, $game);
+        $this->appearanceSyncer->sync($competitionConfig, $game);
     }
 
     protected function getGameFromQueueMessage(stdClass $queueMessage): AgainstGame
@@ -200,18 +232,18 @@ class Sync extends Command
     }
 
     /**
-     * @param Competition $competition
+     * @param CompetitionConfig $competitionConfig
      * @param SportRange $gameRoundNrRange
      * @throws Exception
      */
-    protected function syncGameRounds(Competition $competition, SportRange $gameRoundNrRange): void
+    protected function syncGameRounds(CompetitionConfig $competitionConfig, SportRange $gameRoundNrRange): void
     {
-        $games = $this->getGames($competition, $gameRoundNrRange);
+        $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
-            $this->gameRoundSyncer->sync($game, null);
-            $this->s11PlayerSyncer->sync($game);
-            $this->statisticsSyncer->sync($game);
-            $this->appearanceSyncer->sync($game);
+            $this->gameRoundSyncer->sync($competitionConfig, $game, null);
+            $this->s11PlayerSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->appearanceSyncer->sync($competitionConfig, $game);
         }
     }
 
@@ -234,5 +266,16 @@ class Sync extends Command
             $games = array_merge($games, $gameRoundGames);
         }
         return $games;
+    }
+
+    protected function getCompetitionConfig(Game $game): CompetitionConfig
+    {
+        $competition = $game->getRound()->getNumber()->getCompetition();
+
+        $competitionConfig = $this->competitionConfigRepos->findOneBy(['sourceCompetition' => $competition]);
+        if ($competitionConfig === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        return $competitionConfig;
     }
 }

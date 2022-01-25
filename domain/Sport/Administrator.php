@@ -6,8 +6,6 @@ namespace SuperElf\Sport;
 
 use Sports\Sport;
 use Sports\Sport\Repository as SportRepository;
-use SuperElf\CompetitionType;
-use SuperElf\Pool;
 
 class Administrator
 {
@@ -15,21 +13,6 @@ class Administrator
 
     public function __construct(protected SportRepository $sportRepos)
     {
-    }
-
-    /**
-     * @param Pool $pool
-     * @return list<int>
-     */
-    public function getCompetitionTypes(Pool $pool): array
-    {
-        $competitionTypes = [
-            CompetitionType::COMPETITION, CompetitionType::CUP
-        ];
-        if ($pool->getPrevious() !== null) {
-            $competitionTypes[] = CompetitionType::SUPERCUP;
-        }
-        return $competitionTypes;
     }
 
     public function getSport(): Sport

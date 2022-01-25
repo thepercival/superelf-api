@@ -12,7 +12,6 @@ use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
 use SuperElf\Period\Administrator as PeriodAdministrator;
-use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
@@ -25,7 +24,6 @@ use SuperElf\User;
 class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
-    protected PointsCreator $pointsCreator;
 
     public function __construct(
         protected PoolRepository $poolRepos,
@@ -39,7 +37,6 @@ class Administrator
         protected Configuration $config
     ) {
         $this->competitionsCreator = new CompetitionsCreator();
-        $this->pointsCreator = new PointsCreator();
     }
 
     public function createCollection(string $name): PoolCollection
@@ -56,22 +53,13 @@ class Administrator
     {
         $poolCollection = $this->createCollection($name);
 
-//        $competitionConfig = new CompetitionConfig(
-//            $sourceCompetition,
-//            $this->pointsCreator->get($sourceCompetition->getSeason()),
-//            $this->periodAdministrator->getCreateAndJoinPeriod($sourceCompetition),
-//            $this->periodAdministrator->getAssemblePeriod($sourceCompetition),
-//            $this->periodAdministrator->getTransferPeriod($sourceCompetition)
-//        );
-
         $pool = new Pool($poolCollection, $competitionConfig);
 
         $this->addUser($pool, $user, true);
         $this->poolRepos->save($pool, true);
 
-        $competitionTypes = $this->sportAdministrator->getCompetitionTypes($pool);
         $sport = $this->sportAdministrator->getSport();
-        $competitions = $this->competitionsCreator->createCompetitions($pool, $sport, $competitionTypes);
+        $competitions = $this->competitionsCreator->createCompetitions($pool, $sport);
 
         $association = $pool->getCollection()->getAssociation();
         // because association(through poolcollection) already exists, doctrine gives error
@@ -94,5 +82,27 @@ class Administrator
         $poolUser = new PoolUser($pool, $user);
         $poolUser->setAdmin($admin);
         return $poolUser;
+    }
+
+    public function removeAndCreateCompetitionDetails(Pool $pool): void
+    {
+        // remove with repositories
+        // remove competitors and than create them
+        foreach ($pool->getUsers() as $poolUser) {
+            $competitor = $poolUser->getCompetitor($competition);
+            if ($competitor === null) {
+                continue;
+            }
+            $poolUser->getCompetitors()->removeElement($competitor);
+            // $this->competitorReps->remove($competitor);
+        }
+
+//        foreach ($competitions as $competition) {
+//            // -------- REMOVE ----------- //
+//            $competitors = $pool->getCompetitors($competition);
+//            while ($competitor = array_pop($competitors)) {
+//                $this->competitorRepos->remove($competitor);
+//            }
+//        }
     }
 }

@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace SuperElf\Player;
 
 use DateTime;
+use Exception;
 use Psr\Log\LoggerInterface;
+use Sports\Competitor\Map as CompetitorMap;
+use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Person;
-use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Player as S11Player;
-use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
-use SuperElf\Points\Calculator as PointsCalculator;
-use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Output\Game\Against as AgainstGameOutput;
-use Sports\Competitor\Map as CompetitorMap;
+use Sports\Person;
+use SuperElf\CompetitionConfig;
+use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Player as S11Player;
+use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Points\Calculator as PointsCalculator;
 
 class Syncer
 {
@@ -32,18 +34,23 @@ class Syncer
     ) {
     }
 
-    public function sync(AgainstGame $game): void
+    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
-        // viewperiods for season
+        if ($competitionConfig->getSourceCompetition() !== $competition) {
+            throw new Exception('the game is from another competitonconfig', E_ERROR);
+        }
 
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new CompetitorMap($competitors);
         $this->logGame($game, $map);
 //
-        $viewPeriod = $this->viewPeriodRepos->findOneByDate($competition, $game->getStartDateTime());
+        $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
-            throw new \Exception('the viewperiod should be found for date: ' . $game->getStartDateTime()->format(DateTime::ISO8601), E_ERROR);
+            throw new \Exception(
+                'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(DateTime::ISO8601),
+                E_ERROR
+            );
         }
         foreach ($game->getPlaces(/*$homeAway*/) as $gamePlace) {
             $teamCompetitor = $map->getCompetitor($gamePlace->getPlace());
@@ -104,8 +111,12 @@ class Syncer
     protected function logCreateS11Player(S11Player $s11Player): void
     {
         $basePeriod = $s11Player->getViewPeriod()->getPeriod();
-        $periodDescription = "periode " . $basePeriod->getStartDate()->format("Y-m-d"). " t/m " . $basePeriod->getEndDate()->format("Y-m-d");
-        $this->logInfo("  toegevoegd: " . $periodDescription ." , persoon: " . $s11Player->getPerson()->getName());
+        $periodDescription = "periode " . $basePeriod->getStartDate()->format(
+                "Y-m-d"
+            ) . " t/m " . $basePeriod->getEndDate()->format("Y-m-d");
+        $this->logInfo(
+            "  s11Player toegevoegd: " . $periodDescription . " , persoon: " . $s11Player->getPerson()->getName()
+        );
     }
 
     protected function logNoS11Player(Person $person): void

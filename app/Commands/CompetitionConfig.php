@@ -144,17 +144,4 @@ class CompetitionConfig extends Command
         //              run gameRoundSync in some way
         return 0;
     }
-
-    protected function getCompetitionConfigFromInput(InputInterface $input): \SuperElf\CompetitionConfig
-    {
-        $competition = $this->getCompetitionFromInput($input);
-        if ($competition === null) {
-            throw new \Exception('competition not found', E_ERROR);
-        }
-        $competitionConfig = $this->competitionConfigRepos->findOneBy(['competition' => $competition]);
-        if ($competitionConfig === null) {
-            throw new \Exception('competition not found', E_ERROR);
-        }
-        return $competitionConfig;
-    }
 }

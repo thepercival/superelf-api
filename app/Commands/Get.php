@@ -19,6 +19,7 @@ use Sports\Structure\Repository as StructureRepository;
 use Sports\Team\Repository as TeamRepository;
 use SportsHelpers\SportRange;
 use SportsImport\Entity;
+use SportsImport\ExternalSource\SofaScore;
 use stdClass;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -73,6 +74,7 @@ class Get extends Command
         $this->addOption('season', null, InputOption::VALUE_OPTIONAL, 'the name of the season');
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+        $this->addOption('externalSource', null, InputOption::VALUE_OPTIONAL, SofaScore::NAME);
         $this->addOption('filter', null, InputOption::VALUE_OPTIONAL, 'the json filter');
 
         parent::configure();
