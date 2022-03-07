@@ -10,6 +10,7 @@ use SuperElf\Competitions\BaseCreator;
 use SuperElf\Competitions\CompetitionCreator;
 use SuperElf\Competitions\CupCreator;
 use SuperElf\Competitions\SuperCupCreator;
+use SuperElf\League as S11League;
 
 class CompetitionsCreator
 {
@@ -25,7 +26,7 @@ class CompetitionsCreator
     public function createCompetitions(Pool $pool, Sport $sport): array
     {
         $competitions = [];
-        $competitionCreator = $this->getCreator(CompetitionType::COMPETITION);
+        $competitionCreator = $this->getCreator(S11League::Competition);
         $competitions[] = $competitionCreator->createCompetition($pool, $sport);
 
         // @TODO DEPRECATED CDK
@@ -34,42 +35,42 @@ class CompetitionsCreator
             ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2020-01-01'))
                 && $pool->getCollection()->getName() === 'kamp duim')
         ) {
-            $cupCreator = $this->getCreator(CompetitionType::CUP);
+            $cupCreator = $this->getCreator(S11League::Cup);
             $competitions[] = $cupCreator->createCompetition($pool, $sport);
         }
 
         $previous = $pool->getUnhaltedPrevious();
-        if ($previous !== null && $previous->getCompetition(CompetitionType::CUP) !== null) {
-            $superCupCreator = $this->getCreator(CompetitionType::SUPERCUP);
+        if ($previous !== null && $previous->getCompetition(S11League::Cup) !== null) {
+            $superCupCreator = $this->getCreator(S11League::SuperCup);
             $competitions[] = $superCupCreator->createCompetition($pool, $sport);
         }
 
         return $competitions;
     }
 
-    public function createCompetitionDetails(Pool $pool): void
-    {
-        $competitionTypes = [
-            CompetitionType::COMPETITION,
-            CompetitionType::CUP,
-            CompetitionType::SUPERCUP
-        ];
-        foreach ($competitionTypes as $competitionType) {
-            $competition = $pool->getCompetition($competitionType);
-            if ($competition === null) {
-                continue;
-            }
-            $this->getCreator($competitionType)->createCompetitionDetails($pool);
-        }
-    }
+//    public function createCompetitionDetails(Pool $pool): void
+//    {
+//        $competitionTypes = [
+//            CompetitionType::COMPETITION,
+//            CompetitionType::CUP,
+//            CompetitionType::SUPERCUP
+//        ];
+//        foreach ($competitionTypes as $competitionType) {
+//            $competition = $pool->getCompetition($competitionType);
+//            if ($competition === null) {
+//                continue;
+//            }
+//            $this->getCreator($competitionType)->createCompetitionDetails($pool);
+//        }
+//    }
 
-    protected function getCreator(int $competitionType): BaseCreator
+    public function getCreator(S11League $s11League): BaseCreator
     {
-        if ($competitionType === CompetitionType::COMPETITION) {
+        if ($s11League === S11League::Competition) {
             return new CompetitionCreator();
-        } elseif ($competitionType === CompetitionType::CUP) {
+        } elseif ($s11League === S11League::Cup) {
             return new CupCreator();
-        } elseif ($competitionType === CompetitionType::SUPERCUP) {
+        } elseif ($s11League === S11League::SuperCup) {
             return new SuperCupCreator();
         }
         throw new \Exception('unknown competitiontype', E_ERROR);

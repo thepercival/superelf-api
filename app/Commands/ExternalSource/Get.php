@@ -91,27 +91,27 @@ class Get extends ExternalSourceCommand
                         $this->showSeasons($externalSourceImpl);
                         return 0;
                     case Entity::ASSOCIATIONS:
-                        $sport = $this->getSportFromInput($input);
+                        $sport = $this->inputHelper->getSportFromInput($input);
                         $this->showAssociations($externalSourceImpl, $sport);
                         return 0;
                     case Entity::LEAGUES:
-                        $sport = $this->getSportFromInput($input);
-                        $association = $this->getAssociationFromInput($input);
+                        $sport = $this->inputHelper->getSportFromInput($input);
+                        $association = $this->inputHelper->getAssociationFromInput($input);
                         $this->showLeagues($externalSourceImpl, $externalSource, $sport, $association);
                         return 0;
                     case Entity::COMPETITIONS:
-                        $sport = $this->getSportFromInput($input);
-                        $league = $this->getLeagueFromInput($input);
+                        $sport = $this->inputHelper->getSportFromInput($input);
+                        $league = $this->inputHelper->getLeagueFromInput($input);
                         $this->showCompetitions($externalSourceImpl, $externalSource, $sport, $league);
                         return 0;
                 }
             }
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure) {
-                $sport = $this->getSportFromInput($input);
+                $sport = $this->inputHelper->getSportFromInput($input);
 //                $association = $this->getAssociationFromInput($input);
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::TEAMS:
                         $this->showTeams(
@@ -148,12 +148,12 @@ class Get extends ExternalSourceCommand
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
                 $externalSourceImpl instanceof GamesAndPlayers) {
-                $sport = $this->getSportFromInput($input);
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $sport = $this->inputHelper->getSportFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::GAMES_BASICS:
-                        $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
+                        $gameRoundRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
                         $this->showAgainstGamesBasics(
                             $externalSourceImpl,
                             $externalSourceImpl,
@@ -371,12 +371,12 @@ class Get extends ExternalSourceCommand
 
     protected function getExternalGameId(InputInterface $input, ExternalSource $externalSource): string|int
     {
-        $externalGameId = $this->getIdFromInput($input, '');
+        $externalGameId = $this->inputHelper->getIdFromInput($input, '');
         if (is_string($externalGameId) and strlen($externalGameId) > 0) {
             return $externalGameId;
         }
 
-        $internalGameId = $this->getStringFromInput($input, 'internal-id');
+        $internalGameId = $this->inputHelper->getStringFromInput($input, 'internal-id');
         $againstGame = $this->againstGameRepos->find($internalGameId);
         if ($againstGame === null) {
             throw new \Exception('no externalid could be found', E_ERROR);

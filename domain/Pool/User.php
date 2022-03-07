@@ -146,4 +146,10 @@ class User extends Identifiable
 //    {
 //        return $this->scores;
 //    }
+
+    public function canCompete(): bool
+    {
+        $assembleFormation = $this->getAssembleFormation();
+        return $assembleFormation !== null && $assembleFormation->allPlacesHaveAPlayer();
+    }
 }

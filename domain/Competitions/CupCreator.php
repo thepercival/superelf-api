@@ -5,24 +5,20 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
-use Sports\Competition\Sport\Service as CompetitionSportService;
-use Sports\Game\Place\Together as TogetherGamePlace;
-use Sports\Game\Together as TogetherGame;
-use Sports\Planning\Config\Service as PlanningConfigService;
-use Sports\Poule;
 use Sports\Sport;
-use Sports\Structure\Editor as StructureEditor;
+use Sports\Structure;
 use SportsHelpers\Sport\PersistVariant;
-use SuperElf\CompetitionType;
 use SuperElf\Competitor;
-use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Pool;
+use SuperElf\League as S11League;
+use SuperElf\Period\Assemble as AssemblePeriod;
+use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Pool\User as PoolUser;
 
 class CupCreator extends BaseCreator
 {
     public function __construct()
     {
-        parent::__construct(CompetitionType::CUP);
+        parent::__construct(S11League::Cup);
     }
 
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
@@ -30,57 +26,51 @@ class CupCreator extends BaseCreator
         return $sport->createAgainstPersistVariant(3, 1);
     }
 
-    protected function createStructure(Competition $competition, Pool $pool): Poule
-    {
-        $structureEditor = new StructureEditor(
-            new CompetitionSportService(),
-            new PlanningConfigService()
-        );
-        // kijk hier hoe je de knockoutrondes indeelt
-        $structure = $structureEditor->create($competition, [$pool->getUsers()->count()]);
-        return $structure->getRootRound()->getPoule(1);
-    }
-
     /**
      * @param Competition $competition
-     * @param Pool $pool
-     * @return list<Competitor>
+     * @param list<PoolUser> $validPoolUsers
+     * @return Structure
      */
-    protected function createCompetitors(Competition $competition, Pool $pool): array
+    protected function createStructure(Competition $competition, array $validPoolUsers): Structure
     {
-        $placeNr = 1;
-        $competitors = [];
-        foreach ($pool->getUsers() as $poolUser) {
-            $competitors[] = new Competitor($poolUser, $competition, 1, $placeNr++);
-            // $this->competitorReps->save($competitor);
-        }
-        return $competitors;
+        $structure = $this->structureEditor->create($competition, [count($validPoolUsers)]);
+//        $this->createGames($competition, $assemblePeriod, $transferPeriod, $structure);
+        return $structure;
     }
 
     /**
      * @param Competition $competition
-     * @param Pool $pool
-     * @param Poule $poule
+     * @param AssemblePeriod $assemblePeriod ,
+     * @param TransferPeriod $transferPeriod ,
      * @param list<Competitor> $competitors
      */
-    protected function createGames(Competition $competition, Pool $pool, Poule $poule, array $competitors): void
-    {
-        $createGames = function (ViewPeriod $viewPeriod) use ($competition, $poule, $competitors): void {
-            $competitionSport = $competition->getSingleSport();
-            foreach ($viewPeriod->getGameRounds() as $gameRound) {
-                $game = new TogetherGame(
-                    $poule,
-                    $gameRound->getNumber(),
-                    $competition->getStartDateTime(),
-                    $competitionSport
-                );
-                foreach ($competitors as $competitor) {
-                    $place = $poule->getPlace($competitor->getPlaceNr());
-                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
-                }
-            }
-        };
-        $createGames($pool->getAssemblePeriod()->getViewPeriod());
-        $createGames($pool->getTransferPeriod()->getViewPeriod());
+    protected function createGames(
+        Competition $competition,
+        AssemblePeriod $assemblePeriod,
+        TransferPeriod $transferPeriod,
+        array $competitors
+    ): void {
+//        $gameRounds = $assemblePeriod->getViewPeriod()->getGameRounds();
+//        // calculate nice verdeling CDK
+//        if (count($gameRounds) < THISH2H + 1) {
+//            throw new \Exception('assemble-viewperiod should have at least THISH2H gamerounds', E_ERROR);
+//        }
+//
+//        $createGames = function (ViewPeriod $viewPeriod) use ($competition, $poule, $competitors): void {
+//            $competitionSport = $competition->getSingleSport();
+//            foreach ($viewPeriod->getGameRounds() as $gameRound) {
+//                $game = new TogetherGame(
+//                    $poule,
+//                    $gameRound->getNumber(),
+//                    $competition->getStartDateTime(),
+//                    $competitionSport
+//                );
+//                foreach ($poule->getPlaces() as $place) {
+//                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
+//                }
+//            }
+//        };
+//        $createGames($assemblePeriod->getViewPeriod());
+//        $createGames($transferPeriod->getViewPeriod());
     }
 }

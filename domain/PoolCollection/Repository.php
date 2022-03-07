@@ -26,7 +26,6 @@ class Repository extends EntityRepository
         $query = $query->where('a.name = :name');
         $query = $query->setParameter('name', $name);
 
-
         /** @var list<PoolCollection> $poolCollections */
         $poolCollections = $query->getQuery()->getResult();
 

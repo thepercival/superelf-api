@@ -6,7 +6,7 @@ use App\Mailer;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
@@ -59,7 +59,7 @@ return [
 
         return $logger;
     },
-    EntityManager::class => function (ContainerInterface $container): EntityManager {
+    EntityManagerInterface::class => function (ContainerInterface $container): EntityManagerInterface {
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
         $doctrineAppConfig = $config->getArray('doctrine');
@@ -83,8 +83,6 @@ return [
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');
         Type::addType('enum_AgainstResult', SportsHelpers\Against\ResultType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstResult');
-        Type::addType('enum_GamePlaceStrategy', SportsPlanning\Combinations\GamePlaceStrategyType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GamePlaceStrategy');
         Type::addType('enum_GameMode', SportsHelpers\GameModeType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameMode');
         Type::addType('enum_SelfReferee', SportsHelpers\SelfRefereeType::class);
@@ -99,6 +97,8 @@ return [
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PointsCalculation');
         Type::addType('enum_PlanningState', SportsPlanning\Planning\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PlanningState');
+        Type::addType('enum_PlanningTimeoutState', SportsPlanning\Planning\TimeoutStateType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_PlanningTimeoutState');
         Type::addType('enum_GameState', Sports\Game\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
 
@@ -110,6 +110,7 @@ return [
         $doctrineAppConfig = $config->getArray('doctrine');
         /** @var array<string, string|int> $connectionParams */
         $connectionParams = $doctrineAppConfig['migrationconnection'];
+        /** @psalm-suppress ArgumentTypeCoercion */
         return \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
     },
     SerializerInterface::class => function (ContainerInterface $container): SerializerInterface {

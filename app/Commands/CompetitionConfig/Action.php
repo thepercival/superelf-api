@@ -8,4 +8,5 @@ enum Action: string
     case SetCreateAndJoinStart = 'set-createandjoin-start';
     case SetAssemblePeriod = 'set-assemble-period';
     case SetTransferPeriod = 'set-transfer-period';
+    case Show = 'show';
 }

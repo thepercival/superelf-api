@@ -89,7 +89,7 @@ class GameParticipations extends Command
                                     $message = 'player-period ' . $teamPlayerOutput->getString(
                                             $teamPlayer,
                                             ''
-                                        ) . ' is outside season ' . $seasonPeriod->format('Y-m-d');
+                                        ) . ' is outside season ' . $seasonPeriod->toIso8601('Y-m-d');
                                     $this->getLogger()->error($message);
                                 }
                             }

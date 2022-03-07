@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Sports\Association;
 use Sports\League;
 use SportsHelpers\Identifiable;
+use SuperElf\League as S11League;
 
 class PoolCollection extends Identifiable
 {
@@ -45,24 +46,13 @@ class PoolCollection extends Identifiable
         }
     }
 
-    public function getLeague(int $leagueNr): ?League
+    public function getLeague(S11League $s11League): ?League
     {
-        $name = $this->getLeagueName($leagueNr);
-        $filtered = $this->getAssociation()->getLeagues()->filter(function (League $league) use ($name): bool {
-            return $league->getName() === $name;
+        $filtered = $this->getAssociation()->getLeagues()->filter(function (League $league) use ($s11League): bool {
+            return $league->getName() === $s11League->name;
         });
         $firstFiltered = $filtered->first();
         return $firstFiltered === false ? null : $firstFiltered;
-    }
-
-    public function getLeagueName(int $competitionType): string
-    {
-        if ($competitionType === CompetitionType::CUP) {
-            return 'beker';
-        } elseif ($competitionType === CompetitionType::SUPERCUP) {
-            return 'supercup';
-        }
-        return 'competitie';
     }
 
     /**

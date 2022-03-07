@@ -7,7 +7,7 @@ namespace App\Commands;
 use App\Command;
 use App\MailHandler;
 use App\QueueService;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Interop\Queue\Consumer;
 use Interop\Queue\Message;
@@ -38,7 +38,7 @@ class Sync extends Command
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
     protected CompetitionConfigRepository $competitionConfigRepos;
-    protected EntityManager $entityManager;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
@@ -68,8 +68,8 @@ class Sync extends Command
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
 
-        /** @var EntityManager $entityManager */
-        $entityManager = $container->get(EntityManager::class);
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
         $this->entityManager = $entityManager;
     }
 
@@ -117,19 +117,19 @@ class Sync extends Command
     protected function executeManual(InputInterface $input): bool
     {
         try {
-            $competitionConfig = $this->getCompetitionConfigFromInput($input);
+            $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
         } catch (\Exception $e) {
             return false;
         }
 
 
-        $gameRoundNrRange = $this->getGameRoundNrRangeFromInput($input);
+        $gameRoundNrRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
         if ($gameRoundNrRange !== null) {
             $this->syncGameRounds($competitionConfig, $gameRoundNrRange);
             return true;
         }
 
-        $gameIdTmp = $this->getIdFromInput($input, 0);
+        $gameIdTmp = $this->inputHelper->getIdFromInput($input, 0);
         $gameId = (int)$gameIdTmp;
         if ($gameId === 0) {
             return false;

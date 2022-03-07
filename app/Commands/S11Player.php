@@ -98,13 +98,13 @@ class S11Player extends Command
 
     protected function create(InputInterface $input): int
     {
-        $competitionConfig = $this->getCompetitionConfigFromInput($input);
+        $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
-        $firstName = $this->getStringFromInput($input, 'firstName');
-        $nameInsertion = $this->getStringFromInput($input, 'nameInsertion', '');
+        $firstName = $this->inputHelper->getStringFromInput($input, 'firstName');
+        $nameInsertion = $this->inputHelper->getStringFromInput($input, 'nameInsertion', '');
         $nameInsertion = strlen($nameInsertion) === 0 ? null : $nameInsertion;
-        $lastName = $this->getStringFromInput($input, 'lastName');
-        $dateOfBirth = $this->getDateTimeFromInput($input, 'dateOfBirth', 'Y-m-d');
+        $lastName = $this->inputHelper->getStringFromInput($input, 'lastName');
+        $dateOfBirth = $this->inputHelper->getDateTimeFromInput($input, 'dateOfBirth', 'Y-m-d');
 
         // voor welke viewperiods moet ik de persoon toevoegen??
 //        --createAndJoin

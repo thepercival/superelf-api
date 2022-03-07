@@ -8,7 +8,8 @@ use Doctrine\ORM\EntityRepository;
 use Sports\Competition;
 use Sports\Poule;
 use SportsHelpers\Repository as BaseRepository;
-use SportsHelpers\Sport\Variant\Against as AgainstSportVariant;
+use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
+use SportsHelpers\Sport\VariantWithPoule;
 use SuperElf\Period\View as ViewPeriod;
 
 /**
@@ -25,13 +26,13 @@ class Repository extends EntityRepository
 
     public function findOneByGameRoundNumber(Competition $competition, int $gameRoundNumber): ?ViewPeriod
     {
-        $exprExists = $this->_em->getExpressionBuilder();
+        $exprExists = $this->getEntityManager()->getExpressionBuilder();
 
         $query = $this->createQueryBuilder('vp')
             ->where('vp.sourceCompetition = :competition')
             ->andWhere(
                 $exprExists->exists(
-                    $this->_em->createQueryBuilder()
+                    $this->getEntityManager()->createQueryBuilder()
                         ->select('gr.id')
                         ->from('SuperElf\GameRound', 'gr')
                         ->where('gr.viewPeriod = vp.id')
@@ -42,7 +43,6 @@ class Repository extends EntityRepository
         ;
         $query = $query->setParameter('competition', $competition);
         $query = $query->setParameter('gameRoundNumber', $gameRoundNumber);
-
         /** @var list<ViewPeriod> $viewPeriods */
         $viewPeriods = $query->getQuery()->getResult();
         if (count($viewPeriods) === 0) {
@@ -53,14 +53,14 @@ class Repository extends EntityRepository
 
 //    select * from viewPeriods vp
 //    where (select count(*) from games where startDateTime > vp.startDateTime and startDateTime < vp.endDateTime and resourceBatch = 1 )  > 4.5
-    public function findGameRoundOwner(Poule $poule, AgainstSportVariant $sportVariant, int $gameRoundNumber): ?ViewPeriod
+    public function findGameRoundOwner(Poule $poule, AgainstH2h $sportVariant, int $gameRoundNumber): ?ViewPeriod
     {
-        $nrOfGamesPerRound = $sportVariant->getNrOfGamesOneGameRound($poule->getPlaces()->count());
-        $halfNrOfGamesPerRound = (int)floor($nrOfGamesPerRound / 2);
+        $variantWithPoule = new VariantWithPoule($sportVariant, count($poule->getPlaces()));
+        $halfNrOfGamesPerRound = (int)floor($variantWithPoule->getNrOfGamesSimultaneously() / 2);
 
-        $exprCount = $this->_em->getExpressionBuilder();
+        $exprCount = $this->getEntityManager()->getExpressionBuilder();
 
-        $gamesQb = $this->_em->createQueryBuilder()
+        $gamesQb = $this->getEntityManager()->createQueryBuilder()
             ->select($exprCount->count('g.id'))
             ->from('Sports\Game', 'g')
             ->where('g.startDateTime >= vp.startDateTime')
@@ -77,7 +77,6 @@ class Repository extends EntityRepository
 
         $qb = $qb->setParameter('gameRoundNumber', $gameRoundNumber);
         $qb = $qb->setParameter('competition', $poule->getRound()->getNumber()->getCompetition());
-
         /** @var list<ViewPeriod> $viewPeriods */
         $viewPeriods = $qb->getQuery()->getResult();
         if (count($viewPeriods) === 0) {

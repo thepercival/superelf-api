@@ -70,7 +70,6 @@ class Repository extends EntityRepository
             }
             $query = $query->setParameter('name', '%' . $name . '%');
         }
-
         /** @var list<Pool> $pools */
         $pools = $query->getQuery()->getResult();
         return $pools;
@@ -83,9 +82,9 @@ class Repository extends EntityRepository
      */
     public function findByRoles(User $user, int $roles): array
     {
-        $exprExists = $this->_em->getExpressionBuilder();
+        $exprExists = $this->getEntityManager()->getExpressionBuilder();
 
-        $competitorQb = $this->_em->createQueryBuilder()
+        $competitorQb = $this->getEntityManager()->createQueryBuilder()
             ->select('pu.id')
             ->from('SuperElf\Pool\User', 'pu')
             ->where('pu.pool = p')

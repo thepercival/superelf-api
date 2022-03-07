@@ -74,7 +74,7 @@ class PlayerTotals extends Command
         $this->getLogger()->info('starting command app:update-playertotals');
 
         try {
-            $compConfig = $this->getCompetitionConfigFromInput($input);
+            $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {

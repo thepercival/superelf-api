@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\Auth;
 
 use App\Mailer;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Firebase\JWT\JWT;
 use Selective\Config\Configuration;
@@ -19,7 +19,7 @@ class Service
 {
     public function __construct(
         protected UserRepository $userRepos,
-        protected EntityManager $entityManager,
+        protected EntityManagerInterface $entityManager,
         protected PoolRepository $poolRepos,
         protected AuthSyncService $syncService,
         protected Configuration $config,

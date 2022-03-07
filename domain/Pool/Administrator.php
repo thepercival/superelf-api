@@ -8,9 +8,11 @@ use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\League\Repository as LeagueRepository;
+use Sports\Structure\Repository as StructureRepository;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
+use SuperElf\Competitor\Repository as PoolCompetitorRepsitory;
 use SuperElf\Period\Administrator as PeriodAdministrator;
 use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
@@ -31,8 +33,10 @@ class Administrator
         protected PeriodAdministrator $periodAdministrator,
         protected SportAdministrator $sportAdministrator,
         protected PoolCollectionRepository $poolCollectionRepos,
+        protected PoolCompetitorRepsitory $poolCompetitorRepos,
         protected LeagueRepository $leagueRepos,
         protected CompetitionRepository $competitionRepos,
+        protected StructureRepository $structureRepos,
         protected ActiveConfigService $activeConfigService,
         protected Configuration $config
     ) {
@@ -61,6 +65,7 @@ class Administrator
         $sport = $this->sportAdministrator->getSport();
         $competitions = $this->competitionsCreator->createCompetitions($pool, $sport);
 
+        // @TODO CDK CHECK SECOND SEASON
         $association = $pool->getCollection()->getAssociation();
         // because association(through poolcollection) already exists, doctrine gives error
         foreach ($competitions as $competition) {
@@ -84,25 +89,46 @@ class Administrator
         return $poolUser;
     }
 
-    public function removeAndCreateCompetitionDetails(Pool $pool): void
+    public function removeAndCreateStructureAndCompetitors(Pool $pool): void
     {
-        // remove with repositories
-        // remove competitors and than create them
-        foreach ($pool->getUsers() as $poolUser) {
-            $competitor = $poolUser->getCompetitor($competition);
-            if ($competitor === null) {
-                continue;
-            }
-            $poolUser->getCompetitors()->removeElement($competitor);
-            // $this->competitorReps->remove($competitor);
-        }
+        throw new \Exception('implement remove', E_ERROR);
+// //         remove with repositories
+// //         remove competitors and than create them
+// //
+// //        foreach ($competitions as $competition) {
+// //            // -------- REMOVE ----------- //
+// //            $competitors = $pool->getCompetitors($competition);
+// //            while ($competitor = array_pop($competitors)) {
+// //                $this->competitorRepos->remove($competitor);
+// //            }
+// //        }
 
-//        foreach ($competitions as $competition) {
-//            // -------- REMOVE ----------- //
-//            $competitors = $pool->getCompetitors($competition);
-//            while ($competitor = array_pop($competitors)) {
-//                $this->competitorRepos->remove($competitor);
+
+//        $sourceStructure = $this->structureRepos->getStructure($pool->getCompetitionConfig()->getSourceCompetition());
+//        foreach ($pool->getCompetitions() as $competition) {
+//
+//            // ---- REMOVE COMPETITORS -------
+//            foreach ($pool->getUsers() as $poolUser) {
+//                $competitor = $poolUser->getCompetitor($competition);
+//                if ($competitor === null) {
+//                    continue;
+//                }
+//                $poolUser->getCompetitors()->removeElement($competitor);
+//                $this->poolCompetitorRepos->remove($competitor);
 //            }
+//
+//            // ---- ADD COMPETITORS, REMOVE AND ADD STRUCTURE -------
+//            $s11League = $pool->getLeague($competition);
+//            $creator = $this->competitionsCreator->getCreator($s11League);
+//            $newStructure = $creator->createStructureAndCompetitors($pool, $sourceStructure);
+////            save competitors, structure and games with repos????
+//            $competitors = $pool->getCompetitors($competition);
+//
+//            foreach ($competitors as $competitor) {
+//                $this->poolCompetitorRepos->save($competitor);
+//            }
+//            $this->structureRepos->removeAndAdd($competition, $newStructure);
 //        }
+//        $this->poolRepos->save($pool);
     }
 }

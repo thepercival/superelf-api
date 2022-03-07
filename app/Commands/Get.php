@@ -98,20 +98,20 @@ class Get extends Command
             } elseif ($entity === Entity::COMPETITIONS) {
                 $this->showCompetitions($input);
             } elseif ($entity === Entity::TEAMS) {
-                $association = $this->getAssociationFromInput($input);
+                $association = $this->inputHelper->getAssociationFromInput($input);
                 $this->showTeams($association);
             } else {
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 if ($entity === Entity::TEAMCOMPETITORS) {
                     $this->showTeamCompetitors($league, $season);
                 } elseif ($entity === Entity::STRUCTURE) {
                     $this->showStructure($league, $season);
                 } elseif ($entity === Entity::GAMES_BASICS) {
-                    $gameRoundRange = $this->getGameRoundNrRangeFromInput($input);
+                    $gameRoundRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
                     $this->showAgainstGames($league, $season, $gameRoundRange);
                 } elseif ($entity === Entity::GAME) {
-                    $this->showAgainstGame($league, $season, $this->getIdFromInput($input));
+                    $this->showAgainstGame($league, $season, $this->inputHelper->getIdFromInput($input));
                 } else {
                     $message = 'objectType "' . $entity . '" kan niet worden opgehaald uit bronnen';
                     $this->getLogger()->error($message);

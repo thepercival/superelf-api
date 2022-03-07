@@ -67,7 +67,7 @@ class CompetitionConfig extends Command
         // $teamPlayerOutput = new TeamPlayerOutput($this->getLogger());
 
         try {
-            $competitionConfig = $this->getCompetitionConfigFromInput($input);
+            $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
             $competition = $competitionConfig->getSourceCompetition();
 

@@ -99,4 +99,16 @@ class Formation extends Identifiable
         $firstPlayer = $filtered->first();
         return $firstPlayer === false ? null : $firstPlayer;
     }
+
+    public function allPlacesHaveAPlayer(): bool
+    {
+        foreach ($this->getLines() as $line) {
+            foreach ($line->getPlaces() as $place) {
+                if ($place->getPlayer() === null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

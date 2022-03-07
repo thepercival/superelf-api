@@ -36,7 +36,6 @@ class Repository extends EntityRepository
 
         $query = $query->andWhere('s11pl.viewPeriod = :viewPeriod');
         $query = $query->setParameter('viewPeriod', $viewPeriod);
-
         /** @var list<ScoutedPlayer> $scoutedPlayers */
         $scoutedPlayers = $query->getQuery()->getResult();
         return $scoutedPlayers;

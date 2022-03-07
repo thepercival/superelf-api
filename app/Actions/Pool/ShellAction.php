@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Actions\Pool;
 
-use Doctrine\ORM\EntityManager;
-use JMS\Serializer\SerializerInterface;
+use App\Actions\Action;
 use App\Response\ErrorResponse;
+use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\User;
-use SuperElf\Auth\Service as AuthService;
-use App\Actions\Action;
-use SuperElf\Pool\Shell;
 use Psr\Log\LoggerInterface;
+use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Pool\Shell;
+use SuperElf\User;
 
 final class ShellAction extends Action
 {

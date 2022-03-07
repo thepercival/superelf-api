@@ -47,7 +47,6 @@ class Repository extends EntityRepository
         ;
         $query = $query->setParameter('line', $line);
         $query = $query->setParameter('player', $player);
-
         /** @var list<FormationLine> $formationLines */
         $formationLines = $query->getQuery()->getResult();
         return $formationLines;

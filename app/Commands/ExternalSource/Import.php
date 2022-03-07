@@ -80,12 +80,16 @@ class Import extends ExternalSourceCommand
                         $this->importer->importSeasons($externalSourceImpl, $externalSourceImpl->getExternalSource());
                         return 0;
                     case Entity::ASSOCIATIONS:
-                        $sport = $this->getSportFromInput($input);
-                        $this->importer->importAssociations($externalSourceImpl, $externalSourceImpl->getExternalSource(), $sport);
+                        $sport = $this->inputHelper->getSportFromInput($input);
+                        $this->importer->importAssociations(
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport
+                        );
                         return 0;
                     case Entity::LEAGUES:
-                        $sport = $this->getSportFromInput($input);
-                        $association = $this->getAssociationFromInput($input);
+                        $sport = $this->inputHelper->getSportFromInput($input);
+                        $association = $this->inputHelper->getAssociationFromInput($input);
                         $this->importer->importLeagues(
                             $externalSourceImpl,
                             $externalSourceImpl->getExternalSource(),
@@ -94,9 +98,9 @@ class Import extends ExternalSourceCommand
                         );
                         return 0;
                     case Entity::COMPETITIONS:
-                        $sport = $this->getSportFromInput($input);
-                        $league = $this->getLeagueFromInput($input);
-                        $season = $this->getSeasonFromInput($input);
+                        $sport = $this->inputHelper->getSportFromInput($input);
+                        $league = $this->inputHelper->getLeagueFromInput($input);
+                        $season = $this->inputHelper->getSeasonFromInput($input);
                         $this->importer->importCompetition(
                             $externalSourceImpl,
                             $externalSourceImpl->getExternalSource(),
@@ -109,9 +113,9 @@ class Import extends ExternalSourceCommand
             }
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure) {
-                $sport = $this->getSportFromInput($input);
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $sport = $this->inputHelper->getSportFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::TEAMS:
                         $this->importer->importTeams(
@@ -148,9 +152,9 @@ class Import extends ExternalSourceCommand
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
                 $externalSourceImpl instanceof GamesAndPlayers) {
-                $sport = $this->getSportFromInput($input);
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $sport = $this->inputHelper->getSportFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 switch ($entity) {
                     case Entity::GAMES_BASICS:
                         $this->importer->importGamesBasics(
@@ -162,7 +166,7 @@ class Import extends ExternalSourceCommand
                             $league,
                             $season,
                             $this->getGameCacheOptionFromInput($input),
-                            $this->getGameRoundNrRangeFromInput($input)
+                            $this->inputHelper->getGameRoundNrRangeFromInput($input)
                         );
                         return 0;
                     case Entity::GAMES_COMPLEET:
@@ -175,7 +179,7 @@ class Import extends ExternalSourceCommand
                             $league,
                             $season,
                             $this->getGameCacheOptionFromInput($input),
-                            $this->getGameRoundNrRangeFromInput($input)
+                            $this->inputHelper->getGameRoundNrRangeFromInput($input)
                         );
                         return 0;
                     case Entity::GAME:
@@ -187,7 +191,7 @@ class Import extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
-                            (string)$this->getIdFromInput($input),
+                            (string)$this->inputHelper->getIdFromInput($input),
                             $this->getGameCacheOptionFromInput($input)
                         );
                         return 0;

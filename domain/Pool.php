@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Sports\Competition;
 use Sports\Season;
 use SportsHelpers\Identifiable;
+use SuperElf\League as S11League;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
@@ -82,13 +83,23 @@ class Pool extends Identifiable
         return array_values(array_filter($competitions, fn (Competition|null $c) => $c !== null));
     }
 
-    public function getCompetition(int $leagueNr): ?Competition
+    public function getCompetition(S11League $s11League): ?Competition
     {
-        $league = $this->getCollection()->getLeague($leagueNr);
+        $league = $this->getCollection()->getLeague($s11League);
         if ($league === null) {
             return null;
         }
         return $league->getCompetition($this->getSeason());
+    }
+
+    public function getLeague(Competition $competition): S11League
+    {
+        foreach (S11League::cases() as $s11League) {
+            if ($this->getCompetition($s11League) === $competition) {
+                return $s11League;
+            }
+        }
+        throw new \Exception('competition has an unknown league', E_ERROR);
     }
 
     /**

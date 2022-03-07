@@ -28,7 +28,8 @@ class Repository extends EntityRepository
             ->join("cc.createAndJoinPeriod", "candj")
             ->where('candj.startDateTime < :currentDateTime')
             ->andWhere('candj.endDateTime > :currentDateTime')
-            ->setParameter('currentDateTime', new \DateTimeImmutable());;
+            ->setParameter('currentDateTime', new \DateTimeImmutable());
+
         /** @var list<CompetitionConfig> $competitionConfigs */
         $competitionConfigs = $queryBuilder->getQuery()->getResult();
         return $competitionConfigs;

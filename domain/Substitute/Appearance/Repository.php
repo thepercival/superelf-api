@@ -46,7 +46,7 @@ class Repository extends EntityRepository
                     	        join formationPlaces fpl on fpl.playerId = s.playerId and fpl.formationLineId = fl.id
                     	where   s.gameRoundId = sa.gameRoundId
                     ) < (select count(*) from formationLines where id = fl.id) - 1";
-        $this->_em->getConnection()->executeQuery($sql);
+        $this->getEntityManager()->getConnection()->executeQuery($sql);
     }
 
     protected function add(GameRound $gameRound): void
@@ -73,6 +73,6 @@ class Repository extends EntityRepository
                     where   s.gameRoundId = sa.gameRoundId
                   ) = (select count(*) from formationLines where id = fl.id) - 1 
             )";
-        $this->_em->getConnection()->executeQuery($sql);
+        $this->getEntityManager()->getConnection()->executeQuery($sql);
     }
 }

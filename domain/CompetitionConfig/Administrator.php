@@ -172,7 +172,6 @@ class Administrator
         }
     }
 
-
 //    public function createCollection(string $name): PoolCollection
 //    {
 //        $poolCollection = $this->poolCollectionRepos->findOneByName($name);

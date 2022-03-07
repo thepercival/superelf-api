@@ -62,7 +62,7 @@ class TeamPlayers extends Command
         // $teamPlayerOutput = new TeamPlayerOutput($this->getLogger());
 
         try {
-            $competition = $this->getCompetitionFromInput($input);
+            $competition = $this->inputHelper->getCompetitionFromInput($input);
             if ($competition === null) {
                 throw new \Exception('competition could not be found', E_ERROR);
             }

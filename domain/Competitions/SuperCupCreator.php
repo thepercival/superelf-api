@@ -5,24 +5,16 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
-use Sports\Competition\Sport\Service as CompetitionSportService;
-use Sports\Game\Place\Together as TogetherGamePlace;
-use Sports\Game\Together as TogetherGame;
-use Sports\Planning\Config\Service as PlanningConfigService;
-use Sports\Poule;
 use Sports\Sport;
-use Sports\Structure\Editor as StructureEditor;
+use Sports\Structure;
 use SportsHelpers\Sport\PersistVariant;
-use SuperElf\CompetitionType;
-use SuperElf\Competitor;
-use SuperElf\Period\View as ViewPeriod;
-use SuperElf\Pool;
+use SuperElf\League as S11League;
 
 class SuperCupCreator extends BaseCreator
 {
     public function __construct()
     {
-        parent::__construct(CompetitionType::SUPERCUP);
+        parent::__construct(S11League::SuperCup);
     }
 
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
@@ -30,56 +22,69 @@ class SuperCupCreator extends BaseCreator
         return $sport->createAgainstPersistVariant(3, 1);
     }
 
-    protected function createStructure(Competition $competition, Pool $pool): Poule
-    {
-        $structureEditor = new StructureEditor(
-            new CompetitionSportService(),
-            new PlanningConfigService()
-        );
-        $structure = $structureEditor->create($competition, [$pool->getUsers()->count()]);
-        return $structure->getRootRound()->getPoule(1);
-    }
-
     /**
      * @param Competition $competition
-     * @param Pool $pool
-     * @return list<Competitor>
+     * @return Structure
      */
-    protected function createCompetitors(Competition $competition, Pool $pool): array
+    protected function createStructure(Competition $competition): Structure
     {
-        $placeNr = 1;
-        $competitors = [];
-        foreach ($pool->getUsers() as $poolUser) {
-            $competitors[] = new Competitor($poolUser, $competition, 1, $placeNr++);
-            // $this->competitorReps->save($competitor);
-        }
-        return $competitors;
+        $structure = $this->structureEditor->create($competition, [2]);
+//        $this->createGames($competition, $assemblePeriod, $transferPeriod, $structure);
+        return $structure;
     }
 
-    /**
-     * @param Competition $competition
-     * @param Pool $pool
-     * @param Poule $poule
-     * @param list<Competitor> $competitors
-     */
-    protected function createGames(Competition $competition, Pool $pool, Poule $poule, array $competitors): void
-    {
-        $createGames = function (ViewPeriod $viewPeriod) use ($competition, $poule, $competitors): void {
-            $competitionSport = $competition->getSingleSport();
-            foreach ($viewPeriod->getGameRounds() as $gameRound) {
-                $game = new TogetherGame(
-                    $poule,
-                    $gameRound->getNumber(),
-                    $competition->getStartDateTime(),
-                    $competitionSport
-                );
-                foreach ($competitors as $competitor) {
-                    $place = $poule->getPlace($competitor->getPlaceNr());
-                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
-                }
-            }
-        };
-        $createGames($pool->getAssemblePeriod()->getViewPeriod());
-        $createGames($pool->getTransferPeriod()->getViewPeriod());
-    }
+//    protected function createGames(
+//        Competition $competition,
+//        CompetitionConfig $competitionConfig,
+//        Structure $structure,
+//        Structure $sourceStructure
+//    ): void
+//    {
+//        $poule = $structure->getRootRound()->getFirstPoule();
+//
+//        $competitionSport = $competition->getSingleSport();
+//
+//        $assemblePeriod = $competitionConfig->getAssemblePeriod();
+//        $gameRounds = $assemblePeriod->getViewPeriod()->getGameRounds();
+//
+//        $startAfterNrOfGameRounds = 1;
+//        $nrOfH2h = 3;
+//        $minNrOfGameRounds = $startAfterNrOfGameRounds + $nrOfH2h;
+//        if (count($gameRounds) < $minNrOfGameRounds) {
+//            throw new \Exception('assemble-viewperiod should have at least ' . $minNrOfGameRounds . ' gamerounds', E_ERROR);
+//        }
+//        // @TODO CDK BEPAAL WELKE RONDEN ER GEBRUIKT MOETEN WORDEN VOOR CUP EN SUPERCUP
+//        $batchNr = 0;
+//        foreach ($gameRounds as $gameRound) {
+//            if ($startAfterNrOfGameRounds-- > 0) {
+//                continue;
+//            }
+//            $game = new AgainstGame(
+//                $poule,
+//                ++$batchNr,
+//                $assemblePeriod->getViewPeriod()->getStartDateTime()->modify('+' . $batchNr . ' days'),
+//                $competitionSport,
+//                $gameRound->getNumber(),
+//            );
+//            if (($batchNr % 2) === 0) {
+//                $homePlace = $poule->getPlace(1);
+//                $awayPlace = $poule->getPlace(2);
+//            } else {
+//                $homePlace = $poule->getPlace(2);
+//                $awayPlace = $poule->getPlace(1);
+//            }
+//            new AgainstGamePlace($game, $homePlace, Side::Home);
+//            new AgainstGamePlace($game, $awayPlace, Side::Away);
+//        }
+//    }
+
+//    protected function getAvailableGameRounds($sourceStructure): array {
+//        // wanneer er gamerounds veranderen
+//        // gamerounds van wedstrijden die
+//        // 1 allemaal na nu zijn
+//        // 2 nog niet begonnen is
+//        // wat doe je met gamerounds die overlappen met latere gamerounds?
+//        // aanzetten na migratie
+//
+//    }
 }

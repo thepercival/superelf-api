@@ -9,6 +9,7 @@ use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SuperElf\CompetitionConfig\Administrator;
+use SuperElf\CompetitionConfig\Output as CompetitionConfigOutput;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -79,6 +80,8 @@ class CompetitionConfig extends Command
                     return $this->setAssemblePeriod($input);
                 case CompetitionConfigAction::SetTransferPeriod:
                     return $this->setTransferPeriod($input);
+                case CompetitionConfigAction::Show:
+                    return $this->show($input);
                 default:
                     throw new \Exception('onbekende actie', E_ERROR);
             }
@@ -99,16 +102,16 @@ class CompetitionConfig extends Command
 
     protected function create(InputInterface $input): int
     {
-        $competition = $this->getCompetitionFromInput($input);
+        $competition = $this->inputHelper->getCompetitionFromInput($input);
         if ($competition === null) {
             throw new \Exception('competition not found', E_ERROR);
         }
         $admin = $this->getAdministrator($competition);
         $competitionConfig = $admin->create(
             $competition,
-            $this->getDateTimeFromInput($input, 'createAndJoinStart'),
-            $this->getPeriodFromInput($input, 'assemblePeriod'),
-            $this->getPeriodFromInput($input, 'transferPeriod'),
+            $this->inputHelper->getDateTimeFromInput($input, 'createAndJoinStart'),
+            $this->inputHelper->getPeriodFromInput($input, 'assemblePeriod'),
+            $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
             $this->againstGameRepos->getCompetitionGames($competition)
         );
         $this->competitionConfigRepos->save($competitionConfig);
@@ -142,6 +145,15 @@ class CompetitionConfig extends Command
         //              if before season end
         //              check if no transfers has been done? maybe check if is in past and show warning
         //              run gameRoundSync in some way
+        return 0;
+    }
+
+    protected function show(InputInterface $input): int
+    {
+        $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
+
+        $output = new CompetitionConfigOutput($this->logger);
+        $output->output($competitionConfig);
         return 0;
     }
 }

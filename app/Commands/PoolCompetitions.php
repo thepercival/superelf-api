@@ -76,14 +76,14 @@ class PoolCompetitions extends Command
         // per pool de competities verwijderen en weer opnieuw aanmaken
 
         try {
-            $compConfig = $this->getCompetitionConfigFromInput($input);
+            $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             foreach ($pools as $pool) {
                 $this->getLogger()->info(
                     "create competitions for pool " . $pool->getName() . "(" . (string)$pool->getId() . ")"
                 );
-                $this->poolAdmin->removeAndCreateCompetitionDetails($pool);
+                $this->poolAdmin->removeAndCreateStructureAndCompetitors($pool);
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {

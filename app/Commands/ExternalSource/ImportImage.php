@@ -62,8 +62,8 @@ class ImportImage extends ExternalSourceCommand
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
                 $externalSourceImpl instanceof GamesAndPlayers) {
-                $league = $this->getLeagueFromInput($input);
-                $season = $this->getSeasonFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
                 if ($entity === Entity::TEAMS) {
                     $this->importTeamImages(
                         $externalSourceImpl,
