@@ -49,7 +49,7 @@ class Syncer
         $gameRound = $viewPeriod->getGameRound($game->getGameRoundNumber());
         if ($gameRound === null) {
             $gameRound = new GameRound($viewPeriod, $game->getGameRoundNumber());
-            $this->gameRoundRepos->save($gameRound);
+            $this->gameRoundRepos->save($gameRound, true);
             $vpDescr = 'viewperiod "' . $viewPeriod . '"';
             $this->logInfo('add gameround "' . $game->getGameRoundNumber() . '" for ' . $vpDescr);
         }
@@ -80,7 +80,7 @@ class Syncer
             return;
         }
         $oldViewPeriod->getGameRounds()->removeElement($gameRound);
-        $this->gameRoundRepos->remove($gameRound);
+        $this->gameRoundRepos->remove($gameRound, true);
         $vpDescr = 'viewperiod "' . $oldViewPeriod . '"';
         $this->logInfo('remove gameround "' . $game->getGameRoundNumber() . '" for ' . $vpDescr);
     }

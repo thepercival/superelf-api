@@ -6,17 +6,11 @@ namespace SuperElf\CompetitionConfig\Output;
 
 use Sports\NameService;
 use SuperElf\CompetitionConfig;
-use SuperElf\GameRound;
-use SuperElf\Period\View as ViewPeriod;
 
 final class RangeCalculator
 {
-    // protected const MARGIN = 1;
     public const PADDING = 1;
     public const BORDER = 1;
-//    protected const CREATEANDJOINWIDTH = 3;
-//    protected const HORPLACEWIDTH = 3;
-    public const GameRoundNumberTitle = 'grnr';
 
     protected NameService $nameService;
 
@@ -25,36 +19,44 @@ final class RangeCalculator
         $this->nameService = new NameService();
     }
 
-    public function getHeight(): int
+    public function getMaxHeight(CompetitionConfig $competitionConfig): int
     {
-        // 1 Title
-        // 2 period-names
-        // 3 period-start-end
-        // 4 gamenumbers
-        return 4;
+        $height = 1;    // Title
+        $height++;      // period-names
+        $height++;      // period-start-end
+        $height++;      // border
+        return $height + $this->getMaxNrOfGameRounds($competitionConfig);
     }
 
-    public function getMaxWidth(CompetitionConfig $competitionConfig, int $titleLength): int
+    protected function getMaxNrOfGameRounds(CompetitionConfig $competitionConfig): int
     {
-        $tableWidth = $this->getMaxTableWidth($competitionConfig);
+        $createAndJoin = count($competitionConfig->getCreateAndJoinPeriod()->getGameRounds());
+        $assembleView = count($competitionConfig->getAssemblePeriod()->getViewPeriod()->getGameRounds());
+        $transferView = count($competitionConfig->getTransferPeriod()->getViewPeriod()->getGameRounds());
+        return max($createAndJoin, $assembleView, $transferView);
+    }
+
+    public function getMaxWidth(int $titleLength): int
+    {
+        $tableWidth = $this->getMaxTableWidth();
         return max($tableWidth, $titleLength);
     }
 
-    public function getMaxTableWidth(CompetitionConfig $competitionConfig): int
+    public function getMaxTableWidth(): int
     {
-        $maxWidth = $this->getMaxCreateAndJoinWidth($competitionConfig) + self::BORDER;
+        $maxWidth = $this->getCreateAndJoinWidth() + self::BORDER;
         $maxWidth += $this->getMaxAssemblePeriodWidth() + self::BORDER;
-        $maxWidth += $this->getMaxAssembleViewPeriodWidth($competitionConfig) + self::BORDER;
+        $maxWidth += $this->getAssembleViewPeriodWidth() + self::BORDER;
         $maxWidth += $this->getMaxTransferPeriodWidth() + self::BORDER;
-        $maxWidth += $this->getMaxTransferViewPeriodWidth($competitionConfig);
+        $maxWidth += $this->getTransferViewPeriodWidth();
 
         return $maxWidth;
     }
 
-    public function getMaxCreateAndJoinWidth(CompetitionConfig $competitionConfig): int
+    public function getCreateAndJoinWidth(): int
     {
         $nameWidth = $this->getCreateAndJoinNameWidth();
-        $gnrsWidth = $this->getViewPeriodGameRoundNrsWidth($competitionConfig->getCreateAndJoinPeriod());
+        $gnrsWidth = $this->getViewPeriodGameRoundWidth();
         return max($nameWidth, $gnrsWidth, $this->getPeriodDatesWidth());
     }
 
@@ -63,16 +65,10 @@ final class RangeCalculator
         return self::PADDING + mb_strlen(DrawHelper::CreateAndJoinTitle) + self::PADDING;
     }
 
-    public function getViewPeriodGameRoundNrsWidth(ViewPeriod $viewPeriod): int
+    public function getViewPeriodGameRoundWidth(): int
     {
-        return self::PADDING + mb_strlen(
-                join(
-                    ',',
-                    $viewPeriod->getGameRounds()->map(function (GameRound $gameRound): string {
-                        return (string)$gameRound->getNumber();
-                    })->toArray()
-                )
-            ) + self::PADDING;
+        $maxNrOfGameRoundDigits = 2 + self::PADDING;
+        return $maxNrOfGameRoundDigits + $this->getPeriodDatesWidth();
     }
 
     public function getPeriodDatesWidth(): int
@@ -90,10 +86,10 @@ final class RangeCalculator
         return self::PADDING + mb_strlen(DrawHelper::AssemblePeriodTitle) + self::PADDING;
     }
 
-    public function getMaxAssembleViewPeriodWidth(CompetitionConfig $competitionConfig): int
+    public function getAssembleViewPeriodWidth(): int
     {
         $nameWidth = $this->getAssembleViewPeriodNameWidth();
-        $gnrsWidth = $this->getViewPeriodGameRoundNrsWidth($competitionConfig->getAssemblePeriod()->getViewPeriod());
+        $gnrsWidth = $this->getViewPeriodGameRoundWidth();
         return max($nameWidth, $gnrsWidth, $this->getPeriodDatesWidth());
     }
 
@@ -112,10 +108,10 @@ final class RangeCalculator
         return self::PADDING + mb_strlen(DrawHelper::TransferPeriodTitle) + self::PADDING;
     }
 
-    public function getMaxTransferViewPeriodWidth(CompetitionConfig $competitionConfig): int
+    public function getTransferViewPeriodWidth(): int
     {
         $nameWidth = $this->getTransferViewPeriodNameWidth();
-        $gnrsWidth = $this->getViewPeriodGameRoundNrsWidth($competitionConfig->getTransferPeriod()->getViewPeriod());
+        $gnrsWidth = $this->getViewPeriodGameRoundWidth();
         return max($nameWidth, $gnrsWidth);
     }
 

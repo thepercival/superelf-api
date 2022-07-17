@@ -7,7 +7,7 @@ namespace SuperElf\Player;
 use DateTime;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Sports\Competitor\Map as CompetitorMap;
+use Sports\Competitor\StartLocationMap;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
@@ -42,7 +42,7 @@ class Syncer
         }
 
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
-        $map = new CompetitorMap($competitors);
+        $map = new StartLocationMap($competitors);
         $this->logGame($game, $map);
 //
         $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
@@ -53,7 +53,11 @@ class Syncer
             );
         }
         foreach ($game->getPlaces(/*$homeAway*/) as $gamePlace) {
-            $teamCompetitor = $map->getCompetitor($gamePlace->getPlace());
+            $startLocation = $gamePlace->getPlace()->getStartLocation();
+            if ($startLocation === null) {
+                continue;
+            }
+            $teamCompetitor = $map->getCompetitor($startLocation);
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
@@ -80,7 +84,7 @@ class Syncer
             return $s11Player;
         }
         $s11Player = new S11Player($viewPeriod, $person, new Totals());
-        $this->logCreateS11Player($this->s11PlayerRepos->save($s11Player));
+        $this->logCreateS11Player($this->s11PlayerRepos->save($s11Player, true));
         return $s11Player;
     }
     /**
@@ -99,21 +103,19 @@ class Syncer
         return null;
     }
 
-    protected function logGame(AgainstGame $game, CompetitorMap $competitorMap): void
+    protected function logGame(AgainstGame $game, StartLocationMap $startLocationMap): void
     {
         if ($this->logger === null) {
             return;
         }
-        $gameOutput = new AgainstGameOutput($competitorMap);
+        $gameOutput = new AgainstGameOutput($startLocationMap);
         $gameOutput->output($game);
     }
 
     protected function logCreateS11Player(S11Player $s11Player): void
     {
         $basePeriod = $s11Player->getViewPeriod()->getPeriod();
-        $periodDescription = "periode " . $basePeriod->getStartDate()->format(
-                "Y-m-d"
-            ) . " t/m " . $basePeriod->getEndDate()->format("Y-m-d");
+        $periodDescription = "periode " . $basePeriod->toIso80000('Y-m-d');
         $this->logInfo(
             "  s11Player toegevoegd: " . $periodDescription . " , persoon: " . $s11Player->getPerson()->getName()
         );

@@ -4,14 +4,14 @@ SuperElf\Competitor:
   access_type: public_property
 
   properties:
-  #    abbreviation:
-  #      type: string
-  #    registered:
-  #      type: boolean
-  #    info:
-  #      type: string
-  #    imageUrl:
-  #      type: string
+    id:
+      type: integer
+    name:
+      type: string
+    registered:
+      type: boolean
+    info:
+      type: string
   virtual_properties:
     getCompetitionId:
       type: integer

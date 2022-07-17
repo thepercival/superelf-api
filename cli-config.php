@@ -10,13 +10,16 @@ require 'vendor/autoload.php';
 $settings = include 'config/settings.php';
 $settings = $settings['doctrine'];
 
-$config = \Doctrine\ORM\Tools\Setup::createConfiguration(
-    $settings['meta']['dev_mode'],
-    $settings['meta']['proxy_dir'],
-    $settings['meta']['cache']
-);
-$driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($settings['meta']['entity_path']);
+$config = new \Doctrine\ORM\Configuration();
+/** @var list<string> $entityPath */
+$entityPath = $settings['meta']['entity_path'];
+$driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($entityPath);
 $config->setMetadataDriverImpl($driver);
+
+/** @var string $proxyDir */
+$proxyDir = $settings['meta']['proxy_dir'];
+$config->setProxyDir($proxyDir);
+$config->setProxyNamespace('fctoernooi');
 
 $em = \Doctrine\ORM\EntityManager::create($settings['connection'], $config);
 

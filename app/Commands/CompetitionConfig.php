@@ -153,7 +153,8 @@ class CompetitionConfig extends Command
         $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
         $output = new CompetitionConfigOutput($this->logger);
-        $output->output($competitionConfig);
+        $againstGames = $this->againstGameRepos->getCompetitionGames($competitionConfig->getSourceCompetition());
+        $output->output($competitionConfig, $againstGames);
         return 0;
     }
 }

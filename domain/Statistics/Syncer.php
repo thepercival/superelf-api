@@ -7,7 +7,7 @@ namespace SuperElf\Statistics;
 use DateTime;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Sports\Competitor\Map as CompetitorMap;
+use Sports\Competitor\StartLocationMap;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
@@ -55,7 +55,7 @@ class Syncer
 
         $points = $competitionConfig->getPoints();
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
-        $map = new CompetitorMap($competitors);
+        $map = new StartLocationMap($competitors);
 //
         $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
@@ -66,15 +66,19 @@ class Syncer
         }
         // foreach ([AgainstSide::HOME, AgainstSide::AWAY] as $homeAway) {
         foreach ($game->getPlaces(/*$homeAway*/) as $gamePlace) {
-            $teamCompetitor = $map->getCompetitor($gamePlace->getPlace());
+            $startLocation = $gamePlace->getPlace()->getStartLocation();
+            if ($startLocation === null) {
+                continue;
+            }
+            $teamCompetitor = $map->getCompetitor($startLocation);
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
             $this->syncStatistics($viewPeriod, $points, $gamePlace, $teamCompetitor->getTeam());
         }
         // }
-        $this->s11PlayerRepos->flush();
-        $this->statisticsRepos->flush();
+//        $this->s11PlayerRepos->flush();
+//        $this->statisticsRepos->flush();
     }
 
     protected function syncStatistics(
@@ -102,7 +106,7 @@ class Syncer
             $person = $s11Player->getPerson();
             $player = $person->getPlayer($team, $game->getStartDateTime());
             if ($player === null) {
-                $this->logNoS11Player($person, $game->getStartDateTime());
+                $this->logNoS11Player($person, $team, $game->getStartDateTime());
                 continue;
             }
             $gameParticipation = $this->getGameParticipation($s11Player, $gameParticipations);
@@ -119,7 +123,7 @@ class Syncer
                 $gamePlace->getGame(),
                 $gameParticipation
             );
-            $this->statisticsRepos->save($statistics);
+            $this->statisticsRepos->save($statistics, true);
 
             if ($oldStatistics === null || !$statistics->equals($oldStatistics)) {
                 $this->playerTotalsCalculator->updateTotals($s11Player);
@@ -172,12 +176,19 @@ class Syncer
         return null;
     }
 
-    protected function logNoS11Player(Person $person, \DateTimeImmutable $dateTime): void
+    protected function logNoS11Player(Person $person, Team $team, \DateTimeImmutable $dateTime): void
     {
-        $this->logInfo('  voor "' . $person->getName() . '" en "'.$dateTime->format(DATE_ISO8601).'" is geen overlappende spelersperiode gevonden');
+        $this->logInfo(
+            '  voor "' . $person->getName() . '" en team "' . $team->getName() . '" op "' . $dateTime->format(
+                'Y-m-d'
+            ) . '" is geen spelersperiode gevonden'
+        );
         foreach ($person->getPlayers() as $playerIt) {
-            $basePeriod = $playerIt->getPeriod();
-            $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => periode " . $basePeriod);
+            $basePeriod = $playerIt->getPeriod()->toIso80000('Y-m-d');
+            $this->logInfo(
+                "      playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine(
+                ) . ") => periode " . $basePeriod
+            );
         }
     }
 

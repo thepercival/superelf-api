@@ -196,8 +196,8 @@ class Sync extends Command
                 $consumer->acknowledge($message);
                 die();
             } catch (\Exception $e) {
+                $consumer->reject($message, true);
                 $this->getLogger()->error($e->getMessage());
-                $consumer->reject($message);
             }
         };
     }

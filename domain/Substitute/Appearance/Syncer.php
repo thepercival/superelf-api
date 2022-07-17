@@ -38,7 +38,8 @@ class Syncer
             throw new Exception(
                 'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(
                     DateTimeInterface::ISO8601
-                ), E_ERROR
+                ),
+                E_ERROR
             );
         }
 

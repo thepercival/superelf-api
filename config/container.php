@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Mailer;
-use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +21,7 @@ use Slim\Factory\AppFactory;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 
 return [
     // Application settings
@@ -67,17 +67,29 @@ return [
         $doctrineMetaConfig = $doctrineAppConfig['meta'];
         /** @var bool $devMode */
         $devMode = $doctrineMetaConfig['dev_mode'];
-        /** @var string|null $proxyDir */
+
+        $config = new \Doctrine\ORM\Configuration();
+        if (!$devMode) {
+            /** @var Memcached $memcached */
+            $memcached = $container->get(Memcached::class);
+            $cache = new MemcachedAdapter($memcached);
+            $config->setQueryCache($cache);
+
+            $config->setMetadataCache($cache);
+        }
+        /** @var string $proxyDir */
         $proxyDir = $doctrineMetaConfig['proxy_dir'];
-        /** @var Cache|null $cache */
-        $cache = $doctrineMetaConfig['cache'];
-        $doctrineConfig = Doctrine\ORM\Tools\Setup::createConfiguration($devMode, $proxyDir, $cache);
-        $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($doctrineMetaConfig['entity_path']);
-        $doctrineConfig->setMetadataDriverImpl($driver);
+        $config->setProxyDir($proxyDir);
+        $config->setProxyNamespace('fctoernooi');
+
+        /** @var list<string> $entityPath */
+        $entityPath = $doctrineMetaConfig['entity_path'];
+        $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($entityPath);
+        $config->setMetadataDriverImpl($driver);
+
         /** @var array<string, mixed> $connectionParams */
         $connectionParams = $doctrineAppConfig['connection'];
-        $em = Doctrine\ORM\EntityManager::create($connectionParams, $doctrineConfig);
-        // $em->getConnection()->setAutoCommit(false);
+        $em = Doctrine\ORM\EntityManager::create($connectionParams, $config);
 
         Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\CompetitionConfig;
 
 use Psr\Log\LoggerInterface;
+use Sports\Game\Against as AgainstGame;
 use Sports\Output\Coordinate;
 use Sports\Output\Grid;
 use Sports\Output\Grid\Drawer as GridDrawer;
@@ -27,14 +28,18 @@ final class Output extends OutputBase
         $this->rangeCalculator = new RangeCalculator();
     }
 
-    public function output(CompetitionConfig $competitionConfig): void
+    /**
+     * @param CompetitionConfig $competitionConfig
+     * @param list<AgainstGame> $againstGames
+     */
+    public function output(CompetitionConfig $competitionConfig, array $againstGames): void
     {
         $title = $this->getTitle($competitionConfig);
         $grid = $this->getGrid($competitionConfig, mb_strlen($title));
         $drawer = new GridDrawer($grid);
         $coordinate = new Coordinate(0, 0);
         $drawHelper = new DrawHelper($drawer);
-        $drawHelper->draw($competitionConfig, $coordinate, $title);
+        $drawHelper->draw($competitionConfig, $againstGames, $coordinate, $title);
 
 //        $batchColor = $this->useColors() ? ($batchNr % 10) : -1;
 //        $retVal = 'batch ' . ($batchNr < 10 ? ' ' : '') . $batchNr;
@@ -54,8 +59,8 @@ final class Output extends OutputBase
 
     protected function getGrid(CompetitionConfig $competitionConfig, int $titleLength): Grid
     {
-        $width = $this->rangeCalculator->getMaxWidth($competitionConfig, $titleLength);
-        $height = $this->rangeCalculator->getHeight();
+        $width = $this->rangeCalculator->getMaxWidth($titleLength);
+        $height = $this->rangeCalculator->getMaxHeight($competitionConfig);
         return new Grid($height, $width);
     }
 }

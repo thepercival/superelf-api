@@ -121,7 +121,7 @@ class Pools extends Command
         $this->initLogger($input, 'command-migrate-pools');
 
         try {
-            $compConfig = $this->getCompetitionConfigFromInput($input);
+            $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
             // -------- REMOVE ----------- //
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             while ($pool = array_pop($pools)) {
@@ -267,7 +267,8 @@ class Pools extends Command
         string $lastName,
         string|null $externalId,
         string|null $dateOfBirth
-    ): Person {
+    ): Person
+    {
         if ($externalId !== null and strlen($externalId) > 0 && $this->externalSource !== null) {
             $externalIdTmp = substr($externalId, 7);
             $person = $this->personAttacherRepos->findImportable($this->externalSource, $externalIdTmp);
@@ -276,9 +277,9 @@ class Pools extends Command
             }
         }
 
-        if ($lastName === 'El Ahmadi') {
-            $er = 23;
-        }
+//        if ($lastName === 'El Ahmadi') {
+//            $er = 23;
+//        }
         $persons = $this->personRepos->findBy(['firstName' => $firstName, 'lastName' => $lastName]);
         if (count($persons) > 1) {
             throw new \Exception(

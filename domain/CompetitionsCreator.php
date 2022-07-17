@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Competition;
+use Sports\Ranking\PointsCalculation;
 use Sports\Sport;
 use SuperElf\Competitions\BaseCreator;
 use SuperElf\Competitions\CompetitionCreator;
@@ -21,13 +22,14 @@ class CompetitionsCreator
     /**
      * @param Pool $pool
      * @param Sport $sport
-     * @return list<Competition>
+     * @return non-empty-list<Competition>
      */
     public function createCompetitions(Pool $pool, Sport $sport): array
     {
         $competitions = [];
+
         $competitionCreator = $this->getCreator(S11League::Competition);
-        $competitions[] = $competitionCreator->createCompetition($pool, $sport);
+        $competitions[] = $competitionCreator->createCompetition($pool, $sport, PointsCalculation::Scores);
 
         // @TODO DEPRECATED CDK
         if ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2022-01-01'))
@@ -36,13 +38,13 @@ class CompetitionsCreator
                 && $pool->getCollection()->getName() === 'kamp duim')
         ) {
             $cupCreator = $this->getCreator(S11League::Cup);
-            $competitions[] = $cupCreator->createCompetition($pool, $sport);
+            $competitions[] = $cupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
         }
 
         $previous = $pool->getUnhaltedPrevious();
         if ($previous !== null && $previous->getCompetition(S11League::Cup) !== null) {
             $superCupCreator = $this->getCreator(S11League::SuperCup);
-            $competitions[] = $superCupCreator->createCompetition($pool, $sport);
+            $competitions[] = $superCupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
         }
 
         return $competitions;

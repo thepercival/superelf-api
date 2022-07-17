@@ -8,6 +8,7 @@ use App\Command;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
 use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Competitor\StartLocationMap;
 use Sports\Game;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
@@ -15,6 +16,7 @@ use Sports\Game\Together as TogetherGame;
 use Sports\League;
 use Sports\Output\ConsoleTable;
 use Sports\Season;
+use Sports\Structure\NameService as StructureNameService;
 use Sports\Structure\Repository as StructureRepository;
 use Sports\Team\Repository as TeamRepository;
 use SportsHelpers\SportRange;
@@ -262,7 +264,8 @@ class Get extends Command
         }
 
         $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
+        $structureNameService = new StructureNameService(new StartLocationMap($teamCompetitors));
         $table = new ConsoleTable\AgainstGame();
-        $table->display($competition, $againstGame, $teamCompetitors);
+        $table->display($competition, $againstGame, $structureNameService);
     }
 }

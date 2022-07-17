@@ -7,8 +7,10 @@ namespace SuperElf\Competitions;
 use Sports\Competition;
 use Sports\Competition\Sport as CompetitionSport;
 use Sports\Competition\Sport\Service as CompetitionSportService;
+use Sports\Competitor\StartLocation;
 use Sports\League;
 use Sports\Planning\Config\Service as PlanningConfigService;
+use Sports\Ranking\PointsCalculation;
 use Sports\Sport;
 use Sports\Structure;
 use Sports\Structure\Editor as StructureEditor;
@@ -27,7 +29,7 @@ abstract class BaseCreator
         $this->structureEditor = new StructureEditor(new CompetitionSportService(), new PlanningConfigService());
     }
 
-    public function createCompetition(Pool $pool, Sport $sport): Competition
+    public function createCompetition(Pool $pool, Sport $sport, PointsCalculation $pointsCalculation): Competition
     {
         $season = $pool->getSeason();
         $league = new League($pool->getCollection()->getAssociation(), $this->s11League->name);
@@ -36,6 +38,7 @@ abstract class BaseCreator
         new CompetitionSport(
             $sport,
             $competition,
+            $pointsCalculation,
             $this->convertSportToPersistVariant($sport)
         );
         return $competition;
@@ -75,15 +78,17 @@ abstract class BaseCreator
     protected function createCompetitors(Competition $competition, array $validPoolUsers, Structure $structure): array
     {
         $competitors = [];
-        foreach ($structure->getRootRound()->getPoules() as $poule) {
+        $singleCategory = $structure->getSingleCategory();
+        foreach ($singleCategory->getRootRound()->getPoules() as $poule) {
             foreach ($poule->getPlaces() as $place) {
                 $validPoolUser = array_shift($validPoolUsers);
                 if ($validPoolUser === null) {
                     throw new \Exception('all places should have a competitor', E_ERROR);
                 }
-                $competitors[] = new Competitor(
-                    $validPoolUser, $competition, $place->getPouleNr(), $place->getPlaceNr()
+                $startLocation = new StartLocation(
+                    $singleCategory->getNumber(), $place->getPouleNr(), $place->getPlaceNr()
                 );
+                $competitors[] = new Competitor($validPoolUser, $competition, $startLocation);
                 // $this->competitorReps->save($competitor);
             }
         }

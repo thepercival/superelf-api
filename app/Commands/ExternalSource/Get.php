@@ -7,11 +7,13 @@ namespace App\Commands\ExternalSource;
 use App\Commands\ExternalSource as ExternalSourceCommand;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
+use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\League;
 use Sports\Output\ConsoleTable;
 use Sports\Season;
 use Sports\Sport;
+use Sports\Structure\NameService as StructureNameService;
 use SportsHelpers\SportRange;
 use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\Entity;
@@ -365,8 +367,9 @@ class Get extends ExternalSourceCommand
         );
 
         $teamCompetitors = $externalSourceCompetitionStructure->getTeamCompetitors($competition);
+        $structureNameService = new StructureNameService(new StartLocationMap($teamCompetitors));
         $table = new ConsoleTable\AgainstGame();
-        $table->display($competition, $externalGame, $teamCompetitors);
+        $table->display($competition, $externalGame, $structureNameService);
     }
 
     protected function getExternalGameId(InputInterface $input, ExternalSource $externalSource): string|int
