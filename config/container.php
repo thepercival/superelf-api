@@ -60,6 +60,11 @@ return [
 
         return $logger;
     },
+    Memcached::class => function (ContainerInterface $container): Memcached {
+        $memcached = new Memcached();
+        $memcached->addServer('127.0.0.1', 11211);
+        return $memcached;
+    },
     EntityManagerInterface::class => function (ContainerInterface $container): EntityManagerInterface {
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
