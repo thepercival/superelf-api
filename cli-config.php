@@ -19,7 +19,7 @@ $config->setMetadataDriverImpl($driver);
 /** @var string $proxyDir */
 $proxyDir = $settings['meta']['proxy_dir'];
 $config->setProxyDir($proxyDir);
-$config->setProxyNamespace('fctoernooi');
+$config->setProxyNamespace('superelf');
 
 $em = \Doctrine\ORM\EntityManager::create($settings['connection'], $config);
 

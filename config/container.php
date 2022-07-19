@@ -21,6 +21,7 @@ use Slim\Factory\AppFactory;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SuperElf\UTCDateTimeType;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 
 return [
@@ -80,7 +81,7 @@ return [
         /** @var string $proxyDir */
         $proxyDir = $doctrineMetaConfig['proxy_dir'];
         $config->setProxyDir($proxyDir);
-        $config->setProxyNamespace('fctoernooi');
+        $config->setProxyNamespace('superelf');
 
         /** @var list<string> $entityPath */
         $entityPath = $doctrineMetaConfig['entity_path'];
@@ -114,6 +115,7 @@ return [
         Type::addType('enum_GameState', Sports\Game\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
 
+        Type::overrideType('datetime_immutable', UTCDateTimeType::class);
         return $em;
     },
     DBConnection::class => function (ContainerInterface $container): DBConnection {
