@@ -9,6 +9,7 @@ $dotenv->load();
 
 return [
     'environment' => $_ENV['ENVIRONMENT'],
+    'namespace' => 'fctoernooi-' . (string)$_ENV['ENVIRONMENT'],
     'displayErrorDetails' => ($_ENV['ENVIRONMENT'] === "development"),
     // Renderer settings
     'renderer' => [

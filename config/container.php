@@ -60,7 +60,7 @@ return [
 
         return $logger;
     },
-    Memcached::class => function (ContainerInterface $container): Memcached {
+    Memcached::class => function (): Memcached {
         $memcached = new Memcached();
         $memcached->addServer('127.0.0.1', 11211);
         return $memcached;
@@ -78,7 +78,7 @@ return [
         if (!$devMode) {
             /** @var Memcached $memcached */
             $memcached = $container->get(Memcached::class);
-            $cache = new MemcachedAdapter($memcached);
+            $cache = new MemcachedAdapter($memcached, 'superelf');
             $config->setQueryCache($cache);
 
             $config->setMetadataCache($cache);
