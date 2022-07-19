@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Handlers\DefaultErrorHandler as AppDefaultErrorHandler;
 use App\Middleware\CorsMiddleware;
+use App\Renderer\ErrorRenderer as AppErrorRenderer;
 use App\Response\ErrorResponse;
 use App\Response\UnauthorizedResponse;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -79,8 +81,26 @@ return function (App $app) {
     // Add Routing Middleware
     $app->addRoutingMiddleware();
 
+    /** @var LoggerInterface $logger */
+    $logger = $container->get(LoggerInterface::class);
+    $appDefaultErrorHandler = new AppDefaultErrorHandler(
+        $app->getCallableResolver(),
+        $app->getResponseFactory(),
+        $logger
+    );
+
 //    // always last, so it is called first!
-    $errorMiddleware = $app->addErrorMiddleware($config->getString('environment') === "development", true, true);
+    // $errorMiddleware = $app->addErrorMiddleware($config->getString('environment') === "development", true, true);
+    //    // always last, so it is called first!
+    $errorMiddleware = $app->addErrorMiddleware(
+        $config->getString('environment') === 'development',
+        true,
+        true,
+        $logger
+    );
+    $appDefaultErrorHandler->forceContentType('plain/text');
+    $appDefaultErrorHandler->registerErrorRenderer('plain/text', AppErrorRenderer::class);
+    $errorMiddleware->setDefaultErrorHandler($appDefaultErrorHandler);
 
     // Set the Not Found Handler
     /** @psalm-suppress UnusedClosureParam */

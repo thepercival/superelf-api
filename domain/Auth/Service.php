@@ -27,7 +27,7 @@ class Service
     ) {
     }
 
-    public function register(string $emailaddress, string $name, string $password): ?User
+    public function register(string $emailaddress, string $name, string $password, string|null $referer): ?User
     {
         if (strlen($password) < User::MIN_LENGTH_PASSWORD or strlen($password) > User::MAX_LENGTH_PASSWORD) {
             throw new \InvalidArgumentException(
@@ -47,11 +47,11 @@ class Service
         $password = password_hash($salt . $password, PASSWORD_DEFAULT);
         $user = new User($emailaddress, $name, $salt, $password);
         $savedUser = $this->userRepos->save($user);
-        $this->sendRegisterEmail($emailaddress);
+        $this->sendRegisterEmail($emailaddress, $referer);
         return $savedUser;
     }
 
-    protected function sendRegisterEmail(string $emailaddress): void
+    protected function sendRegisterEmail(string $emailaddress, string|null $referer): void
     {
         $subject = 'welkom bij SuperElf';
         $baseUrl = $this->config->getString("www.wwwurl");
@@ -61,8 +61,13 @@ class Service
 Dat kan met onderstaande link:</p>
 EOT;
         $bodyMiddle = '<p>';
-        $validateUrl = $baseUrl . 'user/validate/' . urlencode($emailaddress) . '/' . $this->getValidateKey($emailaddress);
-        $bodyMiddle .= '<a href="'.$validateUrl.'">' . $validateUrl . '</a>';
+        $validateUrl = $baseUrl . 'user/validate/' . urlencode($emailaddress) . '/' . $this->getValidateKey(
+                $emailaddress
+            );
+        if ($referer !== null) {
+            $validateUrl .= '/' . $referer;
+        }
+        $bodyMiddle .= '<a href="' . $validateUrl . '">' . $validateUrl . '</a>';
         $bodyMiddle .= '</p>';
 
         $bodyEnd = '<p>met vriendelijke groet,<br/><br/>Coen Dunnink<br/><a href="' . $baseUrl . '">SuperElf</a></p>';

@@ -66,11 +66,15 @@ final class AuthAction extends Action
             if (property_exists($registerData, "password") === false) {
                 throw new \Exception("geen wachtwoord ingevoerd");
             }
+            $referer = null;
+            if (property_exists($registerData, "referer")) {
+                $referer = (string)$registerData->referer;
+            }
             $emailAddress = strtolower(trim((string)$registerData->emailaddress));
             $name = strtolower(trim((string)$registerData->name));
             $password = (string)$registerData->password;
 
-            $user = $this->authService->register($emailAddress, $name, $password);
+            $user = $this->authService->register($emailAddress, $name, $password, $referer);
             if ($user === null) {
                 throw new \Exception("de nieuwe gebruiker kan niet worden geretourneerd");
             }
