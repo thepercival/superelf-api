@@ -36,7 +36,8 @@ final class CompetitionConfigAction extends Action
         try {
             $competitionConfigs = $this->competitionConfigRepos->findActive();
 
-            $json = $this->serializer->serialize($competitionConfigs, 'json');
+            $context = $this->getSerializationContext(['noReference']);
+            $json = $this->serializer->serialize($competitionConfigs, 'json', $context);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400);

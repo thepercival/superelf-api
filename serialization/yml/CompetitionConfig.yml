@@ -1,16 +1,20 @@
 SuperElf\CompetitionConfig:
   exclusion_policy: ALL
   exclude: false
-  access_type: public_property
 
   properties:
     sourceCompetition:
       type: Sports\Competition
-    points:
-      type: SuperElf\Points
     createAndJoinPeriod:
       type: SuperElf\Period\View
     assemblePeriod:
       type: SuperElf\Period\Assemble
     transferPeriod:
       type: SuperElf\Period\Transfer
+  virtual_properties:
+    getScorePoints:
+      type: array<SuperElf\Score\Points>
+      serialized_name: scorePoints
+    getLineScorePoints:
+      type: array<SuperElf\Score\LinePoints>
+      serialized_name: lineScorePoints

@@ -22,7 +22,6 @@ class PlayerTotals extends Command
     protected S11PlayerTotalsRepository $s11PlayerTotalsRepos;
     protected PointsCreator $pointsCreator;
     protected CompetitionConfigRepository $competitionConfigRepos;
-    protected PlayerTotalsCalculator $playerTotalsCalculator;
 
     public function __construct(ContainerInterface $container)
     {
@@ -47,8 +46,6 @@ class PlayerTotals extends Command
         /** @var PointsCreator $pointsCreator */
         $pointsCreator = $container->get(PointsCreator::class);
         $this->pointsCreator = $pointsCreator;
-
-        $this->playerTotalsCalculator = new PlayerTotalsCalculator();
     }
 
     protected function configure(): void
@@ -75,14 +72,15 @@ class PlayerTotals extends Command
 
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
+            $playerTotalsCalculator = new PlayerTotalsCalculator($compConfig);
 
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {
                 $this->getLogger()->info('viewPeriod: ' . $viewPeriod);
                 $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod);
                 foreach ($s11Players as $s11Player) {
-                    $this->playerTotalsCalculator->updateTotals($s11Player);
-                    $this->playerTotalsCalculator->updateTotalPoints($compConfig->getPoints(), $s11Player);
+                    $playerTotalsCalculator->updateTotals($s11Player);
+                    $playerTotalsCalculator->updateTotalPoints($s11Player);
                     $this->s11PlayerTotalsRepos->save($s11Player->getTotals(), true);
                     $this->s11PlayerRepos->save($s11Player, true);
                     $p = $s11Player->getTotalPoints();

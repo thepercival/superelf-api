@@ -3,11 +3,15 @@
 namespace SuperElf\Player\Totals;
 
 use SportsHelpers\Against\Result;
+use SuperElf\CompetitionConfig;
 use SuperElf\Player as S11Player;
-use SuperElf\Points as SeasonPoints;
 
 class Calculator
 {
+    public function __construct(protected CompetitionConfig $competitionConfig)
+    {
+    }
+
     public function updateTotals(S11Player $s11Player): void
     {
         $totals = $s11Player->getTotals();
@@ -49,10 +53,10 @@ class Calculator
         $totals->setUpdatedAt(new \DateTimeImmutable());
     }
 
-    public function updateTotalPoints(SeasonPoints $seasonPoints, S11Player $s11Player): void
+    public function updateTotalPoints(S11Player $s11Player): void
     {
         $s11Player->setTotalPoints(
-            $s11Player->getTotals()->getPoints($s11Player->getLine(), $seasonPoints)
+            $s11Player->getTotals()->getPoints($s11Player->getLine(), $this->competitionConfig)
         );
     }
 }

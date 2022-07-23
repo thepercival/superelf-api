@@ -10,6 +10,8 @@ use SportsHelpers\Identifiable;
 use SuperElf\Period\Assemble as AssemblePeriod;
 use SuperElf\Period\Transfer as TransferPeriod;
 use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Score\LinePoints as LineScorePoints;
+use SuperElf\Score\Points as ScorePoints;
 
 class CompetitionConfig extends Identifiable
 {
@@ -27,7 +29,6 @@ class CompetitionConfig extends Identifiable
         protected AssemblePeriod $assemblePeriod,
         protected TransferPeriod $transferPeriod
     ) {
-//        $this->pools = new ArrayCollection();
     }
 
     public function getSeason(): Season
@@ -48,6 +49,22 @@ class CompetitionConfig extends Identifiable
     public function getPoints(): Points
     {
         return $this->points;
+    }
+
+    /**
+     * @return list<ScorePoints>
+     */
+    public function getScorePoints(): array
+    {
+        return $this->points->getScorePoints();
+    }
+
+    /**
+     * @return list<LineScorePoints>
+     */
+    public function getLineScorePoints(): array
+    {
+        return $this->points->getLineScorePoints();
     }
 
     public function getCreateAndJoinPeriod(): ViewPeriod

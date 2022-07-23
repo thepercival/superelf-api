@@ -6,7 +6,8 @@ namespace SuperElf\Player;
 
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
-use SuperElf\Points;
+use SuperElf\CompetitionConfig;
+use SuperElf\FootballScore;
 
 class Totals extends Identifiable
 {
@@ -194,17 +195,18 @@ class Totals extends Identifiable
         $this->updatedAt = $updatedAt;
     }
 
-    public function getPoints(FootballLine $line, Points $points): int
+    public function getPoints(FootballLine $line, CompetitionConfig $competitionConfig): int
     {
-        return $this->getNrOfWins() * $points->getResultWin()
-            + $this->getNrOfDraws() * $points->getResultDraw()
-            + $this->getNrOfFieldGoals() * $points->getFieldGoal($line)
-            + $this->getNrOfAssists() * $points->getAssist($line)
-            + $this->getNrOfPenalties() * $points->getPenalty()
-            + $this->getNrOfOwnGoals() * $points->getOwnGoal()
-            + $this->getNrOfCleanSheets() * $points->getCleanSheet($line)
-            + $this->getNrOfSpottySheets() * $points->getSpottySheet($line)
-            + $this->getNrOfYellowCards() * $points->getCardYellow()
-            + $this->getNrOfRedCards() * $points->getCardRed();
+        $points = $competitionConfig->getPoints();
+        return $this->getNrOfWins() * $points->getScorePointsAsValue(FootballScore::WinResult)
+            + $this->getNrOfDraws() * $points->getScorePointsAsValue(FootballScore::DrawResult)
+            + $this->getNrOfFieldGoals() * $points->getLineScorePointsAsValue($line, FootballScore::Goal)
+            + $this->getNrOfAssists() * $points->getLineScorePointsAsValue($line, FootballScore::Assist)
+            + $this->getNrOfPenalties() * $points->getScorePointsAsValue(FootballScore::PenaltyGoal)
+            + $this->getNrOfOwnGoals() * $points->getScorePointsAsValue(FootballScore::OwnGoal)
+            + $this->getNrOfCleanSheets() * $points->getLineScorePointsAsValue($line, FootballScore::CleanSheet)
+            + $this->getNrOfSpottySheets() * $points->getLineScorePointsAsValue($line, FootballScore::SpottySheet)
+            + $this->getNrOfYellowCards() * $points->getScorePointsAsValue(FootballScore::YellowCard)
+            + $this->getNrOfRedCards() * $points->getScorePointsAsValue(FootballScore::RedCard);
     }
 }

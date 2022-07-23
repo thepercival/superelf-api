@@ -1,0 +1,12 @@
+SuperElf\Score\LinePoints:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    line:
+      type: int
+      access_type: public_method
+      accessor:
+        getter: getLineNative
+      read_only: true

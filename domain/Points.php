@@ -6,9 +6,20 @@ namespace SuperElf;
 
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
+use SuperElf\Score\LinePoints as LineScorePoints;
+use SuperElf\Score\Points as ScorePoints;
 
 class Points extends Identifiable
 {
+    /**
+     * @var array<string, ScorePoints>
+     */
+    protected array|null $scorePoints = null;
+    /**
+     * @var array<string, LineScorePoints>
+     */
+    protected array|null $lineScorePoints = null;
+
     public function __construct(
         protected int $resultWin,
         protected int $resultDraw,
@@ -29,6 +40,12 @@ class Points extends Identifiable
         protected int $cardYellow,
         protected int $cardRed
     ) {
+    }
+
+    protected function addLineScorePoints(FootballLine $line, FootballScore $score): void
+    {
+        $lineScorePoints = $this->getOneLineScorePoints($line, $score);
+        $this->lineScorePoints[$lineScorePoints->getId()] = $lineScorePoints;
     }
 
     public function getResultWin(): int
@@ -169,5 +186,102 @@ class Points extends Identifiable
     public function getCardRed(): int
     {
         return $this->cardRed;
+    }
+
+    /**
+     * @return list<ScorePoints>
+     */
+    public function getScorePoints(): array
+    {
+        return array_values($this->getScorePointsHelper());
+    }
+
+    /**
+     * @return array<string, ScorePoints>
+     */
+    private function getScorePointsHelper(): array
+    {
+        if ($this->scorePoints !== null) {
+            return $this->scorePoints;
+        }
+        $this->scorePoints = [
+            FootballScore::WinResult->value => new ScorePoints(FootballScore::WinResult, $this->resultWin),
+            FootballScore::DrawResult->value => new ScorePoints(FootballScore::DrawResult, $this->resultDraw),
+            FootballScore::PenaltyGoal->value => new ScorePoints(FootballScore::PenaltyGoal, $this->penalty),
+            FootballScore::OwnGoal->value => new ScorePoints(FootballScore::OwnGoal, $this->ownGoal),
+            FootballScore::YellowCard->value => new ScorePoints(FootballScore::YellowCard, $this->cardYellow),
+            FootballScore::RedCard->value => new ScorePoints(FootballScore::RedCard, $this->cardRed)
+        ];
+        return $this->scorePoints;
+    }
+
+    public function getScorePointsAsValue(FootballScore $score): int
+    {
+        if ($score === FootballScore::WinResult) {
+            return $this->getResultWin();
+        } elseif ($score === FootballScore::DrawResult) {
+            return $this->getResultDraw();
+        } elseif ($score === FootballScore::PenaltyGoal) {
+            return $this->getPenalty();
+        } elseif ($score === FootballScore::OwnGoal) {
+            return $this->getOwnGoal();
+        } elseif ($score === FootballScore::YellowCard) {
+            return $this->getCardYellow();
+        } elseif ($score === FootballScore::RedCard) {
+            return $this->getCardRed();
+        }
+        throw new \Exception('unknown score', E_ERROR);
+    }
+
+    /**
+     * @return list<LineScorePoints>
+     */
+    public function getLineScorePoints(): array
+    {
+        return array_values($this->getLineScorePointsHelper());
+    }
+
+    /**
+     * @return array<string, LineScorePoints>
+     */
+    private function getLineScorePointsHelper(): array
+    {
+        if ($this->lineScorePoints !== null) {
+            return $this->lineScorePoints;
+        }
+        $this->lineScorePoints = [];
+        $this->addLineScorePoints(FootballLine::GoalKeeper, FootballScore::Goal);
+        $this->addLineScorePoints(FootballLine::GoalKeeper, FootballScore::Assist);
+        $this->addLineScorePoints(FootballLine::GoalKeeper, FootballScore::CleanSheet);
+        $this->addLineScorePoints(FootballLine::GoalKeeper, FootballScore::SpottySheet);
+        $this->addLineScorePoints(FootballLine::Defense, FootballScore::Goal);
+        $this->addLineScorePoints(FootballLine::Defense, FootballScore::Assist);
+        $this->addLineScorePoints(FootballLine::Defense, FootballScore::CleanSheet);
+        $this->addLineScorePoints(FootballLine::Defense, FootballScore::SpottySheet);
+        $this->addLineScorePoints(FootballLine::Midfield, FootballScore::Goal);
+        $this->addLineScorePoints(FootballLine::Midfield, FootballScore::Assist);
+        $this->addLineScorePoints(FootballLine::Forward, FootballScore::Goal);
+        $this->addLineScorePoints(FootballLine::Forward, FootballScore::Assist);
+        return $this->lineScorePoints;
+    }
+
+    protected function getOneLineScorePoints(FootballLine $line, FootballScore $score): LineScorePoints
+    {
+        $points = $this->getLineScorePointsAsValue($line, $score);
+        return new LineScorePoints($line, $score, $points);
+    }
+
+    public function getLineScorePointsAsValue(FootballLine $line, FootballScore $score): int
+    {
+        if ($score === FootballScore::Goal) {
+            return $this->getFieldGoal($line);
+        } elseif ($score === FootballScore::Assist) {
+            return $this->getAssist($line);
+        } elseif ($score === FootballScore::CleanSheet) {
+            return $this->getCleanSheet($line);
+        } elseif ($score === FootballScore::SpottySheet) {
+            return $this->getSpottySheet($line);
+        }
+        throw new \Exception('unknown line-score', E_ERROR);
     }
 }
