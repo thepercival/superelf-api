@@ -9,7 +9,7 @@ $dotenv->load();
 
 return [
     'environment' => $_ENV['ENVIRONMENT'],
-    'namespace' => 'fctoernooi-' . (string)$_ENV['ENVIRONMENT'],
+    'namespace' => 'superelf' . (string)$_ENV['ENVIRONMENT'],
     'displayErrorDetails' => ($_ENV['ENVIRONMENT'] === "development"),
     // Renderer settings
     'renderer' => [
@@ -112,7 +112,7 @@ return [
         'user' => 'guest',
         'pass' => 'guest',
         'persisted' => false,
-        'suffix' => $_ENV['QUEUE_NAME_SUFFIX']
+        'suffix' => 'superelf' . (string)$_ENV['ENVIRONMENT']
     ],
     'availableFormations' => ['1-3-4-3', '1-3-5-2', '1-4-3-3', '1-4-4-2', '1-5-3-2']
 ];
