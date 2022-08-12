@@ -176,7 +176,7 @@ final class PoolAction extends Action
 
     protected function getPoolSerializationContext(Pool $pool, User $user = null): SerializationContext
     {
-        $serGroups = ['noReference'];
+        $serGroups = ['noReference', 'teamCompetitors'];
         if ($user !== null) {
             $poolUser = $pool->getUser($user);
             if ($poolUser !== null) {
