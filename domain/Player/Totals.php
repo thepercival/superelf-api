@@ -62,7 +62,7 @@ class Totals extends Identifiable
 
     public function getNrOfDraws(): int
     {
-        return $this->nrOfWins;
+        return $this->nrOfDraws;
     }
 
     public function incrementNrOfDraws(): void

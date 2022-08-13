@@ -105,7 +105,7 @@ php bin/console.php app:validate-competitionconfig --league=Eredivisie --season=
 ###### END SEASON ITERATION ######################
 
 # ################### TEAM IMAGES ############## 1 KEER PER SEIZOEN
-# php bin/console.php app:import:image sofascore teams --league=eredivisie --season=2021/2022
+# php bin/console.php app:import:image sofascore teams --league=eredivisie --season=2022/2023
 
 # ################### PLAYER IMAGES ############## 1 KEER PER PLAYER
-# php bin/console.php app:import:image sofascore teams --league=eredivisie --season=2021/2022
+# php bin/console.php app:import:image sofascore players --league=eredivisie --season=2022/2023
