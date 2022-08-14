@@ -124,10 +124,13 @@ class Sync extends Command
             return false;
         }
 
+        /** @var bool|null $alwaysUpdateTotalsTmp */
+        $alwaysUpdateTotalsTmp = $input->getOption('alwaysUpdateStatisticTotals');
+        $alwaysUpdateTotals = is_bool($alwaysUpdateTotalsTmp) ? $alwaysUpdateTotalsTmp : false;
 
         $gameRoundNrRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
         if ($gameRoundNrRange !== null) {
-            $this->syncGameRounds($competitionConfig, $gameRoundNrRange);
+            $this->syncGameRounds($competitionConfig, $gameRoundNrRange, $alwaysUpdateTotals);
             return true;
         }
 
@@ -136,10 +139,6 @@ class Sync extends Command
         if ($gameId === 0) {
             return false;
         }
-
-        /** @var bool|null $alwaysUpdateTotalsTmp */
-        $alwaysUpdateTotalsTmp = $input->getOption('alwaysUpdateStatisticTotals');
-        $alwaysUpdateTotals = is_bool($alwaysUpdateTotalsTmp) ? $alwaysUpdateTotalsTmp : false;
 
         $game = $this->againstGameRepos->find($gameId);
         if ($game !== null) {
@@ -237,18 +236,16 @@ class Sync extends Command
         return $game;
     }
 
-    /**
-     * @param CompetitionConfig $competitionConfig
-     * @param SportRange $gameRoundNrRange
-     * @throws Exception
-     */
-    protected function syncGameRounds(CompetitionConfig $competitionConfig, SportRange $gameRoundNrRange): void
-    {
+    protected function syncGameRounds(
+        CompetitionConfig $competitionConfig,
+        SportRange $gameRoundNrRange,
+        bool $alwaysUpdateTotals
+    ): void {
         $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
             $this->gameRoundSyncer->sync($competitionConfig, $game, null);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
-            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
             $this->appearanceSyncer->sync($competitionConfig, $game);
         }
     }
