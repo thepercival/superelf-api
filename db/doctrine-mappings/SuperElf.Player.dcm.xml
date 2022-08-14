@@ -13,12 +13,8 @@
             </join-columns>
         </many-to-one>
         <one-to-one field="totals" target-entity="SuperElf\Player\Totals">
-            <cascade>
-                <cascade-persist/>
-                <cascade-remove/>
-            </cascade>
             <join-columns>
-                <join-column name="totalsId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+                <join-column name="totalsId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>
         </one-to-one>
         <one-to-many field="statistics" target-entity="SuperElf\Statistics" mapped-by="player">

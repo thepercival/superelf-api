@@ -90,6 +90,8 @@ class Sync extends Command
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
 
+        $this->addOption('alwaysUpdateStatisticTotals', null, InputOption::VALUE_NONE, '');
+
         parent::configure();
     }
 
@@ -135,11 +137,15 @@ class Sync extends Command
             return false;
         }
 
+        /** @var bool|null $alwaysUpdateTotalsTmp */
+        $alwaysUpdateTotalsTmp = $input->getOption('alwaysUpdateStatisticTotals');
+        $alwaysUpdateTotals = is_bool($alwaysUpdateTotalsTmp) ? $alwaysUpdateTotalsTmp : false;
+
         $game = $this->againstGameRepos->find($gameId);
         if ($game !== null) {
             $competitionConfig = $this->getCompetitionConfig($game);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
-            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
             $this->appearanceSyncer->sync($competitionConfig, $game);
         } else {
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');

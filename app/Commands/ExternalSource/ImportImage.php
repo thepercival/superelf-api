@@ -8,7 +8,9 @@ use App\Commands\ExternalSource as ExternalSourceCommand;
 use App\QueueService;
 use Psr\Container\ContainerInterface;
 use Sports\League;
+use Sports\Person;
 use Sports\Season;
+use Sports\Team;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Competitions;
@@ -16,6 +18,7 @@ use SportsImport\ExternalSource\CompetitionStructure;
 use SportsImport\ExternalSource\GamesAndPlayers;
 use SportsImport\Importer;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ImportImage extends ExternalSourceCommand
@@ -42,6 +45,9 @@ class ImportImage extends ExternalSourceCommand
             // the "--help" option
             ->setHelp('import the images');
 
+        $this->addOption('teamId', null, InputOption::VALUE_OPTIONAL, 'teamId');
+        $this->addOption('personId', null, InputOption::VALUE_OPTIONAL, 'personId');
+
         parent::configure();
     }
 
@@ -65,18 +71,22 @@ class ImportImage extends ExternalSourceCommand
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
                 if ($entity === Entity::TEAMS) {
+                    $inputTeam = $this->inputHelper->getTeamFromInput($input);
                     $this->importTeamImages(
                         $externalSourceImpl,
                         $externalSourceImpl->getExternalSource(),
                         $league,
-                        $season
+                        $season,
+                        $inputTeam
                     );
                 } else {
+                    $inputPerson = $this->inputHelper->getPersonFromInput($input);
                     $this->importPlayerImages(
                         $externalSourceImpl,
                         $externalSourceImpl->getExternalSource(),
                         $league,
-                        $season
+                        $season,
+                        $inputPerson
                     );
                 }
                 return 0;
@@ -94,7 +104,8 @@ class ImportImage extends ExternalSourceCommand
         CompetitionStructure $externalSourceCompetitionStructure,
         ExternalSource $externalSource,
         League $league,
-        Season $season
+        Season $season,
+        Team|null $team = null
     ): void {
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.teamsSuffix');
@@ -105,7 +116,8 @@ class ImportImage extends ExternalSourceCommand
             $league,
             $season,
             $localPath,
-            $maxWidth
+            $maxWidth,
+            $team
         );
     }
 
@@ -113,7 +125,8 @@ class ImportImage extends ExternalSourceCommand
         GamesAndPlayers $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         League $league,
-        Season $season
+        Season $season,
+        Person|null $person = null
     ): void {
         $localPath = $this->config->getString('www.apiurl-localpath');
         $localPath .= $this->config->getString('images.playersSuffix');
@@ -122,7 +135,8 @@ class ImportImage extends ExternalSourceCommand
             $externalSource,
             $league,
             $season,
-            $localPath
+            $localPath,
+            $person
         );
     }
 }

@@ -13,10 +13,14 @@ use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\League;
 use Sports\League\Repository as LeagueRepository;
+use Sports\Person;
+use Sports\Person\Repository as PersonRepository;
 use Sports\Season;
 use Sports\Season\Repository as SeasonRepository;
 use Sports\Sport;
 use Sports\Sport\Repository as SportRepository;
+use Sports\Team;
+use Sports\Team\Repository as TeamRepository;
 use SportsHelpers\SportRange;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
@@ -27,6 +31,8 @@ class InputHelper
     protected SportRepository $sportRepos;
     protected AssociationRepository $associationRepos;
     protected LeagueRepository $leagueRepos;
+    protected TeamRepository $teamRepos;
+    protected PersonRepository $personRepos;
     protected SeasonRepository $seasonRepos;
     protected CompetitionRepository $competitionRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
@@ -57,6 +63,14 @@ class InputHelper
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
+
+        /** @var TeamRepository $teamRepos */
+        $teamRepos = $container->get(TeamRepository::class);
+        $this->teamRepos = $teamRepos;
+
+        /** @var PersonRepository $personRepos */
+        $personRepos = $container->get(PersonRepository::class);
+        $this->personRepos = $personRepos;
     }
 
     public function getSportFromInput(InputInterface $input): Sport
@@ -85,6 +99,26 @@ class InputHelper
             throw new Exception("association '" . $optionValue . "' not found", E_ERROR);
         }
         return $association;
+    }
+
+    public function getTeamFromInput(InputInterface $input): Team|null
+    {
+        $optionName = 'teamId';
+        $optionValue = $input->getOption($optionName);
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+        }
+        return $this->teamRepos->findOneBy(['teamId' => $optionValue]);
+    }
+
+    public function getPersonFromInput(InputInterface $input): Person|null
+    {
+        $optionName = 'personId';
+        $optionValue = $input->getOption($optionName);
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+        }
+        return $this->personRepos->findOneBy(['id' => $optionValue]);
     }
 
     public function getGameRoundNrRangeFromInput(InputInterface $input): SportRange|null

@@ -23,6 +23,7 @@ use SuperElf\Period\View\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
+use SuperElf\Player\Totals\Repository as PlayerTotalsRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Statistics\Repository as StatisticsRepository;
@@ -35,6 +36,7 @@ class Syncer
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
+        protected PlayerTotalsRepository $playerTotalsRepos,
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
@@ -45,8 +47,11 @@ class Syncer
 
     }
 
-    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
-    {
+    public function sync(
+        CompetitionConfig $competitionConfig,
+        AgainstGame $game,
+        bool $alwaysUpdateTotals = false
+    ): void {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
             throw new Exception('the game is from another competitonconfig', E_ERROR);
@@ -74,7 +79,13 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-            $this->syncStatistics($viewPeriod, $playerTotalsCalculator, $gamePlace, $teamCompetitor->getTeam());
+            $this->syncStatistics(
+                $viewPeriod,
+                $playerTotalsCalculator,
+                $gamePlace,
+                $teamCompetitor->getTeam(),
+                $alwaysUpdateTotals
+            );
         }
         // }
 //        $this->s11PlayerRepos->flush();
@@ -85,7 +96,8 @@ class Syncer
         ViewPeriod $viewPeriod,
         PlayerTotalsCalculator $playerTotalsCalculator,
         AgainstGamePlace $gamePlace,
-        Team $team
+        Team $team,
+        bool $alwaysUpdateTotals = false
     ): void {
         $this->logInfo('calculating statistics ' . $team->getName() . ' ..');
         $game = $gamePlace->getGame();
@@ -125,8 +137,13 @@ class Syncer
             );
             $this->statisticsRepos->save($statistics, true);
 
-            if ($oldStatistics === null || !$statistics->equals($oldStatistics)) {
+            if ($alwaysUpdateTotals || $oldStatistics === null || !$statistics->equals($oldStatistics)) {
+//                if( $s11Player->getPerson()->getId() === 100 ) {
+//                    $er = 12;
+//                }
                 $playerTotalsCalculator->updateTotals($s11Player);
+                $this->playerTotalsRepos->save($s11Player->getTotals(), true);
+
                 $playerTotalsCalculator->updateTotalPoints($s11Player);
                 $this->s11PlayerRepos->save($s11Player, true);
             }
