@@ -106,7 +106,7 @@ class InputHelper
         $optionName = 'teamId';
         $optionValue = $input->getOption($optionName);
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
-            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+            return null;
         }
         return $this->teamRepos->findOneBy(['teamId' => $optionValue]);
     }
@@ -116,7 +116,7 @@ class InputHelper
         $optionName = 'personId';
         $optionValue = $input->getOption($optionName);
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
-            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+            return null;
         }
         return $this->personRepos->findOneBy(['id' => $optionValue]);
     }
