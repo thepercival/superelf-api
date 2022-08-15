@@ -6,7 +6,10 @@ namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
 use App\QueueService;
+use League\Period\Period;
 use Psr\Container\ContainerInterface;
+use Sports\Competition;
+use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\League;
 use Sports\Season;
 use Sports\Sport;
@@ -23,12 +26,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Import extends ExternalSourceCommand
 {
     protected Importer $importer;
+    protected AgainstGameRepository $againstGameRepos;
 
     public function __construct(ContainerInterface $container)
     {
         /** @var Importer $importer */
         $importer = $container->get(Importer::class);
         $this->importer = $importer;
+
+        /** @var AgainstGameRepository $againstGameRepos */
+        $againstGameRepos = $container->get(AgainstGameRepository::class);
+        $this->againstGameRepos = $againstGameRepos;
 
         parent::__construct($container);
     }
@@ -191,8 +199,7 @@ class Import extends ExternalSourceCommand
                             $sport,
                             $league,
                             $season,
-                            (string)$this->inputHelper->getIdFromInput($input),
-                            $this->getGameCacheOptionFromInput($input)
+                            $input
                         );
                         return 0;
                 }
@@ -214,51 +221,69 @@ class Import extends ExternalSourceCommand
         Sport $sport,
         League $league,
         Season $season,
-        string $externalGameId,
-        bool $dontUseCache
+        InputInterface $input
     ): void {
-        // bepaal de period waarin gezocht moet worden
-        // voor de cronjob is 24, 3 en 2 uur na de start van de wedstrijd
+        $externalGameId = (string)$this->inputHelper->getIdFromInput($input, '0');
+        $dontUseCache = $this->getGameCacheOptionFromInput($input);
 
+        if ($externalGameId !== '0') {
+            $externalGameIds = [$externalGameId];
+        } else {
+            $competition = $this->inputHelper->getCompetitionFromInput($input);
+            if ($competition === null) {
+                throw new \Exception('competition can not be null', E_ERROR);
+            }
+            $externalGameIds = $this->getExternalGameIdsByEndDateTime($competition, $externalSource);
+        }
+        foreach ($externalGameIds as $externalGameId) {
+            $this->importer->importAgainstGameLineupsAndEvents(
+                $externalSourceCompetitions,
+                $externalSourceCompetitionStructure,
+                $externalSourceGamesAndPlayers,
+                $externalSource,
+                $sport,
+                $league,
+                $season,
+                $externalGameId,
+                $dontUseCache
+            );
+        }
+    }
 
-//        $period = new Period(
-//            new \DateTimeImmutable('2020-10-18 12:29'),
-//            new \DateTimeImmutable('2020-10-18 12:31') ); // klaiber
-//        // HIER VERDER
-//        /*$period = new Period(
-//            new \DateTimeImmutable('2020-09-01 08:00'),
-//            new \DateTimeImmutable('2020-09-21 08:00') );
-//        $period = new Period(
-//            new \DateTimeImmutable('2020-09-21 08:00'),
-//            new \DateTimeImmutable('2020-10-16 08:00') );
-//        $period = new Period(
-//            new \DateTimeImmutable('2020-10-16 08:00'),
-//            new \DateTimeImmutable('2020-10-19 08:00') );*/
-//        $period = new Period(
-//            new \DateTimeImmutable('2020-10-19 08:00'),
-//            new \DateTimeImmutable('2020-12-11 08:00')
-//        );
-
-        //$games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
-
-        //            foreach ($games as $game) {
-//                $externalGameId = $this->againstGameAttacherRepos->findExternalId($externalSource, $game );
-//                if( $externalGameId === null ) {
-//                    $this->logger->error('no attacher find for gameId "' . (string)$game->getId() . '" is not finished');
-//                }
-
-        // $externalGameId
-
-        $this->importer->importAgainstGameLineupsAndEvents(
-            $externalSourceCompetitions,
-            $externalSourceCompetitionStructure,
-            $externalSourceGamesAndPlayers,
-            $externalSource,
-            $sport,
-            $league,
-            $season,
-            $externalGameId,
-            $dontUseCache
-        );
+    /**
+     * @param Competition $competition
+     * @param ExternalSource $externalSource
+     * @return list<string>
+     */
+    protected function getExternalGameIdsByEndDateTime(Competition $competition, ExternalSource $externalSource): array
+    {
+        $externalGameIds = [];
+        $minutesAfterStart = [120, 180, 60 * 24];
+        $currentTmp = new \DateTimeImmutable( /*'now', new \DateTimeZone('Europe/Amsterdam')*/);
+        $currentDateTime = $currentTmp->setTime((int)$currentTmp->format("H"), (int)$currentTmp->format("i"));
+        foreach ($minutesAfterStart as $nrOfMinutesAfterStart) {
+            $startDateTime = $currentDateTime->modify('-' . $nrOfMinutesAfterStart . ' minutes');
+            $period = new Period(
+                $startDateTime->modify('-1 seconds'),
+                $startDateTime->modify('+1 seconds')
+            );
+//            $period = new Period(
+//                new \DateTimeImmutable('2022-08-06 12:00:00'),
+//                new \DateTimeImmutable('2022-08-06 23:00:00'),
+//            );
+            $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
+            foreach ($games as $game) {
+                $externalGameId = $this->againstGameAttacherRepos->findExternalId($externalSource, $game);
+                if ($externalGameId === null) {
+                    $this->getLogger()->error(
+                        'no attacher find for gameId "' . (string)$game->getId() . '" is not finished'
+                    );
+                } else {
+                    $externalGameIds[] = $externalGameId;
+                }
+            }
+            break;
+        }
+        return $externalGameIds;
     }
 }

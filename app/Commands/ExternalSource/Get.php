@@ -8,14 +8,12 @@ use App\Commands\ExternalSource as ExternalSourceCommand;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
 use Sports\Competitor\StartLocationMap;
-use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\League;
 use Sports\Output\ConsoleTable;
 use Sports\Season;
 use Sports\Sport;
 use Sports\Structure\NameService as StructureNameService;
 use SportsHelpers\SportRange;
-use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Competitions;
@@ -29,22 +27,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Get extends ExternalSourceCommand
 {
     protected ImportGetter $getter;
-    protected AgainstGameRepository $againstGameRepos;
-    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
 
     public function __construct(ContainerInterface $container)
     {
         /** @var ImportGetter $getter */
         $getter = $container->get(ImportGetter::class);
         $this->getter = $getter;
-
-        /** @var AgainstGameRepository $againstGameRepos */
-        $againstGameRepos = $container->get(AgainstGameRepository::class);
-        $this->againstGameRepos = $againstGameRepos;
-
-        /** @var AgainstGameAttacherRepository $againstGameRepos */
-        $againstGameRepos = $container->get(AgainstGameAttacherRepository::class);
-        $this->againstGameAttacherRepos = $againstGameRepos;
 
         parent::__construct($container);
     }

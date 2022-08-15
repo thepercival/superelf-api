@@ -6,6 +6,8 @@ namespace App\Commands;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\ExternalSource\ApiHelper;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;
@@ -16,13 +18,24 @@ use Symfony\Component\Console\Input\InputOption;
 abstract class ExternalSource extends Command
 {
     use EntityTrait;
+
     protected ExternalSourceFactory $externalSourceFactory;
+    protected AgainstGameRepository $againstGameRepos;
+    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
 
     public function __construct(ContainerInterface $container)
     {
         /** @var ExternalSourceFactory $externalSourceFactory */
         $externalSourceFactory = $container->get(ExternalSourceFactory::class);
         $this->externalSourceFactory = $externalSourceFactory;
+
+        /** @var AgainstGameRepository $againstGameRepos */
+        $againstGameRepos = $container->get(AgainstGameRepository::class);
+        $this->againstGameRepos = $againstGameRepos;
+
+        /** @var AgainstGameAttacherRepository $againstGameAttacherRepos */
+        $againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
+        $this->againstGameAttacherRepos = $againstGameAttacherRepos;
 
         parent::__construct($container);
     }
