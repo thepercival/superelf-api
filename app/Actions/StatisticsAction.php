@@ -33,7 +33,7 @@ final class StatisticsAction extends Action
     {
         try {
             $s11Player = $this->playerRepos->find((int)$args['playerId']);
-            if( $s11Player === null ) {
+            if ($s11Player === null) {
                 throw new \Exception('de speler kan niet gevonden worden', E_ERROR);
             }
 
