@@ -109,8 +109,8 @@ final class ScoutedPlayerAction extends Action
         }
     }
 
-//    public function edit(Request $request, Response $response, $args): Response
-//    {
+    public function edit(Request $request, Response $response, $args): Response
+    {
 //        try {
 //            /** @var User $user */
 //            $user = $request->getAttribute("user");
@@ -139,7 +139,8 @@ final class ScoutedPlayerAction extends Action
 //        } catch (\Exception $e) {
 //            return new ErrorResponse($e->getMessage(), 422);
 //        }
-//    }
+        return new ErrorResponse('implement', 422);
+    }
 
     /**
      * @param Request $request
