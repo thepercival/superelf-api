@@ -32,6 +32,28 @@ final class PlayerAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
+    public function fetchOne(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $player = $this->playerRepos->find((int)$args["id"]);
+            if ($player === null) {
+                throw new \Exception('kan de speler met id "' . $args["id"] . '" niet vinden', E_ERROR);
+            }
+
+            $serContext = $this->getSerializationContext(['players', 'statistics']);
+            $json = $this->serializer->serialize($player, 'json', $serContext);
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $exception) {
+            return new ErrorResponse($exception->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
     public function fetch(Request $request, Response $response, array $args): Response
     {
         try {

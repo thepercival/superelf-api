@@ -159,6 +159,8 @@ return function (App $app): void {
         function (Group $group): void {
             $group->options('', PlayerAction::class . ':options');
             $group->post('', PlayerAction::class . ':fetch');
+            $group->options('/{id}', PlayerAction::class . ':options');
+            $group->get('/{id}', PlayerAction::class . ':fetchOne');
 
             $group->group(
                 '/{playerId}/statistics',
