@@ -109,6 +109,12 @@ final class ScoutedPlayerAction extends Action
         }
     }
 
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
     public function edit(Request $request, Response $response, $args): Response
     {
 //        try {
