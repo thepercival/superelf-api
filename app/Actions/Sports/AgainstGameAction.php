@@ -47,7 +47,7 @@ final class AgainstGameAction extends Action
             $json = $this->serializer->serialize($games, 'json'/*, $this->getSerializationContext()*/);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 

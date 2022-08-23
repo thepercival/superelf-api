@@ -48,7 +48,7 @@ final class UserAction extends Action
             // alleen als je zelf admin bent
             return $this->fetchOneHelper($response, $poolUser, false);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -73,7 +73,7 @@ final class UserAction extends Action
 
             return $this->fetchOneHelper($response, $poolUser, true);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -92,7 +92,7 @@ final class UserAction extends Action
 
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -117,7 +117,7 @@ final class UserAction extends Action
 
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -145,7 +145,7 @@ final class UserAction extends Action
 
             return $response->withStatus(200);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

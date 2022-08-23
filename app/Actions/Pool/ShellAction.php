@@ -61,7 +61,7 @@ final class ShellAction extends Action
             $json = $this->serializer->serialize($shells, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -93,7 +93,7 @@ final class ShellAction extends Action
             $json = $this->serializer->serialize($shells, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

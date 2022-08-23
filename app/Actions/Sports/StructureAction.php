@@ -53,7 +53,7 @@ final class StructureAction extends Action
             $json = $this->serializer->serialize($structure, 'json', $serContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $exception) {
-            return new ErrorResponse($exception->getMessage(), 500);
+            return new ErrorResponse($exception->getMessage(), 500, $this->logger);
         }
     }
 }

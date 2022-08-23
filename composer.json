@@ -48,6 +48,7 @@
     "ext-memcached": "*"
   },
   "require-dev": {
+    "composer/composer": "^2.2",
     "phpunit/phpunit": "^9.5",
     "phpstan/phpstan": "^1.2",
     "phpstan/phpstan-doctrine": "^1.0",
@@ -86,12 +87,17 @@
     "doctrine-try": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --dump-sql",
     "doctrine-update": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --force",
     "doctrine-validate": "XDEBUG_MODE=off vendor/bin/doctrine orm:validate-schema",
-    "cs-fix": "php-cs-fixer fix .",
+    "doctrine-clearcache": [
+      "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:query --flush",
+      "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:metadata"
+    ],
     "post-install-cmd": [
       "App\\Handlers\\ComposerPostInstall::execute",
       "composer run doctrine-update",
+      "composer run doctrine-clearcache",
       "php vendor/bin/doctrine orm:generate-proxies --quiet"
-    ]
+    ],
+    "cs-fix": "php-cs-fixer fix ."
   },
   "config": {
     "allow-plugins": {

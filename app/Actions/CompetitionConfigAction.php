@@ -40,7 +40,7 @@ final class CompetitionConfigAction extends Action
             $json = $this->serializer->serialize($competitionConfigs, 'json', $context);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -66,7 +66,7 @@ final class CompetitionConfigAction extends Action
             $json = $this->serializer->serialize($canCreateAndJoinPool, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -89,7 +89,7 @@ final class CompetitionConfigAction extends Action
             $json = $this->serializer->serialize($availableFormations, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 

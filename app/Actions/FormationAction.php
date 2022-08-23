@@ -74,7 +74,7 @@ final class FormationAction extends Action
 
             return $this->respondWithJson($response, $this->serializer->serialize($assembleFormation, 'json'));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -116,7 +116,7 @@ final class FormationAction extends Action
 //        } catch (\Exception $e) {
 //            return new ErrorResponse($e->getMessage(), 422);
 //        }
-        return new ErrorResponse("implement", 422);
+        return new ErrorResponse("implement", 422, $this->logger);
     }
 
     /**
@@ -190,7 +190,7 @@ final class FormationAction extends Action
             $json = $this->serializer->serialize($s11Player, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 

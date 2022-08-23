@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use SuperElf\Auth\SyncService as AuthSyncService;
 use JMS\Serializer\DeserializationContext;
-use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
-use SuperElf\User;
-use Psr\Log\LoggerInterface;
-use SuperElf\User\Repository as UserRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
+use SuperElf\Auth\SyncService as AuthSyncService;
+use SuperElf\User;
+use SuperElf\User\Repository as UserRepository;
 
 final class UserAction extends Action
 {
@@ -63,7 +62,7 @@ final class UserAction extends Action
             $json = $this->serializer->serialize($user, 'json', $this->getSerializationContext(['admin']));
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -102,7 +101,7 @@ final class UserAction extends Action
                 )
             );
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -131,7 +130,7 @@ final class UserAction extends Action
             $this->userRepos->remove($user);
             return $response->withStatus(200);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

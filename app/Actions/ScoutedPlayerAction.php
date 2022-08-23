@@ -57,7 +57,7 @@ final class ScoutedPlayerAction extends Action
             $json = $this->serializer->serialize($scoutedPlayers, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -105,7 +105,7 @@ final class ScoutedPlayerAction extends Action
             $json = $this->serializer->serialize($scoutedPlayer, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -145,7 +145,7 @@ final class ScoutedPlayerAction extends Action
 //        } catch (\Exception $e) {
 //            return new ErrorResponse($e->getMessage(), 422);
 //        }
-        return new ErrorResponse('implement', 422);
+        return new ErrorResponse('implement', 422, $this->logger);
     }
 
     /**
@@ -171,7 +171,7 @@ final class ScoutedPlayerAction extends Action
             $this->scoutedPlayerRepos->remove($scoutedPlayer);
             return $response->withStatus(200);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

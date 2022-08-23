@@ -44,7 +44,7 @@ final class PlayerAction extends Action
             $json = $this->serializer->serialize($player, 'json', $serContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $exception) {
-            return new ErrorResponse($exception->getMessage(), 500);
+            return new ErrorResponse($exception->getMessage(), 500, $this->logger);
         }
     }
 
@@ -76,7 +76,7 @@ final class PlayerAction extends Action
             $json = $this->serializer->serialize($players, 'json', $serContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

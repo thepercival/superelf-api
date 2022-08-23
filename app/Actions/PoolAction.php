@@ -58,7 +58,7 @@ final class PoolAction extends Action
             );
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 400);
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
@@ -98,7 +98,7 @@ final class PoolAction extends Action
             $json = $this->serializer->serialize($pool, 'json', $serializationContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -118,7 +118,7 @@ final class PoolAction extends Action
             $url = $baseUrl . "pool/join/" . (string)$pool->getId() . "/" . $this->getJoinKey($pool);
             return $this->respondWithJson($response, json_encode([ "url" => $url ]));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -154,7 +154,7 @@ final class PoolAction extends Action
 
             return $response->withStatus(200);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 

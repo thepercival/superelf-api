@@ -81,7 +81,7 @@ final class AuthAction extends Action
 
             return $response->withStatus(200);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -109,7 +109,7 @@ final class AuthAction extends Action
             $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -158,7 +158,7 @@ final class AuthAction extends Action
             $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -184,7 +184,7 @@ final class AuthAction extends Action
             $json = $this->serializer->serialize($data, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -217,7 +217,7 @@ final class AuthAction extends Action
             $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 
@@ -235,7 +235,7 @@ final class AuthAction extends Action
             $authItem = new AuthItem($this->authService->createToken($user), $user);
             return $this->respondWithJson($response, $this->serializer->serialize($authItem, 'json'));
         } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422);
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
 }

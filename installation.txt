@@ -87,7 +87,7 @@ $ sql: update users set salt = 'f?????';
 # #### IMPORT ONE GAME ### CREATED ONE EVENT
 # php bin/console.php app:import sofascore games-complete --league=Eredivisie --season=2022/2023 --sport=football --gameRoundRange=1-1 --no-events
 # php bin/console.php app:get-external sofascore game --league=Eredivisie --season=2022/2023 --sport=football --internal-id=..
-# php bin/console.php app:import sofascore game --league=Eredivisie --season=2022/2023 --sport=football --id=..
+# php bin/console.php app:import sofascore game --league=Eredivisie --season=2022/2023 --sport=football --id=.. 10382036
 
 -- STEP 9 => IMPORT POOLS(USERS + ASSEMBLEFORMATION + TRANSFERFORMATION
 php bin/console.php app:migrate-pools --league=Eredivisie --season=2014/2015 --loglevel=200

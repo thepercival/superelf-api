@@ -36,7 +36,7 @@ return [
         $config = $container->get(Configuration::class);
         if ($config->getString("environment") === "production") {
             $routeCacheFile = $config->getString('router.cache_file');
-            if (strlen($routeCacheFile) > 0 ) {
+            if (strlen($routeCacheFile) > 0) {
                 $app->getRouteCollector()->setCacheFile($routeCacheFile);
             }
         }
