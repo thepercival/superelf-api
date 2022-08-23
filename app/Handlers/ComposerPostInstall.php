@@ -11,10 +11,10 @@ class ComposerPostInstall
     /** @psalm-suppress UndefinedClass */
     public static function execute(Event $event): int
     {
-        if ($event->isDevMode()) {
-            echo "devMode is enabled, no post-install-executed" . PHP_EOL;
-            return -1;
-        }
+//        if ($event->isDevMode()) {
+//            echo "devMode is enabled, no post-install-executed" . PHP_EOL;
+//            return -1;
+//        }
 
         $pathPrefix = realpath(
                 __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".."
