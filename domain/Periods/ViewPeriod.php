@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period;
+namespace SuperElf\Periods;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use League\Period\Period as BasePeriod;
+use League\Period\Period;
 use SuperElf\GameRound;
-use SuperElf\Period as PeriodBase;
+use SuperElf\Period as BasePeriod;
 
-class View extends PeriodBase
+class ViewPeriod extends BasePeriod
 {
     /**
      * @var Collection<int|string, GameRound>
      */
     protected Collection $gameRounds;
 
-    public function __construct(BasePeriod $period)
+    public function __construct(Period $period)
     {
         parent::__construct($period);
 

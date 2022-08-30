@@ -6,8 +6,8 @@ namespace SuperElf;
 
 use Sports\Person;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Period\Transfer\Action;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
+use SuperElf\Periods\TransferPeriod\Action;
 use SuperElf\Pool\User as PoolUser;
 
 class Transfer extends Action

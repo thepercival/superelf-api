@@ -9,4 +9,5 @@ enum League
     case Competition;
     case Cup;
     case SuperCup;
+    case WorldCup;
 }

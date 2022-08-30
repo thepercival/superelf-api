@@ -13,7 +13,7 @@
                              on-delete="CASCADE"/>
             </join-columns>
         </many-to-one>
-        <one-to-one field="createAndJoinPeriod" target-entity="SuperElf\Period\View" fetch="EAGER">
+        <one-to-one field="createAndJoinPeriod" target-entity="SuperElf\Periods\ViewPeriod" fetch="EAGER">
             <cascade>
                 <cascade-persist/>
                 <cascade-remove/>
@@ -23,7 +23,7 @@
                              on-delete="CASCADE"/>
             </join-columns>
         </one-to-one>
-        <one-to-one field="assemblePeriod" target-entity="SuperElf\Period\Assemble" fetch="EAGER">
+        <one-to-one field="assemblePeriod" target-entity="SuperElf\Periods\AssemblePeriod" fetch="EAGER">
             <cascade>
                 <cascade-persist/>
                 <cascade-remove/>
@@ -32,7 +32,7 @@
                 <join-column name="assemblePeriodId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
             </join-columns>
         </one-to-one>
-        <one-to-one field="transferPeriod" target-entity="SuperElf\Period\Transfer" fetch="EAGER">
+        <one-to-one field="transferPeriod" target-entity="SuperElf\Periods\TransferPeriod" fetch="EAGER">
             <cascade>
                 <cascade-persist/>
                 <cascade-remove/>

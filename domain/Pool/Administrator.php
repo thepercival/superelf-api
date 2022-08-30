@@ -13,7 +13,7 @@ use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
 use SuperElf\Competitor\Repository as PoolCompetitorRepsitory;
-use SuperElf\Period\Administrator as PeriodAdministrator;
+use SuperElf\Periods\Administrator as PeriodAdministrator;
 use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;

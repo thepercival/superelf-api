@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period\View;
+namespace SuperElf\Periods\ViewPeriod;
 
 use Doctrine\ORM\EntityRepository;
 use Sports\Competition;
@@ -10,7 +10,7 @@ use Sports\Poule;
 use SportsHelpers\Repository as BaseRepository;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
 use SportsHelpers\Sport\VariantWithPoule;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 /**
  * @template-extends EntityRepository<ViewPeriod>

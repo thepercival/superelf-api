@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Listing extends Command
+class HelpCommand extends Command
 {
     /**
      * @param ContainerInterface $container
@@ -25,7 +25,7 @@ class Listing extends Command
     {
         $this
             // the name of the command (the part after "bin/console")
-            ->setName('app:list')
+            ->setName('app:help')
             // the short description shown while running "php bin/console list"
             ->setDescription('list the commands')
             // the full command description shown when running the command with
@@ -42,7 +42,7 @@ class Listing extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->initLogger($input, 'command-listing');
+        $this->initLogger($input, 'command-help');
         $commandFilter = $this->getCommandFilterFromInput($input);
 
         foreach ($this->commandKeys as $commandKey) {

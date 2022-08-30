@@ -10,7 +10,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Team\Repository as TeamRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Filter as PlayerFilter;
 use SuperElf\Player\Repository as PlayerRepository;
 

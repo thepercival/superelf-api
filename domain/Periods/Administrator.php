@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period;
+namespace SuperElf\Periods;
 
 use Selective\Config\Configuration;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
-use SuperElf\Period\Assemble\Repository as AssemblePeriodRepository;
-use SuperElf\Period\Transfer\Repository as TransferPeriodRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Periods\AssemblePeriod\Repository as AssemblePeriodRepository;
+use SuperElf\Periods\TransferPeriod\Repository as TransferPeriodRepository;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Pool\Repository as PoolRepository;
 
 class Administrator

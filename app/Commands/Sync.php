@@ -184,12 +184,11 @@ class Sync extends Command
                 $competitionConfig = $this->getCompetitionConfig($game);
                 $event = GameEvent::from((string)$content->action);
                 if ($event === GameEvent::Create || $event === GameEvent::UpdateBasics || $event === GameEvent::Reschedule) {
-                    $oldStartDateTime = null;
+                    $dates = [$game->getStartDateTime()];
                     if (property_exists($content, "oldTimestamp")) {
-                        $oldStartDateTime = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
+                        $dates[] = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
                     }
-
-                    $this->gameRoundSyncer->sync($competitionConfig, $game, $oldStartDateTime);
+                    $this->gameRoundSyncer->sync($competitionConfig, $dates);
                     $this->s11PlayerSyncer->sync($competitionConfig, $game);
                     $this->statisticsSyncer->sync($competitionConfig, $game);
                     $this->appearanceSyncer->sync($competitionConfig, $game);
@@ -217,7 +216,7 @@ class Sync extends Command
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
             return;
         }
-        $this->gameRoundSyncer->sync($competitionConfig, $game, $oldStartDateTime);
+        $this->gameRoundSyncer->sync($competitionConfig, [$game->getStartDateTime(), $oldStartDateTime]);
         $this->s11PlayerSyncer->sync($competitionConfig, $game);
         $this->statisticsSyncer->sync($competitionConfig, $game);
         $this->appearanceSyncer->sync($competitionConfig, $game);
@@ -243,7 +242,7 @@ class Sync extends Command
     ): void {
         $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
-            $this->gameRoundSyncer->sync($competitionConfig, $game, null);
+            $this->gameRoundSyncer->sync($competitionConfig, [$game->getStartDateTime()]);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
             $this->appearanceSyncer->sync($competitionConfig, $game);

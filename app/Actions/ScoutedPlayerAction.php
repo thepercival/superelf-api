@@ -9,7 +9,7 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\ScoutedPlayer;
 use SuperElf\ScoutedPlayer\Repository as ScoutedPlayerRepository;

@@ -18,7 +18,7 @@ use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;

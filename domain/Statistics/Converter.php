@@ -12,7 +12,7 @@ use SportsHelpers\Against\Result as AgainstResult;
 use SuperElf\Defaults;
 use SuperElf\GameRound;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player as S11Player;
 use SuperElf\Sheet;
 use SuperElf\Statistics;

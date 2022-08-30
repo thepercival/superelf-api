@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <mapped-superclass name="SuperElf\Periods\TransferPeriod\Action">
+        <many-to-one field="transferPeriod" target-entity="SuperElf\Periods\TransferPeriod">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+            <join-columns>
+                <join-column name="transferPeriodId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+            </join-columns>
+        </many-to-one>
+        <one-to-one field="formationPlace" target-entity="SuperElf\Formation\Place">
+            <cascade>
+            <cascade-persist/>
+            <cascade-remove/>
+        </cascade>
+        <join-columns>
+            <join-column name="formationPlaceId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+        </join-columns>
+    </one-to-one>
+    <unique-constraints>
+        <unique-constraint columns="poolUserId,transferPeriodId,formationPlaceId" name="main_u_idx"/>
+    </unique-constraints>
+  </mapped-superclass>
+</doctrine-mapping>

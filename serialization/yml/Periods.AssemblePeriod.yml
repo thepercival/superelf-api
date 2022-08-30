@@ -1,4 +1,4 @@
-SuperElf\Period\Assemble:
+SuperElf\Periods\AssemblePeriod:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
@@ -7,4 +7,4 @@ SuperElf\Period\Assemble:
       type: integer
       read_only: true
     viewPeriod:
-      type: SuperElf\Period\View
+      type: SuperElf\Periods\ViewPeriod

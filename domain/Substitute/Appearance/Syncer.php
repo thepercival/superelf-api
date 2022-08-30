@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
 use SuperElf\CompetitionConfig;
 use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as PlayerRepository;
 use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
 

@@ -11,14 +11,26 @@ use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SuperElf\CompetitionConfig\Administrator;
 use SuperElf\CompetitionConfig\Output as CompetitionConfigOutput;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --assemblePeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
- * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2015/2016 --createAndJoinStart="2015-07-31 12:00" --assemblePeriod="2015-09-01 06:00=>2015-09-12 16:00" --transferPeriod="2016-02-01 06:00=>2016-02-05 18:30" --loglevel=200
+ * php bin/console.php app:competitionconfig
+ *      create                  --league=Eredivisie
+ *                              --season=2014/2015
+ *                              --createAndJoinStart="2014-07-23 12:00"
+ *                              --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"
+ *                              --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00"
+ *                              --loglevel=200
+ *      update-assemble-period  --league=Eredivisie
+ *                              --season=2022/2023
+ *                              --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30"
+ *                              --loglevel=200
+ *      show                    --league=Eredivisie
+ *                              --season=2022/2023
  */
 class CompetitionConfig extends Command
 {
@@ -26,6 +38,7 @@ class CompetitionConfig extends Command
     protected AgainstGameRepository $againstGameRepos;
     protected TeamPlayerRepository $teamPlayerRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
+    protected GameRoundSyncer $gameRoundSyncer;
 
     public function __construct(ContainerInterface $container)
     {
@@ -41,13 +54,17 @@ class CompetitionConfig extends Command
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
 
+        /** @var GameRoundSyncer $gameRoundSyncer */
+        $gameRoundSyncer = $container->get(GameRoundSyncer::class);
+        $this->gameRoundSyncer = $gameRoundSyncer;
+
         parent::__construct($container);
     }
 
     protected function configure(): void
     {
         $this
-            ->setName('app:competitionconfig')
+            ->setName('app:admin-competitionconfigs')
             ->setDescription('admins the competitionconfigs')
             ->setHelp('admins the competitionconfigs');
 
@@ -74,12 +91,10 @@ class CompetitionConfig extends Command
             switch ($action) {
                 case CompetitionConfigAction::Create:
                     return $this->create($input);
-                case CompetitionConfigAction::SetCreateAndJoinStart:
-                    return $this->setCreateAndJoinStart($input);
-                case CompetitionConfigAction::SetAssemblePeriod:
-                    return $this->setAssemblePeriod($input);
-                case CompetitionConfigAction::SetTransferPeriod:
-                    return $this->setTransferPeriod($input);
+                case CompetitionConfigAction::UpdateAssemblePeriod:
+                    return $this->updateAssemblePeriod($input);
+                case CompetitionConfigAction::UpdateTransferPeriod:
+                    return $this->updateTransferPeriod($input);
                 case CompetitionConfigAction::Show:
                     return $this->show($input);
                 default:
@@ -126,18 +141,53 @@ class CompetitionConfig extends Command
         return new Administrator($existingCompetitionConfigs);
     }
 
-    protected function setCreateAndJoinStart(InputInterface $input): int
+    protected function updateAssemblePeriod(InputInterface $input): int
     {
-        throw new \Exception('implement', E_ERROR);
-    }
+        $competition = $this->inputHelper->getCompetitionFromInput($input);
+        if ($competition === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        $admin = $this->getAdministrator($competition);
+        $competitionConfig = $admin->updateAssemblePeriod(
+            $competition,
+            $this->inputHelper->getPeriodFromInput($input, 'assemblePeriod'),
+            $this->againstGameRepos->getCompetitionGames($competition)
+        );
+        $this->competitionConfigRepos->save($competitionConfig);
 
-    protected function setAssemblePeriod(InputInterface $input): int
-    {
+        $this->getLogger()->info('competitionConfig updated and saved');
+
+        // $leagueName = $competition->getLeague()->getName();
+        // $seasonName = $competition->getSeason()->getName();
+
+        $this->gameRoundSyncer->sync($competitionConfig);
+        // @TODO ALSO STATS, ETC.
+
+        // $msg = 'execute "php bin/console.php app:sync --league='.$leagueName.' --season='.$seasonName.' --gameRoundRange=?-? --alwaysUpdateStatisticTotals"';
+        // $this->getLogger()->info($msg);
+
         return 0;
     }
 
-    protected function setTransferPeriod(InputInterface $input): int
+    protected function updateTransferPeriod(InputInterface $input): int
     {
+//        $competition = $this->inputHelper->getCompetitionFromInput($input);
+//        if ($competition === null) {
+//            throw new \Exception('competition not found', E_ERROR);
+//        }
+//        $admin = $this->getAdministrator($competition);
+//        $competitionConfig = $admin->create(
+//            $competition,
+//            $this->inputHelper->getDateTimeFromInput($input, 'createAndJoinStart'),
+//            $this->inputHelper->getPeriodFromInput($input, 'assemblePeriod'),
+//            $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
+//            $this->againstGameRepos->getCompetitionGames($competition)
+//        );
+//        $this->competitionConfigRepos->save($competitionConfig);
+//        $this->getLogger()->info('competitionConfig created and saved');
+        throw new \Exception('implement', E_ERROR);
+        // return 0;
+
         // input seasonname and TransferPeriod-dates
 
         // check if     no games within period
@@ -145,7 +195,6 @@ class CompetitionConfig extends Command
         //              if before season end
         //              check if no transfers has been done? maybe check if is in past and show warning
         //              run gameRoundSync in some way
-        return 0;
     }
 
     protected function show(InputInterface $input): int

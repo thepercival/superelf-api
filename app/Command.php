@@ -109,7 +109,7 @@ class Command extends SymCommand
         /** @var bool|null $logToFile */
         $logToFile = $input->getOption('logtofile');
         $logToFile = is_bool($logToFile) ? $logToFile : false;
-        $path = $logToFile ? ($this->config->getInt('logger.path') . $name . '.log') : 'php://stdout';
+        $path = $logToFile ? ($this->config->getString('logger.path') . $name . '.log') : 'php://stdout';
         $handler = new StreamHandler($path, $logLevel);
         $this->logger->pushHandler($handler);
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period\Transfer;
+namespace SuperElf\Periods\TransferPeriod;
 
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
 class Action extends Identifiable

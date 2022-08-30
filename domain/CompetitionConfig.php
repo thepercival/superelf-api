@@ -7,9 +7,9 @@ namespace SuperElf;
 use Sports\Competition;
 use Sports\Season;
 use SportsHelpers\Identifiable;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Score\LinePoints as LineScorePoints;
 use SuperElf\Score\Points as ScorePoints;
 
@@ -86,6 +86,16 @@ class CompetitionConfig extends Identifiable
     {
         return $this->transferPeriod;
     }
+
+    public function updateAssemblePeriod(\League\Period\Period $period): void
+    {
+        $this->assemblePeriod->setStartDateTime($period->getStartDate());
+
+        $this->createAndJoinPeriod->setEndDateTime($period->getEndDate());
+        $this->assemblePeriod->setEndDateTime($period->getEndDate());
+        $this->assemblePeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
+    }
+
 
     /**
      * @return list<ViewPeriod>

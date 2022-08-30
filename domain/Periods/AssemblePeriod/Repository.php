@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period\Transfer;
+namespace SuperElf\Periods\AssemblePeriod;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 
 /**
- * @template-extends EntityRepository<TransferPeriod>
+ * @template-extends EntityRepository<AssemblePeriod>
  */
 class Repository extends EntityRepository
 {
     /**
-     * @use BaseRepository<TransferPeriod>
+     * @use BaseRepository<AssemblePeriod>
      */
     use BaseRepository;
 }

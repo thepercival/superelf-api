@@ -1,4 +1,4 @@
-SuperElf\Period\Transfer:
+SuperElf\Periods\TransferPeriod:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
@@ -9,4 +9,4 @@ SuperElf\Period\Transfer:
     maxNrOfTransfers:
       type: integer
     viewPeriod:
-      type: SuperElf\Period\View
+      type: SuperElf\Periods\ViewPeriod

@@ -11,21 +11,19 @@ use Sports\Game\Against as AgainstGame;
 use Sports\Game\State as GameState;
 use SuperElf\CompetitionConfig;
 use SuperElf\Defaults;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer as TransferPeriod;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Points\Creator as PointsCreator;
 
 class Administrator
 {
-
     /**
      * @param list<CompetitionConfig> $existingCompetitionConfigs
      */
     public function __construct(
         protected array $existingCompetitionConfigs
-    )
-    {
+    ) {
     }
 
     /**
@@ -79,6 +77,48 @@ class Administrator
         return $newCompetitionConfig;
     }
 
+    /**
+     * @param Competition $sourceCompetition
+     * @param DateTimeImmutable $createAndJoinStart
+     * @param Period $assemblePeriodInput
+     * @param Period $transferPeriodInput
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @return CompetitionConfig
+     * @throws \League\Period\Exception
+     */
+    public function updateAssemblePeriod(
+        Competition $sourceCompetition,
+        Period $assemblePeriodInput,
+        array $sourceCompetitionGames
+    ): CompetitionConfig {
+        $competitionConfig = $this->getCompetitionConfig($sourceCompetition);
+        $season = $sourceCompetition->getSeason();
+        $seasonStart = $season->getPeriod()->getStartDate();
+
+        $createAndJoinPeriod = $competitionConfig->getCreateAndJoinPeriod();
+        $assembleStart = $assemblePeriodInput->getStartDate();
+        $this->validateCreateAndJoinStart($createAndJoinPeriod->getStartDateTime(), $seasonStart, $assembleStart);
+
+        $this->validateAssemblePeriod(
+            $assemblePeriodInput,
+            $createAndJoinPeriod->getStartDateTime(),
+            $competitionConfig->getTransferPeriod()->getStartDateTime(),
+            $sourceCompetitionGames
+        );
+
+        $assembleEnd = $assemblePeriodInput->getEndDate();
+        $seasonEnd = $season->getPeriod()->getEndDate();
+        $this->validateTransferPeriod(
+            $competitionConfig->getTransferPeriod()->getPeriod(),
+            $assembleEnd,
+            $seasonEnd,
+            $sourceCompetitionGames
+        );
+
+        $competitionConfig->updateAssemblePeriod($assemblePeriodInput);
+        return $competitionConfig;
+    }
+
     protected function validateNonexistance(Competition $sourceCompetition): void
     {
         foreach ($this->existingCompetitionConfigs as $competitionConfig) {
@@ -87,6 +127,17 @@ class Administrator
                 throw new \Exception($msg, E_ERROR);
             }
         }
+    }
+
+    protected function getCompetitionConfig(Competition $sourceCompetition): CompetitionConfig
+    {
+        foreach ($this->existingCompetitionConfigs as $competitionConfig) {
+            if ($competitionConfig->getSourceCompetition() === $sourceCompetition) {
+                return $competitionConfig;
+            }
+        }
+        $msg = 'no competitionConfig for competition "' . $sourceCompetition->getName() . '" found';
+        throw new \Exception($msg, E_ERROR);
     }
 
     protected function validateCreateAndJoinStart(

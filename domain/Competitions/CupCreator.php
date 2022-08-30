@@ -10,8 +10,8 @@ use Sports\Structure;
 use SportsHelpers\Sport\PersistVariant;
 use SuperElf\Competitor;
 use SuperElf\League as S11League;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
 class CupCreator extends BaseCreator

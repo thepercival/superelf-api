@@ -10,7 +10,7 @@ use Sports\Person as BasePerson;
 use Sports\Sport\FootballLine;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Identifiable;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player\Totals;
 
 class Player extends Identifiable

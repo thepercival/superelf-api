@@ -7,7 +7,7 @@ namespace App\Commands;
 use App\Command;
 use Psr\Container\ContainerInterface;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Period\View\Repository as ViewPeriodRepository;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
 use SuperElf\Player\Totals\Repository as S11PlayerTotalsRepository;

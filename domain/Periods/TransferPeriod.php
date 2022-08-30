@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Period;
+namespace SuperElf\Periods;
 
-use League\Period\Period as BasePeriod;
-use SuperElf\Period as S11Period;
-use SuperElf\Period\View as ViewPeriod;
+use League\Period\Period;
+use SuperElf\Period as BasePeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
-class Transfer extends S11Period
+class TransferPeriod extends BasePeriod
 {
     protected int $maxNrOfTransfers;
     protected ViewPeriod $viewPeriod;
 
-    public function __construct(BasePeriod $period, ViewPeriod $viewPeriod, int $maxNrOfTransfers)
+    public function __construct(Period $period, ViewPeriod $viewPeriod, int $maxNrOfTransfers)
     {
         parent::__construct($period);
         $this->viewPeriod = $viewPeriod;

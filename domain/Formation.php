@@ -11,7 +11,7 @@ use Sports\Team;
 use Sports\Team\Player;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 class Formation extends Identifiable
 {

@@ -6,11 +6,11 @@ SuperElf\CompetitionConfig:
     sourceCompetition:
       type: Sports\Competition
     createAndJoinPeriod:
-      type: SuperElf\Period\View
+      type: SuperElf\Periods\ViewPeriod
     assemblePeriod:
-      type: SuperElf\Period\Assemble
+      type: SuperElf\Periods\AssemblePeriod
     transferPeriod:
-      type: SuperElf\Period\Transfer
+      type: SuperElf\Periods\TransferPeriod
   virtual_properties:
     getScorePoints:
       type: array<SuperElf\Score\Points>

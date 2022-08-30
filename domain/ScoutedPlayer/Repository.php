@@ -6,7 +6,7 @@ namespace SuperElf\ScoutedPlayer;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\ScoutedPlayer;
 use SuperElf\User;
 

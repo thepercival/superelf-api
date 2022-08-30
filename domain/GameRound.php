@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use SportsHelpers\Identifiable;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 class GameRound extends Identifiable
 {

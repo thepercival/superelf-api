@@ -7,7 +7,7 @@ use App\Commands\ExternalSource\Get as GetExternalCommand;
 use App\Commands\ExternalSource\Import as ImportCommand;
 use App\Commands\ExternalSource\ImportImage as ImportImageCommand;
 use App\Commands\Get as GetCommand;
-use App\Commands\Listing as ListingCommand;
+use App\Commands\HelpCommand;
 use App\Commands\Migration\Pools as MigratePoolsCommand;
 use App\Commands\Migration\Users as MigrateUsersCommand;
 use App\Commands\PersonCommand;
@@ -50,7 +50,7 @@ $commands = [
     ): ValidateCompetitionConfigCommand {
         return new ValidateCompetitionConfigCommand($container);
     },
-    "app:competitionconfig" => function (ContainerInterface $container): CompetitionConfigCommand {
+    "app:admin-competitionconfigs" => function (ContainerInterface $container): CompetitionConfigCommand {
         return new CompetitionConfigCommand($container);
     },
     "app:person" => function (ContainerInterface $container): PersonCommand {
@@ -64,8 +64,8 @@ $commands = [
     }
 ];
 
-$commands["app:list"] = function (ContainerInterface $container) use ($commands): ListingCommand {
-    return new ListingCommand($container, array_keys($commands));
+$commands["app:help"] = function (ContainerInterface $container) use ($commands): HelpCommand {
+    return new HelpCommand($container, array_keys($commands));
 };
 
 return $commands;

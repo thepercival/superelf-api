@@ -6,7 +6,7 @@ namespace SuperElf;
 
 use DateTime;
 use DateTimeImmutable;
-use League\Period\Period as BasePeriod;
+use League\Period\Period as LeaguePeriod;
 use SportsHelpers\Identifiable;
 use Stringable;
 
@@ -15,7 +15,7 @@ abstract class Period extends Identifiable implements Stringable
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
 
-    public function __construct(BasePeriod $period)
+    public function __construct(LeaguePeriod $period)
     {
         $this->startDateTime = $period->getStartDate();
         $this->endDateTime = $period->getEndDate();
@@ -26,19 +26,29 @@ abstract class Period extends Identifiable implements Stringable
         return $this->startDateTime;
     }
 
+    public function setStartDateTime(DateTimeImmutable $dateTime): void
+    {
+        $this->startDateTime = $dateTime;
+    }
+
     public function getEndDateTime(): DateTimeImmutable
     {
         return $this->endDateTime;
     }
 
-    public function getPeriod(): BasePeriod
+    public function setEndDateTime(DateTimeImmutable $dateTime): void
     {
-        return new BasePeriod($this->getStartDateTime(), $this->getEndDateTime());
+        $this->endDateTime = $dateTime;
+    }
+
+    public function getPeriod(): LeaguePeriod
+    {
+        return new LeaguePeriod($this->getStartDateTime(), $this->getEndDateTime());
     }
 
     public function contains(DateTimeImmutable $date = null): bool
     {
-        return $this->getPeriod()->contains($date !== null ? $date : new DateTimeImmutable()) ;
+        return $this->getPeriod()->contains($date !== null ? $date : new DateTimeImmutable());
     }
 
     public function __toString(): string

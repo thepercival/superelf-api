@@ -5,8 +5,8 @@ namespace App\Commands\CompetitionConfig;
 enum Action: string
 {
     case Create = 'create';
-    case SetCreateAndJoinStart = 'set-createandjoin-start';
-    case SetAssemblePeriod = 'set-assemble-period';
-    case SetTransferPeriod = 'set-transfer-period';
+    //case SetCreateAndJoinStart = 'set-createandjoin-start';
+    case UpdateAssemblePeriod = 'update-assemble-period';
+    case UpdateTransferPeriod = 'update-transfer-period';
     case Show = 'show';
 }

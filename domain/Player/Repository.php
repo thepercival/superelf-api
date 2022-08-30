@@ -7,7 +7,7 @@ namespace SuperElf\Player;
 use Doctrine\ORM\EntityRepository;
 use Sports\Team;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Period\View as ViewPeriod;
+use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player as S11Player;
 
 /**

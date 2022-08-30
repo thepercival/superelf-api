@@ -11,8 +11,8 @@ use Sports\Sport\FootballLine;
 use SuperElf\Formation;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
 class Editor

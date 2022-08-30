@@ -10,8 +10,8 @@ use Sports\Competition;
 use Sports\Season;
 use SportsHelpers\Identifiable;
 use SuperElf\League as S11League;
-use SuperElf\Period\Assemble as AssemblePeriod;
-use SuperElf\Period\Transfer as TransferPeriod;
+use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
+use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
 class Pool extends Identifiable
