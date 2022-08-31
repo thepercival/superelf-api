@@ -12,6 +12,9 @@ use SuperElf\CompetitionConfig\Administrator;
 use SuperElf\CompetitionConfig\Output as CompetitionConfigOutput;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
+use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\Statistics\Syncer as StatisticsSyncer;
+use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -39,6 +42,9 @@ class CompetitionConfig extends Command
     protected TeamPlayerRepository $teamPlayerRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected GameRoundSyncer $gameRoundSyncer;
+    protected S11PlayerSyncer $s11PlayerSyncer;
+    protected StatisticsSyncer $statisticsSyncer;
+    protected AppearanceSyncer $appearanceSyncer;
 
     public function __construct(ContainerInterface $container)
     {
@@ -57,6 +63,18 @@ class CompetitionConfig extends Command
         /** @var GameRoundSyncer $gameRoundSyncer */
         $gameRoundSyncer = $container->get(GameRoundSyncer::class);
         $this->gameRoundSyncer = $gameRoundSyncer;
+
+        /** @var S11PlayerSyncer $s11PlayerSyncer */
+        $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
+        $this->s11PlayerSyncer = $s11PlayerSyncer;
+
+        /** @var StatisticsSyncer $statisticsSyncer */
+        $statisticsSyncer = $container->get(StatisticsSyncer::class);
+        $this->statisticsSyncer = $statisticsSyncer;
+
+        /** @var AppearanceSyncer $appearanceSyncer */
+        $appearanceSyncer = $container->get(AppearanceSyncer::class);
+        $this->appearanceSyncer = $appearanceSyncer;
 
         parent::__construct($container);
     }
@@ -160,11 +178,23 @@ class CompetitionConfig extends Command
         // $leagueName = $competition->getLeague()->getName();
         // $seasonName = $competition->getSeason()->getName();
 
-        $this->gameRoundSyncer->sync($competitionConfig);
-        // @TODO ALSO STATS, ETC.
+        $changedGameRoundNumbers = $this->gameRoundSyncer->sync($competitionConfig);
+        $this->getLogger()->info(count($changedGameRoundNumbers) . ' gameRoundNumbers synced');
 
-        // $msg = 'execute "php bin/console.php app:sync --league='.$leagueName.' --season='.$seasonName.' --gameRoundRange=?-? --alwaysUpdateStatisticTotals"';
-        // $this->getLogger()->info($msg);
+        foreach ($changedGameRoundNumbers as $changedGameRoundNumber) {
+            // get games of $changedGameRoundNumber
+            $games = $this->againstGameRepos->getCompetitionGames(
+                $competition,
+                null,
+                $changedGameRoundNumber,
+            );
+            foreach ($games as $game) {
+                $this->s11PlayerSyncer->sync($competitionConfig, $game);
+                $this->statisticsSyncer->sync($competitionConfig, $game, true);
+                $this->appearanceSyncer->sync($competitionConfig, $game);
+            }
+        }
+        $this->getLogger()->info('s11Player, statistics and appearances synced');
 
         return 0;
     }

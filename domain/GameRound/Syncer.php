@@ -34,14 +34,16 @@ class Syncer
     /**
      * @param CompetitionConfig $competitionConfig
      * @param list<DateTimeImmutable>|null $datesToSync
+     * @return list<int>
      * @throws Exception
      */
     public function sync(
         CompetitionConfig $competitionConfig,
         array|null $datesToSync = null
-    ): void {
+    ): array {
         $competition = $competitionConfig->getSourceCompetition();
 
+        $changedGameRoundNumbers = [];
 
         $viewPeriods = $this->getViewPeriodsToSync($competitionConfig, $datesToSync);
         foreach ($viewPeriods as $viewPeriod) {
@@ -52,11 +54,10 @@ class Syncer
             );
             // ---------- ADD --------------------- //
             foreach ($viewPeriodGameRoundNumbers as $viewPeriodGameRoundNumber) {
-                // $this->syncGameRound( $competitionConfig, $viewPeriod, $gameRoundNumber );
-                $gameRound = $viewPeriod->getGameRound($viewPeriodGameRoundNumber);
-                if ($gameRound === null) {
-                    $gameRound = new GameRound($viewPeriod, $viewPeriodGameRoundNumber);
-                    $this->gameRoundRepos->save($gameRound, true);
+                if ($viewPeriod->getGameRound($viewPeriodGameRoundNumber) === null) {
+                    $newGameRound = new GameRound($viewPeriod, $viewPeriodGameRoundNumber);
+                    $this->gameRoundRepos->save($newGameRound, true);
+                    $changedGameRoundNumbers[] = $newGameRound->getNumber();
                     $vpDescr = 'viewperiod "' . $viewPeriod . '"';
                     $this->logInfo('add gameround "' . $viewPeriodGameRoundNumber . '" for ' . $vpDescr);
                 }
@@ -68,67 +69,14 @@ class Syncer
                 if (array_search($viewPeriodGameRound->getNumber(), $viewPeriodGameRoundNumbers) === false) {
                     $viewPeriodGameRounds->removeElement($viewPeriodGameRound);
                     $this->gameRoundRepos->remove($viewPeriodGameRound);
+                    $changedGameRoundNumbers[] = $viewPeriodGameRound->getNumber();
                     $vpDescr = 'viewperiod "' . $viewPeriod . '"';
                     $this->logInfo('removed gameround "' . $viewPeriodGameRound->getNumber() . '" for ' . $vpDescr);
                 }
             }
-
-//            $viewPeriodGameRoundNumbers = $viewPeriodGameRounds->map(function(GameRound $gameRound): int {
-//                return $gameRound->getNumber();
-//            });
-//            foreach( $viewPeriodGameRoundNumbers as $viewPeriodGameRoundNumber ) {
-//                if( array_search($viewPeriodGameRoundNumber, $gameRoundNumbers) === false) {
-//                    $gameRound = $viewPeriod->getGameRound($gameRoundNumber);
-//                    $viewPeriodGameRounds->removeElement()
-//                }
-//            }
         }
+        return array_values(array_unique($changedGameRoundNumbers));
     }
-
-//    public function syncGameRound(
-//        CompetitionConfig $competitionConfig,
-//        ViewPeriod $viewPeriod,
-//        int $gameRoundNumber
-//    ): void {
-//
-//
-//
-//        // wanneer gameRound toevoegen: als er geen wedstrijd is met gameRoundNumber niet voorkomt in de viewPeriod
-//        // wanneer gameRound verwijderen: als er geen wedstrijd is met gameRoundNumber niet voorkomt in de viewPeriod
-//
-//        // per viewperiode gameroundnumbers ophalen en dan kijken
-//
-//
-//         else {
-//
-//        }
-//
-//        // ////////////////// RESCHEDULED ////////////////////////
-//        $oldViewPeriod = $competitionConfig->getViewPeriodByDate($oldGameDate);
-//        if ($oldViewPeriod === null || $oldViewPeriod === $viewPeriod) {
-//            return;
-//        }
-//
-//        // if no games for this gameroundnumber in oldviewperiod than remove gameroundnumber
-//        $againstGames = $this->againstGameRepos->getCompetitionGames(
-//            $competition,
-//            [GameState::Created, GameState::InProgress, GameState::Finished],
-//            $game->getGameRoundNumber(),
-//            $oldViewPeriod->getPeriod()
-//        );
-//        if (count($againstGames) > 0) {
-//            return;
-//        }
-//
-//        $gameRound = $oldViewPeriod->getGameRound($game->getGameRoundNumber());
-//        if ($gameRound === null) {
-//            return;
-//        }
-//        $oldViewPeriod->getGameRounds()->removeElement($gameRound);
-//        $this->gameRoundRepos->remove($gameRound, true);
-//        $vpDescr = 'viewperiod "' . $oldViewPeriod . '"';
-//        $this->logInfo('remove gameround "' . $game->getGameRoundNumber() . '" for ' . $vpDescr);
-//    }
 
     /**
      * @param CompetitionConfig $competitionConfig
