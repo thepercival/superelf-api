@@ -108,11 +108,16 @@ final class UserAction extends Action
         try {
             /** @var Pool $pool */
             $pool = $request->getAttribute("pool");
+            /** @var User $user */
+            $user = $request->getAttribute("user");
+
+            $poolUser = $pool->getUser($user);
+            $extraContexts = $poolUser !== null && $poolUser->getAdmin() ? ['admin'] : [];
 
             $json = $this->serializer->serialize(
                 $pool->getUsers(),
                 'json',
-                $this->getSerializationContext(['admin'])
+                $this->getSerializationContext($extraContexts)
             );
 
             return $this->respondWithJson($response, $json);

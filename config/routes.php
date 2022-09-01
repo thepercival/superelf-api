@@ -117,7 +117,7 @@ return function (App $app): void {
                             $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(UserThroughPoolAuthMiddleware::class);
 
                             $group->options('', PoolUserAction::class . ':options');
-                            $group->get('', PoolUserAction::class . ':fetch')->add(PoolAdminAuthMiddleware::class);
+                            $group->get('', PoolUserAction::class . ':fetch');
                         }
                     );
                 },
