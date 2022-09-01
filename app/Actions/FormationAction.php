@@ -175,10 +175,13 @@ final class FormationAction extends Action
                 }
                 $personSameTeam = $formation->getPerson($player->getTeam());
                 if ($personSameTeam !== null) {
-                    throw new \Exception("er is al een persoon die voor hetzelfde team uitkomt", E_ERROR);
+                    throw new \Exception("er is al een persoon in je team die voor dezelfde club uitkomt", E_ERROR);
                 }
                 $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
                 $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $player->getPerson());
+            }
+            if ($s11Player && $formationPlace->getFormationLine()->getNumber() !== $s11Player->getLine()->value) {
+                throw new \Exception("de linies komen niet overeen", E_ERROR);
             }
             $formationPlace->setPlayer($s11Player);
 

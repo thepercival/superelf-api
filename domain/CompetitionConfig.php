@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use League\Period\Period;
 use Sports\Competition;
 use Sports\Season;
 use SportsHelpers\Identifiable;
@@ -98,15 +99,22 @@ class CompetitionConfig extends Identifiable
 
 
     /**
-     * @return list<ViewPeriod>
+     * @param Period|null $period = null
+     * @return  list<ViewPeriod>
      */
-    public function getViewPeriods(): array
+    public function getViewPeriods(Period|null $period = null): array
     {
-        return [
+        $periods = [
             $this->getCreateAndJoinPeriod(),
             $this->getAssemblePeriod()->getViewPeriod(),
             $this->getTransferPeriod()->getViewPeriod()
         ];
+        if ($period === null) {
+            return $periods;
+        }
+        return array_values(
+            array_filter($periods, fn(ViewPeriod $periodIt): bool => $periodIt->getPeriod()->overlaps($period))
+        );
     }
 
     public function getViewPeriodByDate(\DateTimeImmutable $dateTime): ViewPeriod|null
