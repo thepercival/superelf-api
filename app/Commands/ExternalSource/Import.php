@@ -267,11 +267,16 @@ class Import extends ExternalSourceCommand
                 $startDateTime->modify('-1 seconds'),
                 $startDateTime->modify('+1 seconds')
             );
+
 //            $period = new Period(
 //                new \DateTimeImmutable('2022-08-06 12:00:00'),
 //                new \DateTimeImmutable('2022-08-06 23:00:00'),
 //            );
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
+            $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after and ' . $startDateTime->format(
+                    \DateTimeInterface::ISO8601
+                ) . ' there were ' . count($games) . ' games found';
+            $this->getLogger()->info($msg);
             foreach ($games as $game) {
                 $externalGameId = $this->againstGameAttacherRepos->findExternalId($externalSource, $game);
                 if ($externalGameId === null) {
