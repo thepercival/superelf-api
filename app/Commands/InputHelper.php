@@ -188,7 +188,7 @@ class InputHelper
     ): DateTimeImmutable|null {
         $optionValue = $input->getOption($optionName);
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
-            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+            return null;
         }
         $dateTime = DateTimeImmutable::createFromFormat($format, $optionValue);
         if ($dateTime === false) {
