@@ -49,7 +49,7 @@ class PoolCompetitions extends Command
         $this->importer = $importer;
 
         parent::__construct($container);
-        $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
+        $this->importer->setGameEventSender(new QueueService($this->config->getArray('queue')));
     }
 
     protected function configure(): void

@@ -118,7 +118,7 @@ EOT;
         $jti = (new Base62())->encode(random_bytes(16));
 
         $now = new \DateTimeImmutable();
-        $future = $now->modify("+11 months");
+        $future = $now->add(new \DateInterval('P11M'));
         // $future = $now->modify("+10 seconds");
 
         $payload = [
@@ -137,9 +137,13 @@ EOT;
         $forgetpasswordToken = $user->getForgetpasswordToken();
         $forgetpasswordDeadline = $user->getForgetpasswordDeadline();
         if ($forgetpasswordDeadline === null) {
-            throw new Exception('je hebt je wachtwoord al gewijzigd, vraag opnieuw een nieuw wachtwoord aan');
+            throw new Exception('je hebt je wachtwoord al gewijzigd, vraag opnieuw een nieuw wachtwoord aan', E_ERROR);
         }
-        $forgetpasswordDeadline = $forgetpasswordDeadline->modify('-1 days')->format('Y-m-d');
+        $forgetpasswordDeadlineTmp = $forgetpasswordDeadline->sub(new \DateInterval('P1D'));
+        if ($forgetpasswordDeadlineTmp === false) {
+            throw new Exception('je wachtwoord kan niet gewijzigd worden', E_ERROR);
+        }
+        $forgetpasswordDeadline = $forgetpasswordDeadlineTmp->format('Y-m-d');
         $body = <<<EOT
 <p>Hallo,</p>
 <p>            

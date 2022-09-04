@@ -10,8 +10,12 @@ use Interop\Amqp\AmqpQueue;
 use Interop\Amqp\AmqpTopic;
 use Interop\Amqp\Impl\AmqpBind;
 use Sports\Game;
-use SportsImport\Event\Game as GameEvent;
+use Sports\Person;
+use Sports\Season;
+use SportsImport\Event\Action\Game as GameEventAction;
+use SportsImport\Event\Action\Person as PersonEventAction;
 use SportsImport\Queue\Game\ImportEvents as ImportGameEvents;
+use SportsImport\Queue\Person\ImportEvents as ImportPersonEvents;
 
 /**
  * sudo rabbitmqctl list_queues
@@ -21,7 +25,7 @@ use SportsImport\Queue\Game\ImportEvents as ImportGameEvents;
  * Class QueueService
  * @package App
  */
-class QueueService implements ImportGameEvents
+class QueueService implements ImportGameEvents, ImportPersonEvents
 {
     private string $queueSuffix = '';
 
@@ -41,14 +45,24 @@ class QueueService implements ImportGameEvents
 
     public function sendCreateEvent(Game $newGame): void
     {
-        $content = ['action' => GameEvent::Create->value, 'gameId' => $newGame->getId()];
+        $content = ['action' => GameEventAction::Create->value, 'gameId' => $newGame->getId()];
+        $this->sendEventHelper(self::GENERAL_QUEUE, $content);
+    }
+
+    public function sendCreatePersonEvent(Person $person, Season $season): void
+    {
+        $content = [
+            'action' => PersonEventAction::Create->value,
+            'personId' => $person->getId(),
+            'seasonId' => $season->getId()
+        ];
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
     public function sendRescheduleEvent(\DateTimeImmutable $oldStartDateTime, Game $updatedGame): void
     {
         $content = [
-            'action' => GameEvent::Reschedule->value,
+            'action' => GameEventAction::Reschedule->value,
             'oldTimestamp' => $oldStartDateTime->getTimestamp(),
             'gameId' => $updatedGame->getId()
         ];
@@ -58,7 +72,7 @@ class QueueService implements ImportGameEvents
     public function sendUpdateBasicsEvent(Game $updatedGame): void
     {
         $content = [
-            'action' => GameEvent::UpdateBasics->value,
+            'action' => GameEventAction::UpdateBasics->value,
             'gameId' => $updatedGame->getId()
         ];
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
@@ -67,7 +81,7 @@ class QueueService implements ImportGameEvents
     public function sendUpdateScoresLineupsAndEventsEvent(Game $updatedGame): void
     {
         $content = [
-            'action' => GameEvent::UpdateScoresLineupsAndEvents->value,
+            'action' => GameEventAction::UpdateScoresLineupsAndEvents->value,
             'gameId' => $updatedGame->getId()
         ];
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);

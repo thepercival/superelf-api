@@ -31,7 +31,7 @@ class ImportImage extends ExternalSourceCommand
         $importer = $container->get(Importer::class);
         $this->importer = $importer;
         parent::__construct($container);
-        $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
+        $this->importer->setGameEventSender(new QueueService($this->config->getArray('queue')));
     }
 
     protected function configure(): void

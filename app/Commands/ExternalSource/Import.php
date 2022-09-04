@@ -6,6 +6,7 @@ namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
 use App\QueueService;
+use DateTimeImmutable;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
@@ -18,11 +19,20 @@ use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Competitions;
 use SportsImport\ExternalSource\CompetitionStructure;
 use SportsImport\ExternalSource\GamesAndPlayers;
+use SportsImport\ExternalSource\Transfers;
 use SportsImport\Importer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * php bin/console.php app:import
+ *      sofascore game          --league=Eredivisie
+ *                              --season=2022/2023
+ *                              --sport=football
+ *                              --startDateTime="2022-09-02 20:00"
+ *                              --loglevel=200
+ */
 class Import extends ExternalSourceCommand
 {
     protected Importer $importer;
@@ -54,7 +64,9 @@ class Import extends ExternalSourceCommand
 
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
+        $this->addOption('startDateTime', null, InputOption::VALUE_OPTIONAL, 'Y-m-d H:i');
         $this->addOption('no-events', null, InputOption::VALUE_NONE, 'no-events');
+        $this->addOption('teamId', null, InputOption::VALUE_OPTIONAL, '12');
 
         parent::configure();
     }
@@ -74,7 +86,7 @@ class Import extends ExternalSourceCommand
             /** @var bool|null $noEvents */
             $noEvents = $input->getOption('no-events');
             if ($noEvents !== true) {
-                $this->importer->setEventSender(new QueueService($this->config->getArray('queue')));
+                $this->importer->setGameEventSender(new QueueService($this->config->getArray('queue')));
             }
 
             $entity = $this->getEntityFromInput($input);
@@ -159,6 +171,54 @@ class Import extends ExternalSourceCommand
             }
             if ($externalSourceImpl instanceof Competitions &&
                 $externalSourceImpl instanceof CompetitionStructure &&
+                $externalSourceImpl instanceof Transfers) {
+                $sport = $this->inputHelper->getSportFromInput($input);
+                $league = $this->inputHelper->getLeagueFromInput($input);
+                $season = $this->inputHelper->getSeasonFromInput($input);
+                switch ($entity) {
+                    case Entity::TRANSFERS:
+                        if ($noEvents !== true) {
+                            $this->importer->setPersonEventSender(new QueueService($this->config->getArray('queue')));
+                        }
+                        $team = $this->inputHelper->getTeamFromInput($input);
+                        if ($team === null) {
+                            throw new \Exception('team must be set', E_ERROR);
+                        }
+                        $this->importer->importTeamTransfers(
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl,
+                            $externalSourceImpl->getExternalSource(),
+                            $sport,
+                            $league,
+                            $season,
+                            $team
+                        );
+                        return 0;
+//                    case Entity::TEAMCOMPETITORS:
+//                        $this->importer->importTeamCompetitors(
+//                            $externalSourceImpl,
+//                            $externalSourceImpl,
+//                            $externalSourceImpl->getExternalSource(),
+//                            $sport,
+//                            $league,
+//                            $season
+//                        );
+//                        return 0;
+//                    case Entity::STRUCTURE:
+//                        $this->importer->importStructure(
+//                            $externalSourceImpl,
+//                            $externalSourceImpl,
+//                            $externalSourceImpl->getExternalSource(),
+//                            $sport,
+//                            $league,
+//                            $season
+//                        );
+//                        return 0;
+                }
+            }
+            if ($externalSourceImpl instanceof Competitions &&
+                $externalSourceImpl instanceof CompetitionStructure &&
                 $externalSourceImpl instanceof GamesAndPlayers) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
@@ -233,10 +293,11 @@ class Import extends ExternalSourceCommand
             if ($competition === null) {
                 throw new \Exception('competition can not be null', E_ERROR);
             }
-            $externalGameIds = $this->getExternalGameIdsByEndDateTime($competition, $externalSource);
+            $dateTime = $this->inputHelper->getDateTimeOptionalFromInput($input, 'startDateTime', 'Y-m-d H:i');
+            $externalGameIds = $this->getExternalGameIdsByDateTime($competition, $externalSource, $dateTime);
         }
         foreach ($externalGameIds as $externalGameId) {
-            $this->importer->importAgainstGameLineupsAndEvents(
+            $this->importer->importAgainstGameBasicsLineupsAndEvents(
                 $externalSourceCompetitions,
                 $externalSourceCompetitionStructure,
                 $externalSourceGamesAndPlayers,
@@ -253,25 +314,38 @@ class Import extends ExternalSourceCommand
     /**
      * @param Competition $competition
      * @param ExternalSource $externalSource
+     * @param DateTimeImmutable|null $startDateTime
      * @return list<string>
      */
-    protected function getExternalGameIdsByEndDateTime(Competition $competition, ExternalSource $externalSource): array
-    {
+    protected function getExternalGameIdsByDateTime(
+        Competition $competition,
+        ExternalSource $externalSource,
+        DateTimeImmutable|null $startDateTime
+    ): array {
         $externalGameIds = [];
-        $minutesAfterStart = [120, 180, 60 * 24];
-        $currentTmp = new \DateTimeImmutable( /*'now', new \DateTimeZone('Europe/Amsterdam')*/);
-        $currentDateTime = $currentTmp->setTime((int)$currentTmp->format("H"), (int)$currentTmp->format("i"));
-        foreach ($minutesAfterStart as $nrOfMinutesAfterStart) {
-            $startDateTime = $currentDateTime->modify('-' . $nrOfMinutesAfterStart . ' minutes');
-            $period = new Period(
-                $startDateTime->modify('-1 seconds'),
-                $startDateTime->modify('+1 seconds')
-            );
 
-//            $period = new Period(
-//                new \DateTimeImmutable('2022-08-06 12:00:00'),
-//                new \DateTimeImmutable('2022-08-06 23:00:00'),
-//            );
+        // ---- START : SCHEDULE OPTIONS -----------
+        if ($startDateTime === null) {
+            $minutesAfterStart = [120, 180, 60 * 24];
+            $currentTmp = new \DateTimeImmutable( /*'now', new \DateTimeZone('Europe/Amsterdam')*/);
+            $currentDateTime = $currentTmp->setTime((int)$currentTmp->format("H"), (int)$currentTmp->format("i"));
+        } else {
+            $minutesAfterStart = [0];
+            $currentDateTime = $startDateTime;
+        }
+        // ------ END : SCHEDULE OPTIONS ----------
+
+        foreach ($minutesAfterStart as $nrOfMinutesAfterStart) {
+            $startDateTime = $currentDateTime->sub(new \DateInterval('PT' . $nrOfMinutesAfterStart . 'M'));
+            if ($startDateTime === false) {
+                continue;
+            }
+            $periodStart = $startDateTime->sub(new \DateInterval('PT1S'));
+            if ($periodStart === false) {
+                continue;
+            }
+            $period = new Period($periodStart, $startDateTime->add(new \DateInterval('PT1S')));
+
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
             $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after and ' . $startDateTime->format(
                     \DateTimeInterface::ISO8601

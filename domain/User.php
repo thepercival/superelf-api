@@ -112,7 +112,7 @@ class User extends Identifiable
         $forgetpassword = rand(100000, 999999);
         $tomorrow = date("Y-m-d", strtotime('tomorrow'));
         $tomorrow = new \DateTimeImmutable($tomorrow);
-        $tomorrow = $tomorrow->modify("+1 days");
+        $tomorrow = $tomorrow->add(new \DateInterval('P1D'));
         $this->setForgetpassword($forgetpassword . ":" . $tomorrow->format("Y-m-d"));
     }
 

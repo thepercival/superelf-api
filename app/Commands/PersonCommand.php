@@ -273,7 +273,7 @@ class PersonCommand extends Command
 
         $season = $competitionConfig->getSeason();
 
-        $roleEditor = new RoleEditor();
+        $roleEditor = new RoleEditor($this->getLogger());
         $roleEditor->update($season, $person, $newAt, $newTeam, $newLine);
 
         $this->personRepos->save($person);
@@ -299,11 +299,10 @@ class PersonCommand extends Command
             throw new \Exception('person not found', E_ERROR);
         }
 
-        $updateAt = new \DateTimeImmutable();
-        $updateAt = $updateAt->setTime(0, 0);
-        if ($updateAt === false) {
-            throw new \Exception('could not reset time', E_ERROR);
-        }
+        $updateAt = (new \DateTimeImmutable())->setTime(0, 0);
+//        if ($updateAt === false) {
+//            throw new \Exception('could not reset time', E_ERROR);
+//        }
 
         $newLine = $this->getLineFromInput($input);
 
@@ -312,8 +311,8 @@ class PersonCommand extends Command
         $player = (new OneTeamSimultaneous())->getPlayer($person, $updateAt);
         if ($player === null) {
             throw new \Exception(
-                '"' . $person->getName() . '" speelt op "' . $updateAt->format(
-                    DateTimeInterface::ISO8601
+                                            '"' . $person->getName() . '" speelt op "' . $updateAt->format(
+                                                DateTimeInterface::ISO8601
                 ) . '" niet voor een team', E_ERROR
             );
         }

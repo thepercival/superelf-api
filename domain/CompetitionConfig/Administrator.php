@@ -8,7 +8,6 @@ use DateTimeImmutable;
 use League\Period\Period;
 use Sports\Competition;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\State as GameState;
 use SuperElf\CompetitionConfig;
 use SuperElf\Defaults;
 use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
@@ -180,14 +179,14 @@ class Administrator
             $msg .= 'before transferStart "' . $transferStart->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }
-        foreach ($sourceCompetitionGames as $game) {
-            if ($assemblePeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
-                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
-                $msg .= 'before assembleStart "' . $assemblePeriod->getStartDate()->format('Y-m-d H:i') . '"';
-                $msg .= ' or after assembleEnd "' . $assemblePeriod->getEndDate()->format('Y-m-d H:i') . '"';
-                throw new \Exception($msg, E_ERROR);
-            }
-        }
+//        foreach ($sourceCompetitionGames as $game) {
+//            if ($assemblePeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
+//                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
+//                $msg .= 'before assembleStart "' . $assemblePeriod->getStartDate()->format('Y-m-d H:i') . '"';
+//                $msg .= ' or after assembleEnd "' . $assemblePeriod->getEndDate()->format('Y-m-d H:i') . '"';
+//                throw new \Exception($msg, E_ERROR);
+//            }
+//        }
     }
 
     /**
@@ -213,14 +212,14 @@ class Administrator
             $msg .= 'before seasonEnd "' . $seasonEnd->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }
-        foreach ($sourceCompetitionGames as $game) {
-            if ($transferPeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
-                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
-                $msg .= 'before transferStart "' . $transferPeriod->getStartDate()->format('Y-m-d H:i') . '"';
-                $msg .= ' or after transferEnd "' . $transferPeriod->getEndDate()->format('Y-m-d H:i') . '"';
-                throw new \Exception($msg, E_ERROR);
-            }
-        }
+//        foreach ($sourceCompetitionGames as $game) {
+//            if ($transferPeriod->contains($game->getStartDateTime()) && $game->getState() !== GameState::Canceled) {
+//                $msg = 'gameStart "' . $game->getStartDateTime()->format('Y-m-d H:i') . '" should be ';
+//                $msg .= 'before transferStart "' . $transferPeriod->getStartDate()->format('Y-m-d H:i') . '"';
+//                $msg .= ' or after transferEnd "' . $transferPeriod->getEndDate()->format('Y-m-d H:i') . '"';
+//                throw new \Exception($msg, E_ERROR);
+//            }
+//        }
     }
 
 //    public function createCollection(string $name): PoolCollection

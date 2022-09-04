@@ -20,7 +20,9 @@ use Sports\Structure\NameService as StructureNameService;
 use Sports\Structure\Repository as StructureRepository;
 use Sports\Team\Repository as TeamRepository;
 use SportsHelpers\SportRange;
+use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
 use SportsImport\Entity;
+use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource\SofaScore;
 use stdClass;
 use Symfony\Component\Console\Input\InputArgument;
@@ -31,9 +33,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Get extends Command
 {
     use EntityTrait;
+
     protected CompetitionRepository $competitionRepos;
     protected StructureRepository $structureRepos;
     protected AgainstGameRepository $againstGameRepos;
+    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
+    protected ExternalSourceRepository $externalSourceRepos;
     protected TeamRepository $teamRepos;
 
     public function __construct(ContainerInterface $container)
@@ -45,6 +50,14 @@ class Get extends Command
         /** @var AgainstGameRepository $againstGameRepos */
         $againstGameRepos = $container->get(AgainstGameRepository::class);
         $this->againstGameRepos = $againstGameRepos;
+
+        /** @var AgainstGameAttacherRepository $againstGameAttacherRepos */
+        $againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
+        $this->againstGameAttacherRepos = $againstGameAttacherRepos;
+
+        /** @var ExternalSourceRepository $externalSourceRepos */
+        $externalSourceRepos = $container->get(ExternalSourceRepository::class);
+        $this->externalSourceRepos = $externalSourceRepos;
 
         /** @var StructureRepository $structureRepos */
         $structureRepos = $container->get(StructureRepository::class);
@@ -260,12 +273,23 @@ class Get extends Command
         $this->structureRepos->getStructure($competition);
         $againstGame = $this->againstGameRepos->find($id);
         if ($againstGame === null) {
-            throw new \Exception("no game found for league '".$league->getName()."' and season '".$season->getName()."' and id " . $id, E_ERROR);
+            throw new \Exception(
+                "no game found for league '" . $league->getName() . "' and season '" . $season->getName(
+                ) . "' and id " . $id, E_ERROR
+            );
         }
 
         $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
         $structureNameService = new StructureNameService(new StartLocationMap($teamCompetitors));
         $table = new ConsoleTable\AgainstGame();
         $table->display($competition, $againstGame, $structureNameService);
+
+        $externalSources = $this->externalSourceRepos->findAll();
+        foreach ($externalSources as $externalSource) {
+            $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource, $againstGame);
+            if ($externalId !== null) {
+                $this->getLogger()->info('externalSource "' . $externalSource->getName() . '" => ' . $externalId);
+            }
+        }
     }
 }

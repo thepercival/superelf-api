@@ -17,12 +17,17 @@ use Sports\Game;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State as GameState;
+use Sports\Person\Repository as PersonRepository;
 use SportsHelpers\SportRange;
+use SportsImport\Event\Action\Game as GameEventAction;
+use SportsImport\Event\Action\Person as PersonEventAction;
 use SportsImport\Event\Game as GameEvent;
+use SportsImport\Event\Person as PersonEvent;
 use stdClass;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
+use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
@@ -33,6 +38,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Sync extends Command
 {
     protected AgainstGameRepository $againstGameRepos;
+    protected PersonRepository $personRepos;
+    protected S11PlayerRepository $s11PlayerRepos;
     protected GameRoundSyncer $gameRoundSyncer;
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected StatisticsSyncer $statisticsSyncer;
@@ -47,6 +54,14 @@ class Sync extends Command
         /** @var AgainstGameRepository $againstGameRepos */
         $againstGameRepos = $container->get(AgainstGameRepository::class);
         $this->againstGameRepos = $againstGameRepos;
+
+        /** @var PersonRepository $personRepos */
+        $personRepos = $container->get(PersonRepository::class);
+        $this->personRepos = $personRepos;
+
+        /** @var S11PlayerRepository $s11PlayerRepos */
+        $s11PlayerRepos = $container->get(S11PlayerRepository::class);
+        $this->s11PlayerRepos = $s11PlayerRepos;
 
         /** @var GameRoundSyncer $gameRoundSyncer */
         $gameRoundSyncer = $container->get(GameRoundSyncer::class);
@@ -173,30 +188,13 @@ class Sync extends Command
                     throw new \Exception('no action found in queue-message', E_ERROR);
                 }
 
-                try {
-                    $game = $this->getGameFromQueueMessage($content);
-                } catch (\Exception $e) {
-                    $this->getLogger()->error($e->getMessage());
-                    $consumer->acknowledge($message);
-                    return;
+                $updatedObjectFromQueueMessage = $this->getEventFromQueueMessage($content);
+                if ($updatedObjectFromQueueMessage instanceof PersonEvent) {
+                    $this->syncPerson($updatedObjectFromQueueMessage);
+                } elseif ($updatedObjectFromQueueMessage instanceof GameEvent) {
+                    $this->syncGame($updatedObjectFromQueueMessage);
                 }
 
-                $competitionConfig = $this->getCompetitionConfig($game);
-                $event = GameEvent::from((string)$content->action);
-                if ($event === GameEvent::Create || $event === GameEvent::UpdateBasics || $event === GameEvent::Reschedule) {
-                    $dates = [$game->getStartDateTime()];
-                    if (property_exists($content, "oldTimestamp")) {
-                        $dates[] = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
-                    }
-                    $this->gameRoundSyncer->sync($competitionConfig, $dates);
-                    $this->s11PlayerSyncer->sync($competitionConfig, $game);
-                    $this->statisticsSyncer->sync($competitionConfig, $game);
-                    $this->appearanceSyncer->sync($competitionConfig, $game);
-                } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
-                    $this->s11PlayerSyncer->sync($competitionConfig, $game);
-                    $this->statisticsSyncer->sync($competitionConfig, $game);
-                    $this->appearanceSyncer->sync($competitionConfig, $game);
-                }
                 $consumer->acknowledge($message);
                 die();
             } catch (\Exception $e) {
@@ -204,6 +202,96 @@ class Sync extends Command
                 $this->getLogger()->error($e->getMessage());
             }
         };
+    }
+
+    protected function getEventFromQueueMessage(stdClass $content): GameEvent|PersonEvent|null
+    {
+        if (!property_exists($content, "action")) {
+            $this->getLogger()->error('no action found in message');
+            return null;
+        }
+
+        $action = PersonEventAction::tryFrom((string)$content->action);
+        if ($action === PersonEventAction::Create) {
+            if (!property_exists($content, "personId")) {
+                $this->getLogger()->error('no personId found in message');
+                return null;
+            }
+            $person = $this->personRepos->find((int)$content->personId);
+            if ($person === null) {
+                $this->getLogger()->info('person with personId ' . (string)$content->personId . ' not found');
+                return null;
+            }
+            if (!property_exists($content, "seasonId")) {
+                $this->getLogger()->error('no seasonId found in message');
+                return null;
+            }
+            $season = $this->seasonRepos->find((int)$content->seasonId);
+            if ($season === null) {
+                $this->getLogger()->info('season with seasonId ' . (string)$content->seasonId . ' not found');
+                return null;
+            }
+            return new PersonEvent($action, $person, $season);
+        }
+        $action = GameEventAction::tryFrom((string)$content->action);
+        if ($action === null) {
+            return null;
+        }
+        if (!property_exists($content, "gameId")) {
+            $this->getLogger()->error('no gameId found in message');
+            return null;
+        }
+        $game = $this->againstGameRepos->find((int)$content->gameId);
+        if ($game === null) {
+            $this->getLogger()->info('game with gameId ' . (string)$content->gameId . ' not found');
+            return null;
+        }
+        $oldDateTime = null;
+        if (property_exists($content, "oldTimestamp")) {
+            $oldDateTime = new \DateTimeImmutable("@" . (string)$content->oldTimestamp);
+        }
+        return new GameEvent($action, $game, $oldDateTime);
+    }
+
+    protected function syncPerson(PersonEvent $event): void
+    {
+        $competitionConfigs = $this->competitionConfigRepos->findBySeason($event->getSeason());
+
+        foreach ($competitionConfigs as $competitionConfig) {
+            foreach ($competitionConfig->getViewPeriods() as $viewPeriod) {
+//                if( !$viewPeriod->contains($event->getDateTime())) {
+//                    continue;
+//                }
+                $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $event->getPerson());
+                $this->s11PlayerRepos->save($s11Player);
+                // $this->statisticsSyncer->sync($competitionConfig, $game);
+            }
+        }
+    }
+
+    protected function syncGame(GameEvent $event): void
+    {
+        $game = $event->getGame();
+        $oldDateTime = $event->getOldDateTime();
+        $competitionConfig = $this->getCompetitionConfig($game);
+
+        if ($event->getAction() === GameEventAction::Create
+            || $event->getAction() === GameEventAction::UpdateBasics
+            || $event->getAction() === GameEventAction::Reschedule) {
+            $dates = [$game->getStartDateTime()];
+
+            if ($oldDateTime !== null) {
+                $dates[] = $oldDateTime;
+            }
+            $this->gameRoundSyncer->sync($competitionConfig, $dates);
+            $this->s11PlayerSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->appearanceSyncer->sync($competitionConfig, $game);
+        } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
+            $this->s11PlayerSyncer->sync($competitionConfig, $game);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
+            $this->appearanceSyncer->sync($competitionConfig, $game);
+        }
     }
 
     protected function syncRescheduleGame(

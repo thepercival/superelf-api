@@ -108,7 +108,7 @@ class InputHelper
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
             return null;
         }
-        return $this->teamRepos->findOneBy(['teamId' => $optionValue]);
+        return $this->teamRepos->findOneBy(['id' => $optionValue]);
     }
 
     public function getPersonFromInput(InputInterface $input): Person|null
@@ -177,6 +177,22 @@ class InputHelper
         $dateTime = DateTimeImmutable::createFromFormat($format, $optionValue);
         if ($dateTime === false) {
             throw new Exception('invalid datetime "' . $optionName . '" given', E_ERROR);
+        }
+        return $dateTime;
+    }
+
+    public function getDateTimeOptionalFromInput(
+        InputInterface $input,
+        string $optionName,
+        string $format = CompetitionConfigCommand::DateTimeFormat
+    ): DateTimeImmutable|null {
+        $optionValue = $input->getOption($optionName);
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            throw new Exception('no "' . $optionName . '"-option given', E_ERROR);
+        }
+        $dateTime = DateTimeImmutable::createFromFormat($format, $optionValue);
+        if ($dateTime === false) {
+            return null;
         }
         return $dateTime;
     }

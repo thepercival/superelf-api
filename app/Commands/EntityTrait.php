@@ -37,6 +37,8 @@ trait EntityTrait
                 return Entity::GAME;
             case 'players':
                 return Entity::PLAYERS;
+            case 'transfers':
+                return Entity::TRANSFERS;
         }
         $this->getLogger()->error($message);
         throw new \Exception($message, E_ERROR);
