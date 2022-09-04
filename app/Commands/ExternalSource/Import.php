@@ -75,6 +75,7 @@ class Import extends ExternalSourceCommand
     {
         try {
             $this->initLogger($input, 'command-import');
+            $this->importer->setLogger($this->getLogger());
             $externalSourceName = (string)$input->getArgument('externalSource');
             $externalSourceImpl = $this->externalSourceFactory->createByName($externalSourceName);
             if ($externalSourceImpl === null) {
