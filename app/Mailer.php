@@ -36,8 +36,9 @@ final class Mailer
         // $mailer->'MIME-Version' = '1.0';
         $mailer->ContentType = PHPMailer::CONTENT_TYPE_TEXT_HTML;
         $mailer->CharSet = PHPMailer::CHARSET_UTF8;
-        $mailer->From = $this->fromEmailaddress;
-        $mailer->FromName = $this->fromName;
+//        $mailer->From = $this->fromEmailaddress;
+//        $mailer->FromName = $this->fromName;
+        $mailer->setFrom($this->fromEmailaddress, $this->fromName);
         $mailer->addAddress($toEmailaddress);
         $mailer->addReplyTo($this->fromEmailaddress);
         $mailer->Subject = $subject;
