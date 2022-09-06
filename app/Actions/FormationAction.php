@@ -80,10 +80,21 @@ final class FormationAction extends Action
 
     protected function editAssemable(Formation $formation, SportsFormation $newSportsFormation): void
     {
-        $removedFormationPlaces = $this->formationEditor->removeAssemble($formation, $newSportsFormation);
+        $formationPlaceRemovals = $this->formationEditor->removeAssemble($formation, $newSportsFormation);
         /* SAVE REMOVED FORMATIONPLACES TO DATABASE */
-        foreach ($removedFormationPlaces as $removedFormationPlace) {
-            $this->formationPlaceRepos->remove($removedFormationPlace);
+        foreach ($formationPlaceRemovals as $formationPlaceRemoval) {
+            $formationPlace = $formationPlaceRemoval->getFormationPlace();
+            $formationLine = $formationPlace->getFormationLine();
+            $this->formationPlaceRepos->remove($formationPlace, true);
+
+            $playerWithoutPlace = $formationPlaceRemoval->getPlayer();
+            if ($playerWithoutPlace !== null) {
+                $lastPlaceWithoutPlayer = $this->formationEditor->getLastStartingPlaceWithoutPlayer($formationLine);
+                if ($lastPlaceWithoutPlayer !== null) {
+                    $lastPlaceWithoutPlayer->setPlayer($playerWithoutPlace);
+                    $this->s11PlayerRepos->save($playerWithoutPlace, true);
+                }
+            }
         }
 
         $addedFormationPlaces = $this->formationEditor->addAssemble($formation, $newSportsFormation);

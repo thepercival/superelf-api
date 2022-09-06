@@ -11,6 +11,7 @@ use Sports\Sport\FootballLine;
 use SuperElf\Formation;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\Formation\Place\Removal as FormationPlaceRemoval;
 use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
@@ -91,21 +92,21 @@ class Editor
     /**
      * @param Formation $formation
      * @param SportsFormation $newSportFormation
-     * @return list<FormationPlace>
+     * @return list<FormationPlaceRemoval>
      */
     public function removeAssemble(Formation $formation, SportsFormation $newSportFormation): array
     {
         $this->validate($newSportFormation);
 
-        $removedPlaces = [];
+        $removedPlaceRemovals = [];
         foreach ($formation->getLines() as $formationLine) {
             $newSportFormationLine = $newSportFormation->getLine($formationLine->getNumber());
             $diffPlaces = ($formationLine->getPlaces()->count() - 1) - $newSportFormationLine->getNrOfPersons();
             for ($i = 0 ; $i < $diffPlaces ; $i++) {
-                $removedPlaces[] = $this->removePlace($formationLine);
+                $removedPlaceRemovals[] = $this->removePlace($formationLine);
             }
         }
-        return $removedPlaces;
+        return $removedPlaceRemovals;
     }
 
     /**
@@ -129,18 +130,11 @@ class Editor
         return $addedPlaces;
     }
 
-    protected function removePlace(FormationLine $formationLine): FormationPlace
+    protected function removePlace(FormationLine $formationLine): FormationPlaceRemoval
     {
         $lastPlace = $this->getLastStartingPlace($formationLine);
-        $lastPlacePlayer = $lastPlace->getPlayer();
-        if ($lastPlacePlayer !== null) {
-            $lastPlaceWithoutPlayer = $this->getLastStartingPlaceWithoutPlayer($formationLine);
-            if ($lastPlaceWithoutPlayer !== null) {
-                $lastPlaceWithoutPlayer->setPlayer($lastPlacePlayer);
-            }
-        }
         $formationLine->getPlaces()->removeElement($lastPlace);
-        return $lastPlace;
+        return new FormationPlaceRemoval($lastPlace, $lastPlace->getPlayer());
     }
 
     public function getLastStartingPlace(FormationLine $formationLine): FormationPlace
