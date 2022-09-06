@@ -64,9 +64,11 @@ final class PlayerAction extends Action
             if ($viewPeriod === null) {
                 throw new \Exception("de periode is niet meegegeven in het filter", E_ERROR);
             }
-
-            $maxResults = 50;
             $team = $playerFilter->getTeamId() !== null ? $this->teamRepos->find($playerFilter->getTeamId()) : null;
+            $maxResults = null;
+            if ($playerFilter->getLine() === null && $team === null) {
+                $maxResults = 50;
+            }
 
 
             $players = $this->playerRepos->findByExt($viewPeriod, $team, $playerFilter->getLine(), $maxResults);
