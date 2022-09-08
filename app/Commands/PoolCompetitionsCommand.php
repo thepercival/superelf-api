@@ -8,6 +8,7 @@ use App\Command;
 use App\QueueService;
 use Psr\Container\ContainerInterface;
 use Sports\Season;
+use Sports\Structure\Repository as StructureRepository;
 use SportsImport\Importer;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Competitor\Repository as CompetitorRepository;
@@ -18,11 +19,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PoolCompetitions extends Command
+class PoolCompetitionsCommand extends Command
 {
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdmin;
     protected CompetitorRepository $competitorRepos;
+    protected StructureRepository $structureRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected Importer $importer;
 
@@ -43,6 +45,10 @@ class PoolCompetitions extends Command
         /** @var CompetitorRepository $competitorRepos */
         $competitorRepos = $container->get(CompetitorRepository::class);
         $this->competitorRepos = $competitorRepos;
+
+        /** @var StructureRepository $structureRepos */
+        $structureRepos = $container->get(StructureRepository::class);
+        $this->structureRepos = $structureRepos;
 
         /** @var Importer $importer */
         $importer = $container->get(Importer::class);
@@ -65,6 +71,7 @@ class PoolCompetitions extends Command
 
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
+        $this->addOption('replace', null, InputOption::VALUE_NONE);
 
         parent::configure();
     }
@@ -72,8 +79,13 @@ class PoolCompetitions extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-create-pool-competitions');
+
         // loop door alle pools van een bepaald seizoen
         // per pool de competities verwijderen en weer opnieuw aanmaken
+        /** @var bool|null $replace */
+        $replace = $input->getOption('replace');
+        $replace = is_bool($replace) ? $replace : false;
+
 
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
@@ -81,9 +93,16 @@ class PoolCompetitions extends Command
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             foreach ($pools as $pool) {
                 $this->getLogger()->info(
-                    "create competitions for pool " . $pool->getName() . "(" . (string)$pool->getId() . ")"
+                    'creating competitions for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
                 );
-                $this->poolAdmin->removeAndCreateStructureAndCompetitors($pool);
+                if ($replace) {
+                    $this->poolAdmin->replaceCompetitionsCompetitorsStructureAndGames($pool);
+                } else {
+                    $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool);
+                }
+                foreach ($pool->getCompetitions() as $competition) {
+                    $this->getLogger()->info('   created  "' . $competition->getLeague()->getName() . '"');
+                }
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {

@@ -5,50 +5,141 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Competition;
+use Sports\Game\State;
+use Sports\Ranking\Calculator\End as EndRankingCalculator;
 use Sports\Ranking\PointsCalculation;
 use Sports\Sport;
+use Sports\Structure\Repository as StructureRepository;
 use SuperElf\Competitions\BaseCreator;
 use SuperElf\Competitions\CompetitionCreator;
 use SuperElf\Competitions\CupCreator;
 use SuperElf\Competitions\SuperCupCreator;
 use SuperElf\League as S11League;
+use SuperElf\Pool\User as PoolUser;
 
 class CompetitionsCreator
 {
-    public function __construct()
-    {
+    public function __construct(
+        protected StructureRepository $structureRepos
+    ) {
+    }
+
+    public function createCompetition(
+        Pool $pool,
+        Sport $sport,
+        S11League $league
+    ): Competition|null {
+        $validPoolUsers = $this->getValidPoolUsers($pool, $league);
+        if (count($validPoolUsers) < 2) {
+            return null;
+        }
+
+        if ($league === S11League::Competition) {
+            $competitionCreator = $this->getCreator(S11League::Competition);
+            return $competitionCreator->createCompetition($pool, $sport, PointsCalculation::Scores);
+        }
+
+
+        if ($league === S11League::Cup) {
+            if ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2022-01-01'))
+                ||
+                ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2020-01-01'))
+                    && $pool->getCollection()->getName() === 'kamp duim')
+            ) {
+                $cupCreator = $this->getCreator(S11League::Cup);
+                return $cupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
+            }
+            return null;
+        }
+
+        $superCupCreator = $this->getCreator(S11League::SuperCup);
+        return $superCupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
     }
 
     /**
      * @param Pool $pool
-     * @param Sport $sport
-     * @return non-empty-list<Competition>
+     * @param S11League $league
+     * @return list<PoolUser>
      */
-    public function createCompetitions(Pool $pool, Sport $sport): array
+    public function getValidPoolUsers(Pool $pool, S11League $league): array
     {
-        $competitions = [];
+        $validPoolUsers = array_values(
+            $pool->getUsers()->filter(function (PoolUser $poolUser): bool {
+                return $poolUser->canCompete();
+            })->toArray()
+        );
 
-        $competitionCreator = $this->getCreator(S11League::Competition);
-        $competitions[] = $competitionCreator->createCompetition($pool, $sport, PointsCalculation::Scores);
-
-        // @TODO DEPRECATED CDK
-        if ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2022-01-01'))
-            ||
-            ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2020-01-01'))
-                && $pool->getCollection()->getName() === 'kamp duim')
-        ) {
-            $cupCreator = $this->getCreator(S11League::Cup);
-            $competitions[] = $cupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
+        if ($league !== S11League::SuperCup) {
+            return $validPoolUsers;
         }
-
+        $validPoolUsersSuperCup = [];
         $previous = $pool->getUnhaltedPrevious();
-        if ($previous !== null && $previous->getCompetition(S11League::Cup) !== null) {
-            $superCupCreator = $this->getCreator(S11League::SuperCup);
-            $competitions[] = $superCupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
+        if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
+            $poolUsersCoen = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
+                return $poolUser->getUser()->getName() === 'joris';
+            });
+            $poolUserCoen = array_pop($poolUsersCoen);
+            if ($poolUserCoen !== null) {
+                $validPoolUsersSuperCup[] = $poolUserCoen;
+            }
+            $poolUsersBets = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
+                return $poolUser->getUser()->getName() === 'storm';
+            });
+            $poolUserBets = array_pop($poolUsersBets);
+            if ($poolUserBets !== null) {
+                $validPoolUsersSuperCup[] = $poolUserBets;
+            }
+            return $validPoolUsersSuperCup;
+        } elseif ($previous === null) {
+            return [];
         }
 
-        return $competitions;
+        $bestPoolUserCompetition = $this->getBestValidPoolUser($previous, S11League::Competition, $validPoolUsers);
+        if ($bestPoolUserCompetition !== null) {
+            $validPoolUsersSuperCup[] = $bestPoolUserCompetition;
+        }
+        $bestPoolUserCup = $this->getBestValidPoolUser($previous, S11League::Cup, $validPoolUsers);
+        if ($bestPoolUserCup !== null) {
+            $validPoolUsersSuperCup[] = $bestPoolUserCup;
+        }
+        return $validPoolUsersSuperCup;
     }
+
+    /**
+     * @param Pool $pool
+     * @param League $league
+     * @param list<PoolUser> $validPoolUsers
+     * @return PoolUser|null
+     * @throws \Sports\Exceptions\NoStructureException
+     */
+    protected function getBestValidPoolUser(Pool $pool, S11League $league, array $validPoolUsers): PoolUser|null
+    {
+        $competition = $pool->getCompetition($league);
+        if ($competition === null) {
+            return null;
+        }
+        $category = $this->structureRepos->getStructure($competition)->getSingleCategory();
+        if ($category->getGamesState() !== State::Finished) {
+            return null;
+        }
+        $endRankingCalculator = new EndRankingCalculator($category);
+        $rankingItems = $endRankingCalculator->getItems();
+        foreach ($rankingItems as $rankingItem) {
+            $rankingStartLocation = $rankingItem->getStartLocation();
+            if ($rankingStartLocation === null) {
+                continue;
+            }
+            foreach ($validPoolUsers as $validPoolUser) {
+                $competitor = $validPoolUser->getCompetitor($competition);
+                if ($competitor !== null && $competitor->equals($rankingStartLocation)) {
+                    return $validPoolUser;
+                }
+            }
+        }
+        return null;
+    }
+
+
 
 //    public function createCompetitionDetails(Pool $pool): void
 //    {

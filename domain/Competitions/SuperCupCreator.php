@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Sport;
 use Sports\Structure;
+use SportsHelpers\Against\Side;
 use SportsHelpers\Sport\PersistVariant;
 use SuperElf\League as S11League;
+use SuperElf\Pool;
 
 class SuperCupCreator extends BaseCreator
 {
@@ -22,15 +26,9 @@ class SuperCupCreator extends BaseCreator
         return $sport->createAgainstPersistVariant(3, 1);
     }
 
-    /**
-     * @param Competition $competition
-     * @return Structure
-     */
-    protected function createStructure(Competition $competition): Structure
+    public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
-        $structure = $this->structureEditor->create($competition, [2]);
-//        $this->createGames($competition, $assemblePeriod, $transferPeriod, $structure);
-        return $structure;
+        return $this->structureEditor->create($competition, [2]);
     }
 
 //    protected function createGames(
@@ -77,6 +75,41 @@ class SuperCupCreator extends BaseCreator
 //            new AgainstGamePlace($game, $awayPlace, Side::Away);
 //        }
 //    }
+
+    public function createGames(Structure $structure, Pool $pool): void
+    {
+        $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();
+        $gameRounds = $assembleViewPeriod->getGameRounds()->toArray();
+
+        // first gameRoundNumber no supercup
+        array_shift($gameRounds);
+
+        $nrOfRounds = 1;
+        $poule = $structure->getSingleCategory()->getRootRound()->getFirstPoule();
+        $competitionSport = $poule->getCompetition()->getSingleSport();
+        $places = $poule->getPlaces()->toArray();
+        $homePlace = array_shift($places);
+        $awayPlace = array_pop($places);
+        if ($homePlace === null || $awayPlace === null) {
+            throw new \Exception('not enough places', E_ERROR);
+        }
+        while ($nrOfRounds++ <= self::NrOfAgainstGamesPerRound) {
+            $gameRound = array_shift($gameRounds);
+            if ($gameRound === null) {
+                throw new \Exception('not enough roundnumbers to schedule supercup', E_ERROR);
+            }
+
+            $game = new AgainstGame(
+                $poule,
+                $nrOfRounds,
+                $assembleViewPeriod->getStartDateTime(),
+                $competitionSport,
+                $gameRound->getNumber()
+            );
+            new AgainstGamePlace($game, $homePlace, Side::Home);
+            new AgainstGamePlace($game, $awayPlace, Side::Away);
+        }
+    }
 
 //    protected function getAvailableGameRounds($sourceStructure): array {
 //        // wanneer er gamerounds veranderen

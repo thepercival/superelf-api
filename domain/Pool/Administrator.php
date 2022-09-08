@@ -6,13 +6,23 @@ namespace SuperElf\Pool;
 
 use Selective\Config\Configuration;
 use Sports\Association;
+use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Game\State;
+use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\League;
 use Sports\League\Repository as LeagueRepository;
+use Sports\Round;
 use Sports\Structure\Repository as StructureRepository;
+use SportsHelpers\Sport\Variant\Against\GamesPerPlace as AgainstGpp;
+use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
+use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Competitor\Repository as PoolCompetitorRepsitory;
+use SuperElf\League as S11League;
 use SuperElf\Periods\Administrator as PeriodAdministrator;
 use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
@@ -26,6 +36,10 @@ use SuperElf\User;
 class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
+    /**
+     * @var list<S11League>
+     */
+    protected array $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup];
 
     public function __construct(
         protected PoolRepository $poolRepos,
@@ -36,19 +50,28 @@ class Administrator
         protected PoolCompetitorRepsitory $poolCompetitorRepos,
         protected LeagueRepository $leagueRepos,
         protected CompetitionRepository $competitionRepos,
+        protected CompetitorRepository $competitorRepos,
         protected StructureRepository $structureRepos,
+        protected AgainstGameRepository $againstGameRepos,
+        protected TogetherGameRepository $togetherGameRepos,
         protected ActiveConfigService $activeConfigService,
         protected Configuration $config
     ) {
-        $this->competitionsCreator = new CompetitionsCreator();
+        $this->competitionsCreator = new CompetitionsCreator($structureRepos);
     }
 
     public function createCollection(string $name): PoolCollection
     {
         $poolCollection = $this->poolCollectionRepos->findOneByName($name);
         if ($poolCollection === null) {
-            $poolCollection = new PoolCollection(new Association($name));
+            $association = new Association($name);
+            $poolCollection = new PoolCollection($association);
             $this->poolCollectionRepos->save($poolCollection);
+
+            foreach ($this->s11Leagues as $s11League) {
+                $league = new League($association, $s11League->name);
+                $this->leagueRepos->save($league, true);
+            }
         }
         return $poolCollection;
     }
@@ -62,23 +85,8 @@ class Administrator
         $this->addUser($pool, $user, true);
         $this->poolRepos->save($pool, true);
 
-        $sport = $this->sportAdministrator->getSport();
-        $competitions = $this->competitionsCreator->createCompetitions($pool, $sport);
+        // $this->createPoolCompetitions($pool);
 
-        // @TODO CDK CHECK SECOND SEASON
-        $association = $pool->getCollection()->getAssociation();
-        // because association(through poolcollection) already exists, doctrine gives error
-        foreach ($competitions as $competition) {
-            $association->getLeagues()->removeElement($competition->getLeague());
-        }
-        foreach ($competitions as $competition) {
-            $this->competitionRepos->save($competition);
-        }
-        $this->poolRepos->save($pool);
-        // undo removal
-        foreach ($competitions as $competition) {
-            $association->getLeagues()->add($competition->getLeague());
-        }
         return $pool;
     }
 
@@ -89,46 +97,126 @@ class Administrator
         return $poolUser;
     }
 
-    public function removeAndCreateStructureAndCompetitors(Pool $pool): void
+    public function createCompetitionsCompetitorsStructureAndGames(Pool $pool): void
     {
-        throw new \Exception('implement remove', E_ERROR);
-// //         remove with repositories
-// //         remove competitors and than create them
-// //
-// //        foreach ($competitions as $competition) {
-// //            // -------- REMOVE ----------- //
-// //            $competitors = $pool->getCompetitors($competition);
-// //            while ($competitor = array_pop($competitors)) {
-// //                $this->competitorRepos->remove($competitor);
-// //            }
-// //        }
+        $this->checkOnExistingCompetitorsOrStructure($pool);
+        // $sourceStructure = $this->structureRepos->getStructure($pool->getCompetitionConfig()->getSourceCompetition());
+        foreach ($this->s11Leagues as $s11League) {
+            $creator = $this->competitionsCreator->getCreator($s11League);
+            $competition = $this->createPoolCompetition($pool, $s11League);
+            if ($competition === null) {
+                continue;
+            }
 
+            $validPoolUsers = $this->competitionsCreator->getValidPoolUsers($pool, $s11League);
+            $newStructure = $creator->createStructure($competition, count($validPoolUsers));
+            $this->structureRepos->add($newStructure);
 
-//        $sourceStructure = $this->structureRepos->getStructure($pool->getCompetitionConfig()->getSourceCompetition());
-//        foreach ($pool->getCompetitions() as $competition) {
-//
-//            // ---- REMOVE COMPETITORS -------
-//            foreach ($pool->getUsers() as $poolUser) {
-//                $competitor = $poolUser->getCompetitor($competition);
-//                if ($competitor === null) {
-//                    continue;
-//                }
-//                $poolUser->getCompetitors()->removeElement($competitor);
-//                $this->poolCompetitorRepos->remove($competitor);
+            $creator->createGames($newStructure, $pool);
+            $this->saveGamesRecursive($newStructure->getSingleCategory()->getRootRound());
+
+            $poolCompetitors = $creator->createCompetitors($competition, $validPoolUsers, $newStructure);
+            foreach ($poolCompetitors as $poolCompetitor) {
+                $this->poolCompetitorRepos->save($poolCompetitor, true);
+            }
+        }
+        $this->poolRepos->save($pool);
+    }
+
+    public function createPoolCompetition(Pool $pool, S11League $league): Competition|null
+    {
+        $sport = $this->sportAdministrator->getSport();
+        $competition = $this->competitionsCreator->createCompetition($pool, $sport, $league);
+        if ($competition === null) {
+            return null;
+        }
+        $this->competitionRepos->save($competition, true);
+        return $competition;
+    }
+
+    protected function checkOnExistingCompetitorsOrStructure(Pool $pool): void
+    {
+        foreach ($pool->getCompetitions() as $competition) {
+            if (count($pool->getCompetitors($competition)) > 0) {
+                throw new \Exception(
+                    'competition "' . $competition->getName() . '" for pool "' . $pool->getName() .
+                    '"(' . (string)$pool->getId() . ') already has competitors: use "--replace"',
+                    E_ERROR
+                );
+            }
+
+            if ($this->structureRepos->hasStructure($competition)) {
+                throw new \Exception(
+                    'competition "' . $competition->getName() . '" for pool "' . $pool->getName() .
+                    '"(' . (string)$pool->getId() . ') already has a structure: use "--replace"',
+                    E_ERROR
+                );
+            }
+        }
+    }
+
+    protected function checkOnStartedGames(Pool $pool): void
+    {
+        foreach ($pool->getCompetitions() as $competition) {
+            if ($competition->getSingleSport()->createVariant() instanceof AgainstH2h
+                || $competition->getSingleSport()->createVariant() instanceof AgainstGpp) {
+                $hasAgainstGames = $this->againstGameRepos->hasCompetitionGames(
+                    $competition,
+                    [State::InProgress, State::Finished]
+                );
+                if ($hasAgainstGames) {
+                    throw new \Exception(
+                        'competition "' . $competition->getLeague()->getName() . '" for pool "' . $pool->getName() .
+                        '"(' . (string)$pool->getId() . ') already has against games in progress or finished',
+                        E_ERROR
+                    );
+                }
+            } else {
+                $hasTogetherGames = $this->togetherGameRepos->hasCompetitionGames(
+                    $competition,
+                    [State::InProgress, State::Finished]
+                );
+                if ($hasTogetherGames) {
+                    throw new \Exception(
+                        'competition "' . $competition->getLeague()->getName() . '" for pool "' . $pool->getName() .
+                        '"(' . (string)$pool->getId() . ') already has together games in progress or finished',
+                        E_ERROR
+                    );
+                }
+            }
+        }
+    }
+
+    public function replaceCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    {
+        $this->checkOnStartedGames($pool);
+        $this->removeCompetitionsCompetitorsStructureAndGames($pool);
+        $this->createCompetitionsCompetitorsStructureAndGames($pool);
+    }
+
+    private function removeCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    {
+        $competitions = $pool->getCompetitions();
+        while ($competition = array_pop($competitions)) {
+            // competition and competitors
+            $this->competitionRepos->remove($competition);
+            // structure and games
+            if ($this->structureRepos->hasStructure($competition)) {
+                $this->structureRepos->remove($competition);
+            }
+        }
+    }
+
+    protected function saveGamesRecursive(Round $round): void
+    {
+        foreach ($round->getGames() as $game) {
+//            if( $game instanceof TogetherGame) {
+//                continue;
 //            }
-//
-//            // ---- ADD COMPETITORS, REMOVE AND ADD STRUCTURE -------
-//            $s11League = $pool->getLeague($competition);
-//            $creator = $this->competitionsCreator->getCreator($s11League);
-//            $newStructure = $creator->createStructureAndCompetitors($pool, $sourceStructure);
-////            save competitors, structure and games with repos????
-//            $competitors = $pool->getCompetitors($competition);
-//
-//            foreach ($competitors as $competitor) {
-//                $this->poolCompetitorRepos->save($competitor);
-//            }
-//            $this->structureRepos->removeAndAdd($competition, $newStructure);
-//        }
-//        $this->poolRepos->save($pool);
+            $this->againstGameRepos->customSave($game, true);
+        }
+        foreach ($round->getChildren() as $childRound) {
+            $this->saveGamesRecursive($childRound);
+        }
     }
 }

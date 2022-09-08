@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
+use Sports\Game\Place\Together as TogetherGamePlace;
+use Sports\Game\Together as TogetherGame;
 use Sports\Sport;
 use Sports\Structure;
 use SportsHelpers\GameMode;
 use SportsHelpers\Sport\PersistVariant;
 use SuperElf\League as S11League;
-use SuperElf\Pool\User as PoolUser;
+use SuperElf\Periods\ViewPeriod;
+use SuperElf\Pool;
 
 class CompetitionCreator extends BaseCreator
 {
@@ -28,36 +31,50 @@ class CompetitionCreator extends BaseCreator
         );
     }
 
-    /**
-     * @param Competition $competition
-     * @param list<PoolUser> $validPoolUsers
-     * @return Structure
-     */
-    protected function createStructure(Competition $competition, array $validPoolUsers): Structure
+    public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
-        $structure = $this->structureEditor->create($competition, [count($validPoolUsers)]);
-//        $this->createGames($competition, $assemblePeriod, $transferPeriod, $structure);
+        $structure = $this->structureEditor->create($competition, [$nrOfValidPoolUsers]);
         return $structure;
     }
 
-//    protected function createGames(Competition $competition, AssemblePeriod $assemblePeriod, TransferPeriod $transferPeriod, Structure $structure): void
-//    {
-//        $poule = $structure->getRootRound()->getFirstPoule();
-//        $createGames = function (ViewPeriod $viewPeriod) use ($competition, $poule): void {
-//            $competitionSport = $competition->getSingleSport();
-//            foreach ($viewPeriod->getGameRounds() as $gameRound) {
-//                $game = new TogetherGame(
-//                    $poule,
-//                    $gameRound->getNumber(),
-//                    $competition->getStartDateTime(),
-//                    $competitionSport
-//                );
-//                foreach ($poule->getPlaces() as $place) {
-//                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
-//                }
-//            }
-//        };
-//        $createGames($assemblePeriod->getViewPeriod());
-//        $createGames($transferPeriod->getViewPeriod());
+    public function createGames(Structure $structure, Pool $pool): void
+    {
+        $poule = $structure->getSingleCategory()->getRootRound()->getFirstPoule();
+        $competitionSport = $poule->getCompetition()->getSingleSport();
+        $createGames = function (ViewPeriod $viewPeriod) use ($poule, $competitionSport): void {
+            foreach ($viewPeriod->getGameRounds() as $gameRound) {
+                $game = new TogetherGame(
+                    $poule,
+                    $gameRound->getNumber(),
+                    $viewPeriod->getStartDateTime(),
+                    $competitionSport
+                );
+                foreach ($poule->getPlaces() as $place) {
+                    new TogetherGamePlace($game, $place, $gameRound->getNumber());
+                }
+            }
+        };
+        $createGames($pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod());
+        $createGames($pool->getCompetitionConfig()->getTransferPeriod()->getViewPeriod());
+    }
+
+//    protected function createTogetherGame(
+//        Poule $poule,
+//        AgainstPlanningGame $planningGame,
+//        DateTimeImmutable $startDateTime,
+//        CompetitionSport $competitionSport,
+//        PlanningMapper $mapper
+//    ): AgainstGame {
+//        $game = new TogetherGame()(
+//            $poule,
+//            $planningGame->getBatchNr(),
+//            $startDateTime,
+//            $competitionSport,
+//            $planningGame->getGameRoundNumber()
+//        );
+//        foreach ($planningGame->getPlaces() as $planningGamePlace) {
+//            $this->createAgainstGamePlace($game, $planningGamePlace, $mapper);
+//        }
+//        return $game;
 //    }
 }

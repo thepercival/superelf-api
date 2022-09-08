@@ -24,6 +24,9 @@ class Competitor extends StartLocation implements SportsCompetitor
         StartLocation $startLoc
     ) {
         parent::__construct($startLoc->getCategoryNr(), $startLoc->getPouleNr(), $startLoc->getPlaceNr());
+        if ($poolUser->getCompetitor($competition) === null) {
+            $poolUser->getCompetitors()->add($this);
+        }
     }
 
     public function getPool(): Pool

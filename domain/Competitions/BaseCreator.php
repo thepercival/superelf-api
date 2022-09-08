@@ -8,7 +8,6 @@ use Sports\Competition;
 use Sports\Competition\Sport as CompetitionSport;
 use Sports\Competition\Sport\Service as CompetitionSportService;
 use Sports\Competitor\StartLocation;
-use Sports\League;
 use Sports\Planning\Config\Service as PlanningConfigService;
 use Sports\Ranking\PointsCalculation;
 use Sports\Sport;
@@ -22,6 +21,7 @@ use SuperElf\Pool\User as PoolUser;
 
 abstract class BaseCreator
 {
+    public const NrOfAgainstGamesPerRound = 3;
     protected StructureEditor $structureEditor;
 
     public function __construct(protected S11League $s11League)
@@ -29,10 +29,22 @@ abstract class BaseCreator
         $this->structureEditor = new StructureEditor(new CompetitionSportService(), new PlanningConfigService());
     }
 
+
+    abstract protected function convertSportToPersistVariant(Sport $sport): PersistVariant;
+
+    abstract public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure;
+
+    abstract public function createGames(Structure $structure, Pool $pool): void;
+
     public function createCompetition(Pool $pool, Sport $sport, PointsCalculation $pointsCalculation): Competition
     {
         $season = $pool->getSeason();
-        $league = new League($pool->getCollection()->getAssociation(), $this->s11League->name);
+        $league = $pool->getCollection()->getLeague($this->s11League);
+        if ($league === null) {
+            throw new \Exception(
+                'league "' . $this->s11League->name . '" not found for pool "' . $pool->getName() . '"', E_ERROR
+            );
+        }
         $competition = new Competition($league, $season);
         $competition->setStartDateTime($season->getStartDateTime());
         new CompetitionSport(
@@ -44,38 +56,13 @@ abstract class BaseCreator
         return $competition;
     }
 
-    abstract protected function convertSportToPersistVariant(Sport $sport): PersistVariant;
-
-//    public function createStructureGamesAndCompetitors(Pool $pool, Structure $sourceStructure): Structure
-//    {
-//        $competition = $pool->getCompetition($this->s11League);
-//        if ($competition === null) {
-//            throw new \Exception('competition not found', E_ERROR);
-//        }
-//
-//        // @TODO CDK
-//        // check here if there are gamerounds which have started, do for assemblePeriod and TransferPeriod
-//        $assemblePeriod = $pool->getAssemblePeriod();
-////        foreach( $assemblePeriod->getViewPeriod()->getGameRounds() as $gameRound ) {
-////            // $sourceStructure doorlopen om te kijken als er al gamerondes met $gameRound->getNumber() zijn begonnen
-////            // zoja dan stoppen
-////        }
-//
-//        $validPoolUsers = array_values($pool->getUsers()->filter(function (PoolUser $poolUser): bool {
-//            return $poolUser->canCompete();
-//        })->toArray());
-//        $structure = $this->createStructureAndGames($competition, $assemblePeriod, $pool->getTransferPeriod(), $validPoolUsers);
-//        $this->createCompetitors($competition, $validPoolUsers, $structure);
-//        return $structure;
-//    }
-
     /**
      * @param Competition $competition
      * @param list<PoolUser> $validPoolUsers
      * @param Structure $structure
      * @return list<Competitor>
      */
-    protected function createCompetitors(Competition $competition, array $validPoolUsers, Structure $structure): array
+    public function createCompetitors(Competition $competition, array $validPoolUsers, Structure $structure): array
     {
         $competitors = [];
         $singleCategory = $structure->getSingleCategory();
