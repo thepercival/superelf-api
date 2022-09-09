@@ -114,7 +114,11 @@ class Command extends SymCommand
         $this->logger->pushHandler($handler);
 
         if ($mailHandler === null) {
-            $mailHandler = $this->getMailHandler();
+            $mailLogLevel = Logger::ERROR;
+            if ($this->config->getString('environment') === 'development') {
+                $mailLogLevel = Logger::CRITICAL;
+            }
+            $mailHandler = $this->getMailHandler(null, $mailLogLevel);
         }
         $mailHandler->setMailer($this->mailer);
         $this->logger->pushHandler($mailHandler);

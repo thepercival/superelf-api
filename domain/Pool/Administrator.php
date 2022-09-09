@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
+use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State;
+use Sports\Game\Together as TogetherGame;
 use Sports\Game\Together\Repository as TogetherGameRepository;
 use Sports\League;
 use Sports\League\Repository as LeagueRepository;
@@ -55,7 +57,8 @@ class Administrator
         protected AgainstGameRepository $againstGameRepos,
         protected TogetherGameRepository $togetherGameRepos,
         protected ActiveConfigService $activeConfigService,
-        protected Configuration $config
+        protected Configuration $config,
+        protected LoggerInterface $logger
     ) {
         $this->competitionsCreator = new CompetitionsCreator($structureRepos);
     }
@@ -107,18 +110,28 @@ class Administrator
             if ($competition === null) {
                 continue;
             }
+            $this->logger->info('   created  "' . $competition->getLeague()->getName() . '"');
 
             $validPoolUsers = $this->competitionsCreator->getValidPoolUsers($pool, $s11League);
             $newStructure = $creator->createStructure($competition, count($validPoolUsers));
+            $this->logger->info('       ' . count($validPoolUsers) . ' valid poolUsers');
+            $this->logger->info(
+                '       ' . $newStructure->getSingleCategory()->getRootRound()->getNrOfPlaces(
+                ) . ' first-round-places created'
+            );
             $this->structureRepos->add($newStructure);
 
             $creator->createGames($newStructure, $pool);
             $this->saveGamesRecursive($newStructure->getSingleCategory()->getRootRound());
+            $this->logger->info(
+                '       ' . $this->getNrOfGames($newStructure->getSingleCategory()->getRootRound()) . ' games created'
+            );
 
             $poolCompetitors = $creator->createCompetitors($competition, $validPoolUsers, $newStructure);
             foreach ($poolCompetitors as $poolCompetitor) {
                 $this->poolCompetitorRepos->save($poolCompetitor, true);
             }
+            $this->logger->info('       ' . count($poolCompetitors) . ' competitors created');
         }
         $this->poolRepos->save($pool);
     }
@@ -210,13 +223,25 @@ class Administrator
     protected function saveGamesRecursive(Round $round): void
     {
         foreach ($round->getGames() as $game) {
-//            if( $game instanceof TogetherGame) {
-//                continue;
-//            }
-            $this->againstGameRepos->customSave($game, true);
+            if ($game instanceof TogetherGame) {
+                $this->togetherGameRepos->customSave($game, true);
+            } else {
+                $this->againstGameRepos->customSave($game, true);
+            }
         }
         foreach ($round->getChildren() as $childRound) {
             $this->saveGamesRecursive($childRound);
         }
     }
+
+    protected function getNrOfGames(Round $round): int
+    {
+        $nrOfGames = count($round->getGames());
+        foreach ($round->getChildren() as $childRound) {
+            $nrOfGames += $this->getNrOfGames($childRound);
+        }
+        return $nrOfGames;
+    }
+
+
 }

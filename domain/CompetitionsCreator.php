@@ -61,6 +61,20 @@ class CompetitionsCreator
      * @param S11League $league
      * @return list<PoolUser>
      */
+    public function getInvalidPoolUsers(Pool $pool, S11League $league): array
+    {
+        return array_values(
+            $pool->getUsers()->filter(function (PoolUser $poolUser): bool {
+                return !$poolUser->canCompete();
+            })->toArray()
+        );
+    }
+
+    /**
+     * @param Pool $pool
+     * @param S11League $league
+     * @return list<PoolUser>
+     */
     public function getValidPoolUsers(Pool $pool, S11League $league): array
     {
         $validPoolUsers = array_values(

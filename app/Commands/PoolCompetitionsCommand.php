@@ -100,9 +100,6 @@ class PoolCompetitionsCommand extends Command
                 } else {
                     $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool);
                 }
-                foreach ($pool->getCompetitions() as $competition) {
-                    $this->getLogger()->info('   created  "' . $competition->getLeague()->getName() . '"');
-                }
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {

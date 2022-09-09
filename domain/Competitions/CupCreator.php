@@ -211,7 +211,7 @@ class CupCreator extends BaseCreator
     {
         $nrOfPoules = 0;
         $nrOfPlacesPerPoule = 2;
-        while ($nrOfCompetitors >= $nrOfQualifiers) {
+        while ($nrOfCompetitors >= $nrOfPlacesPerPoule) {
             $nrOfPoules++;
             $nrOfCompetitors -= $nrOfPlacesPerPoule;
         }

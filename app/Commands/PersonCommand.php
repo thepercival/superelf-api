@@ -242,7 +242,7 @@ class PersonCommand extends Command
 
         $this->syncPerson($person, $competitionConfig);
 
-        $this->getLogger()->info('person and s11Players created and saved');
+        $this->getLogger()->info('person(id:' . (string)$person->getId() . ') and s11Players created and saved');
         // throw new \Exception('implement', E_ERROR);
         return 0;
     }
