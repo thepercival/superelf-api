@@ -40,12 +40,16 @@ final class UserAction extends Action
 
             $poolUser = $this->poolUserRepos->find((int)$args['poolUserId']);
             if ($poolUser === null) {
-                throw new \Exception("geen deelnemer met het opgegeven id gevonden", E_ERROR);
+                throw new \Exception('geen deelnemer met het opgegeven id gevonden', E_ERROR);
             }
             if ($poolUser->getPool() !== $pool) {
-                return new ForbiddenResponse("de pool komt niet overeen met de pool van de deelnemer");
+                return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
             }
-            // alleen als je zelf admin bent
+            if (!$pool->getAssemblePeriod()->getViewPeriod()->contains()
+                && !$pool->getTransferPeriod()->getViewPeriod()->contains()) {
+                throw new \Exception('je mag alleen andere deelnemers bekijken in de kijk-periode', E_ERROR);
+            }
+
             return $this->fetchOneHelper($response, $poolUser, false);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);

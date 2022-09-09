@@ -114,7 +114,14 @@ return function (App $app): void {
                         'users',
                         function (Group $group): void {
                             $group->options('/session', PoolUserAction::class . ':options');
-                            $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(UserThroughPoolAuthMiddleware::class);
+                            $group->get('/session', PoolUserAction::class . ':fetchOneFromSession')->add(
+                                UserThroughPoolAuthMiddleware::class
+                            );
+
+                            $group->options('/{poolUserId}', PoolUserAction::class . ':options');
+                            $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(
+                                UserThroughPoolAuthMiddleware::class
+                            );
 
                             $group->options('', PoolUserAction::class . ':options');
                             $group->get('', PoolUserAction::class . ':fetch');
