@@ -54,7 +54,7 @@ final class GameRoundAction extends Action
                 $viewPeriod->getPeriod(),
                 1
             );
-            $game = array_pop($games);
+            $game = array_shift($games);
             if ($game !== null) {
                 $gameRound = $this->gameRoundRepos->findOneBy(
                     ['viewPeriod' => $viewPeriod, 'number' => $game->getGameRoundNumber()]
