@@ -39,7 +39,7 @@ final class AgainstGameAction extends Action
         try {
             $competition = $this->competitionRepos->find((int)$args["competitionId"]);
             if ($competition === null) {
-                throw new \Exception('kan de $competitie niet vinden', E_ERROR);
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
             }
 
             $games = $this->filterGames(

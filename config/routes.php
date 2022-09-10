@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\AuthAction;
 use App\Actions\CompetitionConfigAction;
 use App\Actions\FormationAction;
+use App\Actions\GameRoundAction;
 use App\Actions\PlayerAction;
 use App\Actions\Pool\ShellAction;
 use App\Actions\Pool\UserAction as PoolUserAction;
@@ -62,18 +63,28 @@ return function (App $app): void {
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
-    $app->options('/competitionconfigs/active', CompetitionConfigAction::class . ':options');
-    $app->get('/competitionconfigs/active', CompetitionConfigAction::class . ':fetchActive')->add(
-        VersionMiddleware::class
-    );
     $app->group(
-        '/competitionconfigs/{competitionConfigId}/availableformations',
+        '/competitionconfigs',
         function (Group $group): void {
-            $group->options('', CompetitionConfigAction::class . ':options');
-            $group->get('', CompetitionConfigAction::class . ':fetchAvailableFormations');
-        }
-    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+            $group->options('/active', CompetitionConfigAction::class . ':options');
+            $group->get('/active', CompetitionConfigAction::class . ':fetchActive');
 
+            $group->group(
+                '/{competitionConfigId}/',
+                function (Group $group): void {
+                    $group->options('viewperiods/{viewPeriodId}/firstnotfinished', GameRoundAction::class . ':options');
+                    $group->get(
+                        'viewperiods/{viewPeriodId}/firstnotfinished',
+                        GameRoundAction::class . ':fetchFirstNotFinished'
+                    );
+
+                    $group->options('availableformations', CompetitionConfigAction::class . ':options');
+                    $group->get('availableformations', CompetitionConfigAction::class . ':fetchAvailableFormations');
+                }
+            );
+        }
+
+    )->add(VersionMiddleware::class);
 
     $app->group(
         '/users/{userId}',

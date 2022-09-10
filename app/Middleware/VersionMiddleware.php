@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Response\ErrorResponse;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface as Middleware;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use App\Response\ErrorResponse;
 
 class VersionMiddleware implements Middleware
 {
@@ -17,12 +17,12 @@ class VersionMiddleware implements Middleware
      */
     public function process(Request $request, RequestHandler $handler): Response
     {
-        if ($request->getMethod() === "OPTIONS") {
+        if ($request->getMethod() === 'OPTIONS') {
             return $handler->handle($request);
         }
         $apiVersion = $request->getHeaderLine('X-Api-Version');
-        if ($apiVersion !== "1") {
-            return new ErrorResponse("de app/website moet vernieuwd worden, ververs de pagina", 418);
+        if ($apiVersion !== '2') {
+            return new ErrorResponse('de app/website moet vernieuwd worden, ververs de pagina', 418);
         }
         return $handler->handle($request);
     }
