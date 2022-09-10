@@ -348,7 +348,7 @@ class Import extends ExternalSourceCommand
             $period = new Period($periodStart, $startDateTime->add(new \DateInterval('PT1S')));
 
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
-            $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after and ' . $startDateTime->format(
+            $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after ' . $startDateTime->format(
                     \DateTimeInterface::ISO8601
                 ) . ' there were ' . count($games) . ' games found';
             $this->getLogger()->info($msg);
@@ -362,7 +362,6 @@ class Import extends ExternalSourceCommand
                     $externalGameIds[] = $externalGameId;
                 }
             }
-            break;
         }
         return $externalGameIds;
     }
