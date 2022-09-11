@@ -111,4 +111,13 @@ class Formation extends Identifiable
         }
         return true;
     }
+
+    public function getPoints(GameRound $gameRound, Points $s11Points): int
+    {
+        $points = 0;
+        foreach ($this->getLines() as $line) {
+            $points += $line->getPoints($gameRound, $s11Points);
+        }
+        return $points;
+    }
 }

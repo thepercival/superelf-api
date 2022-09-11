@@ -7,10 +7,13 @@ namespace SuperElf\Formation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Person;
+use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\GameRound;
+use SuperElf\Points;
+use SuperElf\Points\Calculator;
 use SuperElf\Substitute\Appearance;
 
 class Line extends Identifiable
@@ -130,5 +133,34 @@ class Line extends Identifiable
         return $this->substituteAppearances->map(function (Appearance $appareance): int {
             return $appareance->getGameRound()->getNumber();
         })->toArray();
+    }
+
+
+    public function getPoints(GameRound $gameRound, Points $s11Points): int
+    {
+        $points = 0;
+        foreach ($this->getStartingPlaces() as $place) {
+            $points += $this->getPointsHelper($place, $gameRound, $s11Points);
+        }
+        $appaerance = $this->getAppareance($gameRound);
+        if ($appaerance !== null) {
+            $points += $this->getPointsHelper($this->getSubstitute(), $gameRound, $s11Points);
+        }
+
+        return $points;
+    }
+
+    protected function getPointsHelper(FormationPlace $formationPlace, GameRound $gameRound, Points $s11Points): int
+    {
+        $player = $formationPlace->getPlayer();
+        if ($player === null) {
+            return 0;
+        }
+        $statistics = $player->getGameRoundStatistics($gameRound);
+        if ($statistics === null) {
+            return 0;
+        }
+        $line = FootballLine::from($this->getNumber());
+        return (new Calculator())->getStatisticsPoints($line, $statistics, $s11Points);
     }
 }

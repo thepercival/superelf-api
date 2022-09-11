@@ -49,7 +49,7 @@ final class StructureAction extends Action
             $structure = $this->structureRepos->getStructure($competition);
             // var_dump($structure); die();
 
-            $serContext = $this->getSerializationContext(['structure']);
+            $serContext = $this->getSerializationContext(['structure', 'games']);
             $json = $this->serializer->serialize($structure, 'json', $serContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $exception) {

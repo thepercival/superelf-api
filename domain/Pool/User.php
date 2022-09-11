@@ -10,6 +10,8 @@ use Sports\Competition;
 use SportsHelpers\Identifiable;
 use SuperElf\Competitor;
 use SuperElf\Formation;
+use SuperElf\Periods\AssemblePeriod;
+use SuperElf\Periods\TransferPeriod;
 use SuperElf\Pool;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
@@ -146,6 +148,14 @@ class User extends Identifiable
 //    {
 //        return $this->scores;
 //    }
+
+    public function getFormation(AssemblePeriod|TransferPeriod $editPeriod): Formation|null
+    {
+        if ($editPeriod instanceof AssemblePeriod) {
+            return $this->getAssembleFormation();
+        }
+        return $this->getTransferFormation();
+    }
 
     public function canCompete(): bool
     {

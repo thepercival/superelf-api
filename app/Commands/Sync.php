@@ -26,6 +26,7 @@ use SportsImport\Event\Person as PersonEvent;
 use stdClass;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Game\Syncer as PoolGameSyncer;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
@@ -44,6 +45,7 @@ class Sync extends Command
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
+    protected PoolGameSyncer $poolGameSyncer;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected EntityManagerInterface $entityManager;
 
@@ -66,6 +68,10 @@ class Sync extends Command
         /** @var GameRoundSyncer $gameRoundSyncer */
         $gameRoundSyncer = $container->get(GameRoundSyncer::class);
         $this->gameRoundSyncer = $gameRoundSyncer;
+
+        /** @var PoolGameSyncer $poolGameSyncer */
+        $poolGameSyncer = $container->get(PoolGameSyncer::class);
+        $this->poolGameSyncer = $poolGameSyncer;
 
         /** @var S11PlayerSyncer $s11PlayerSyncer */
         $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
@@ -161,6 +167,7 @@ class Sync extends Command
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         } else {
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
         }
@@ -174,6 +181,7 @@ class Sync extends Command
         $this->s11PlayerSyncer->setLogger($this->getLogger());
         $this->statisticsSyncer->setLogger($this->getLogger());
         $this->appearanceSyncer->setLogger($this->getLogger());
+        $this->poolGameSyncer->setLogger($this->getLogger());
     }
 
     protected function getReceiver(): callable
@@ -287,10 +295,12 @@ class Sync extends Command
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         }
     }
 
@@ -327,13 +337,17 @@ class Sync extends Command
         CompetitionConfig $competitionConfig,
         SportRange $gameRoundNrRange,
         bool $alwaysUpdateTotals
-    ): void {
+    ): void
+    {
         $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
             $this->gameRoundSyncer->sync($competitionConfig, [$game->getStartDateTime()]);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+        }
+        for ($nr = $gameRoundNrRange->getMin(); $nr <= $gameRoundNrRange->getMax(); $nr++) {
+            $this->poolGameSyncer->sync($competitionConfig, $nr);
         }
     }
 

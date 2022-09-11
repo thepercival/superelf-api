@@ -5649,28 +5649,28 @@
         },
         {
           "name": "thepercival/php-sports",
-          "version": "v1.0.107",
+          "version": "v1.0.108",
           "source": {
             "type": "git",
             "url": "https://github.com/thepercival/php-sports.git",
-            "reference": "999dd7200ec1952b468076f343d29f857517abea"
+            "reference": "370c147e10711c64bfbc272bac270891308c1d79"
           },
           "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thepercival/php-sports/zipball/999dd7200ec1952b468076f343d29f857517abea",
-            "reference": "999dd7200ec1952b468076f343d29f857517abea",
+            "url": "https://api.github.com/repos/thepercival/php-sports/zipball/370c147e10711c64bfbc272bac270891308c1d79",
+            "reference": "370c147e10711c64bfbc272bac270891308c1d79",
             "shasum": ""
           },
-            "require": {
-                "ahamed/jsphp": "^0.5.0",
-                "doctrine/orm": "^2.10",
-                "ext-intl": "*",
-                "guzzlehttp/guzzle": "^7.4",
-                "jms/serializer": "^3.16",
-                "league/period": "^4.9",
-                "monolog/monolog": "^2.0",
-                "php": ">=8.1",
-                "phplucidframe/console-table": "^1.2",
+          "require": {
+            "ahamed/jsphp": "^0.5.0",
+            "doctrine/orm": "^2.10",
+            "ext-intl": "*",
+            "guzzlehttp/guzzle": "^7.4",
+            "jms/serializer": "^3.16",
+            "league/period": "^4.9",
+            "monolog/monolog": "^2.0",
+            "php": ">=8.1",
+            "phplucidframe/console-table": "^1.2",
                 "symfony/yaml": "^6.0",
                 "thepercival/php-sports-helpers": "^1.0",
                 "thepercival/php-sports-planning": "^1.0"
@@ -5721,9 +5721,9 @@
             "support": {
                 "email": "coendunnink@gmail.com",
                 "issues": "https://github.com/thepercival/php-sports/issues",
-              "source": "https://github.com/thepercival/php-sports/tree/v1.0.107"
+              "source": "https://github.com/thepercival/php-sports/tree/v1.0.108"
             },
-          "time": "2022-09-10T05:59:29+00:00"
+          "time": "2022-09-11T12:12:02+00:00"
         },
         {
             "name": "thepercival/php-sports-helpers",
@@ -5781,40 +5781,40 @@
             "description": "library  for create sports-helpers",
             "homepage": "https://github.com/thepercival/php-sports-helpers",
             "keywords": [
-                "helpers",
-                "sport"
+              "helpers",
+              "sport"
             ],
-            "support": {
-                "email": "coendunnink@gmail.com",
-                "issues": "https://github.com/thepercival/php-sports-helpers/issues",
-                "source": "https://github.com/thepercival/php-sports-helpers/tree/v1.2.8"
-            },
-            "time": "2022-07-13T13:57:50+00:00"
+          "support": {
+            "email": "coendunnink@gmail.com",
+            "issues": "https://github.com/thepercival/php-sports-helpers/issues",
+            "source": "https://github.com/thepercival/php-sports-helpers/tree/v1.2.8"
+          },
+          "time": "2022-07-13T13:57:50+00:00"
         },
       {
         "name": "thepercival/php-sports-import",
-        "version": "v1.0.16",
+        "version": "v1.0.17",
         "source": {
           "type": "git",
           "url": "https://github.com/thepercival/php-sports-import.git",
-          "reference": "eb101e3302673a3e9d2b21ecf00a87bf92d513c7"
+          "reference": "b58627af037b0b04780f0d3ca2443eabc257636a"
         },
         "dist": {
           "type": "zip",
-          "url": "https://api.github.com/repos/thepercival/php-sports-import/zipball/eb101e3302673a3e9d2b21ecf00a87bf92d513c7",
-          "reference": "eb101e3302673a3e9d2b21ecf00a87bf92d513c7",
+          "url": "https://api.github.com/repos/thepercival/php-sports-import/zipball/b58627af037b0b04780f0d3ca2443eabc257636a",
+          "reference": "b58627af037b0b04780f0d3ca2443eabc257636a",
           "shasum": ""
         },
-            "require": {
-                "doctrine/orm": "^2.10",
-                "ext-curl": "*",
-                "ext-gd": "*",
-                "ext-json": "*",
-                "guzzlehttp/guzzle": "^7.3",
-                "jms/serializer": "^3.4",
-                "league/period": "^4.9",
-                "monolog/monolog": "^2.0",
-                "php": ">=8.1",
+        "require": {
+          "doctrine/orm": "^2.10",
+          "ext-curl": "*",
+          "ext-gd": "*",
+          "ext-json": "*",
+          "guzzlehttp/guzzle": "^7.3",
+          "jms/serializer": "^3.4",
+          "league/period": "^4.9",
+          "monolog/monolog": "^2.0",
+          "php": ">=8.1",
                 "symfony/yaml": "^6.0",
                 "thepercival/php-sports": "^1.0",
                 "thepercival/php-sports-helpers": "^1.0",
@@ -5864,9 +5864,9 @@
             "support": {
                 "email": "coendunnink@gmail.com",
                 "issues": "https://github.com/thepercival/php-sports-import/issues",
-              "source": "https://github.com/thepercival/php-sports-import/tree/v1.0.16"
+              "source": "https://github.com/thepercival/php-sports-import/tree/v1.0.17"
             },
-        "time": "2022-09-10T06:00:59+00:00"
+        "time": "2022-09-11T12:13:23+00:00"
         },
         {
             "name": "thepercival/php-sports-planning",
