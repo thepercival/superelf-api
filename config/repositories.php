@@ -72,8 +72,6 @@ use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Totals as S11PlayerTotals;
-use SuperElf\Player\Totals\Repository as S11PlayerTotalsRepository;
 use SuperElf\Points;
 use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
@@ -90,6 +88,8 @@ use SuperElf\Substitute\Appearance as SubstituteAppearance;
 use SuperElf\Substitute\Appearance\Repository as SubstituteAppearanceRepository;
 use SuperElf\Substitution;
 use SuperElf\Substitution\Repository as SubstitutionRepository;
+use SuperElf\Totals as S11Totals;
+use SuperElf\Totals\Repository as S11TotalsRepository;
 use SuperElf\Transfer;
 use SuperElf\Transfer\Repository as TransferRepository;
 use SuperElf\User;
@@ -180,11 +180,11 @@ return [
         $metaData = $entityManager->getClassMetadata(S11Player::class);
         return new S11PlayerRepository($entityManager, $metaData);
     },
-    S11PlayerTotalsRepository::class => function (ContainerInterface $container): S11PlayerTotalsRepository {
+    S11TotalsRepository::class => function (ContainerInterface $container): S11TotalsRepository {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $container->get(EntityManagerInterface::class);
-        $metaData = $entityManager->getClassMetadata(S11PlayerTotals::class);
-        return new S11PlayerTotalsRepository($entityManager, $metaData);
+        $metaData = $entityManager->getClassMetadata(S11Totals::class);
+        return new S11TotalsRepository($entityManager, $metaData);
     },
     PointsRepository::class => function (ContainerInterface $container): PointsRepository {
         /** @var EntityManagerInterface $entityManager */

@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Player\Totals;
+namespace SuperElf\Totals;
 
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
-use SuperElf\Player\Totals as S11PlayerTotals;
+use SuperElf\Totals as S11Totals;
 
 /**
- * @template-extends EntityRepository<S11PlayerTotals>
+ * @template-extends EntityRepository<S11Totals>
  */
 class Repository extends EntityRepository
 {
     /**
-     * @use BaseRepository<S11PlayerTotals>
+     * @use BaseRepository<S11Totals>
      */
     use BaseRepository;
 }

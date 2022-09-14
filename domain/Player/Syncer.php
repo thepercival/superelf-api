@@ -21,6 +21,7 @@ use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
+use SuperElf\Totals;
 
 class Syncer
 {

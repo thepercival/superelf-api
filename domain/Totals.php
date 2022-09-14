@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Player;
+namespace SuperElf;
 
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
-use SuperElf\CompetitionConfig;
-use SuperElf\FootballScore;
 
 class Totals extends Identifiable
 {

@@ -7,11 +7,12 @@ namespace App\Commands;
 use App\Command;
 use Psr\Container\ContainerInterface;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
-use SuperElf\Player\Totals\Repository as S11PlayerTotalsRepository;
 use SuperElf\Points\Creator as PointsCreator;
+use SuperElf\Totals\Calculator as TotalsCalculator;
+use SuperElf\Totals\Repository as TotalsRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -19,7 +20,8 @@ class PlayerTotals extends Command
 {
     protected ViewPeriodRepository $viewPeriodRepos;
     protected S11PlayerRepository $s11PlayerRepos;
-    protected S11PlayerTotalsRepository $s11PlayerTotalsRepos;
+    protected FormationPlaceRepository $formationPlaceRepos;
+    protected TotalsRepository $totalsRepos;
     protected PointsCreator $pointsCreator;
     protected CompetitionConfigRepository $competitionConfigRepos;
 
@@ -35,9 +37,13 @@ class PlayerTotals extends Command
         $s11PlayerRepos = $container->get(S11PlayerRepository::class);
         $this->s11PlayerRepos = $s11PlayerRepos;
 
-        /** @var S11PlayerTotalsRepository $s11PlayerTotalsRepos */
-        $s11PlayerTotalsRepos = $container->get(S11PlayerTotalsRepository::class);
-        $this->s11PlayerTotalsRepos = $s11PlayerTotalsRepos;
+        /** @var FormationPlaceRepository $formationPlaceRepos */
+        $formationPlaceRepos = $container->get(FormationPlaceRepository::class);
+        $this->formationPlaceRepos = $formationPlaceRepos;
+
+        /** @var TotalsRepository $totalsRepos */
+        $totalsRepos = $container->get(TotalsRepository::class);
+        $this->totalsRepos = $totalsRepos;
 
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
@@ -72,19 +78,32 @@ class PlayerTotals extends Command
 
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
-            $playerTotalsCalculator = new PlayerTotalsCalculator($compConfig);
+            $totalsCalculator = new TotalsCalculator($compConfig);
 
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {
                 $this->getLogger()->info('viewPeriod: ' . $viewPeriod);
                 $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod);
                 foreach ($s11Players as $s11Player) {
-                    $playerTotalsCalculator->updateTotals($s11Player);
-                    $playerTotalsCalculator->updateTotalPoints($s11Player);
-                    $this->s11PlayerTotalsRepos->save($s11Player->getTotals(), true);
+                    $playerStats = array_values($s11Player->getStatistics()->toArray());
+                    $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
+                    $this->totalsRepos->save($s11Player->getTotals(), true);
+
+                    $totalsCalculator->updateTotalPoints($s11Player);
                     $this->s11PlayerRepos->save($s11Player, true);
-                    $p = $s11Player->getTotalPoints();
-                    $this->getLogger()->info('   player "' . $s11Player->getPerson()->getName() . '": ' . $p);
+
+                    $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
+                    foreach ($formationPlaces as $formationPlace) {
+                        $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
+                        $this->totalsRepos->save($s11Player->getTotals(), true);
+
+                        $totalsCalculator->updateTotalPoints($formationPlace);
+                        $this->formationPlaceRepos->save($formationPlace, true);
+                    }
+
+                    $this->getLogger()->info(
+                        '   player "' . $s11Player->getPerson()->getName() . '": ' . $s11Player->getTotalPoints()
+                    );
                 }
             }
         } catch (\Exception $e) {

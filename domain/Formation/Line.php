@@ -13,7 +13,6 @@ use SuperElf\Formation as FormationBase;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\GameRound;
 use SuperElf\Points;
-use SuperElf\Points\Calculator;
 use SuperElf\Substitute\Appearance;
 
 class Line extends Identifiable
@@ -46,6 +45,11 @@ class Line extends Identifiable
     public function getNumber(): int
     {
         return $this->number;
+    }
+
+    public function getLine(): FootballLine
+    {
+        return FootballLine::from($this->number);
     }
 
     /**
@@ -116,13 +120,14 @@ class Line extends Identifiable
         return $this->substituteAppearances;
     }
 
-    public function getAppareance(GameRound $gameRound): Appearance|null
+    public function getSubstituteAppareance(GameRound $gameRound): Appearance|null
     {
-        $filtered = $this->substituteAppearances->filter(function (Appearance $appareance) use ($gameRound): bool {
-            return $appareance->getGameRound() === $gameRound;
-        });
-        $firstAppareance = $filtered->first();
-        return $firstAppareance === false ? null : $firstAppareance;
+        foreach ($this->substituteAppearances as $substituteAppearance) {
+            if ($substituteAppearance->getGameRound() === $gameRound) {
+                return $substituteAppearance;
+            }
+        }
+        return null;
     }
 
     /**
@@ -140,27 +145,14 @@ class Line extends Identifiable
     {
         $points = 0;
         foreach ($this->getStartingPlaces() as $place) {
-            $points += $this->getPointsHelper($place, $gameRound, $s11Points);
+            $points += $place->getPoints($gameRound, $s11Points);
         }
-        $appaerance = $this->getAppareance($gameRound);
+        $appaerance = $this->getSubstituteAppareance($gameRound);
         if ($appaerance !== null) {
-            $points += $this->getPointsHelper($this->getSubstitute(), $gameRound, $s11Points);
+            $points += $this->getSubstitute()->getPoints($gameRound, $s11Points);
         }
-
         return $points;
     }
 
-    protected function getPointsHelper(FormationPlace $formationPlace, GameRound $gameRound, Points $s11Points): int
-    {
-        $player = $formationPlace->getPlayer();
-        if ($player === null) {
-            return 0;
-        }
-        $statistics = $player->getGameRoundStatistics($gameRound);
-        if ($statistics === null) {
-            return 0;
-        }
-        $line = FootballLine::from($this->getNumber());
-        return (new Calculator())->getStatisticsPoints($line, $statistics, $s11Points);
-    }
+
 }

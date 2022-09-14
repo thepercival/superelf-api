@@ -49,7 +49,9 @@ class Syncer
                     $viewPeriod . '" could not be found for gameStartDate "' .
                     $game->getStartDateTime()->format(DateTimeInterface::ISO8601), E_ERROR);
         }
+        $this->logInfo('updating substituteAppereances .. ');
         $this->appearanceRepos->update($gameRound);
+        $this->logInfo('updated substituteAppereances');
     }
 
     public function setLogger(LoggerInterface $logger): void

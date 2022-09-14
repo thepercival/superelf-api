@@ -17,11 +17,12 @@ use Sports\Team\Repository as TeamRepository;
 use Sports\Team\Role\Editor as RoleEditor;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
-use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
-use SuperElf\Player\Totals\Repository as PlayerTotalsRepository;
+use SuperElf\Totals\Calculator as TotalsCalculator;
+use SuperElf\Totals\Repository as TotalsRepository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -41,7 +42,8 @@ class PersonCommand extends Command
     protected AgainstGameRepository $againstGameRepos;
     protected S11PlayerRepository $s11PlayerRepos;
     protected PlayerRepository $playerRepos;
-    protected PlayerTotalsRepository $playerTotalsRepos;
+    protected FormationPlaceRepository $formationPlaceRepos;
+    protected TotalsRepository $totalsRepos;
     protected TeamRepository $teamRepos;
     protected PersonRepository $personRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
@@ -60,6 +62,10 @@ class PersonCommand extends Command
         $s11PlayerRepos = $container->get(S11PlayerRepository::class);
         $this->s11PlayerRepos = $s11PlayerRepos;
 
+        /** @var FormationPlaceRepository $formationPlaceRepos */
+        $formationPlaceRepos = $container->get(FormationPlaceRepository::class);
+        $this->formationPlaceRepos = $formationPlaceRepos;
+
         /** @var PersonRepository $personRepos */
         $personRepos = $container->get(PersonRepository::class);
         $this->personRepos = $personRepos;
@@ -68,9 +74,9 @@ class PersonCommand extends Command
         $playerRepos = $container->get(PlayerRepository::class);
         $this->playerRepos = $playerRepos;
 
-        /** @var PlayerTotalsRepository $playerTotalsRepos */
-        $playerTotalsRepos = $container->get(PlayerTotalsRepository::class);
-        $this->playerTotalsRepos = $playerTotalsRepos;
+        /** @var TotalsRepository $totalsRepos */
+        $totalsRepos = $container->get(TotalsRepository::class);
+        $this->totalsRepos = $totalsRepos;
 
         /** @var TeamRepository $teamRepos */
         $teamRepos = $container->get(TeamRepository::class);
@@ -402,13 +408,23 @@ class PersonCommand extends Command
                 continue;
             }
 
-            $playerTotalsCalculator = new PlayerTotalsCalculator($competitionConfig);
+            $totalsCalculator = new TotalsCalculator($competitionConfig);
 
-            $playerTotalsCalculator->updateTotals($s11Player);
-            $this->playerTotalsRepos->save($s11Player->getTotals(), true);
+            $playerStats = array_values($s11Player->getStatistics()->toArray());
+            $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
+            $this->totalsRepos->save($s11Player->getTotals(), true);
 
-            $playerTotalsCalculator->updateTotalPoints($s11Player);
+            $totalsCalculator->updateTotalPoints($s11Player);
             $this->s11PlayerRepos->save($s11Player, true);
+
+            $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
+            foreach ($formationPlaces as $formationPlace) {
+                $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
+                $this->totalsRepos->save($s11Player->getTotals(), true);
+
+                $totalsCalculator->updateTotalPoints($formationPlace);
+                $this->formationPlaceRepos->save($formationPlace, true);
+            }
         }
     }
 }

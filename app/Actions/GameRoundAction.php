@@ -9,10 +9,12 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
+use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\Periods\ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 
 final class GameRoundAction extends Action
@@ -34,7 +36,7 @@ final class GameRoundAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
-    public function fetchFirstNotFinished(Request $request, Response $response, array $args): Response
+    public function fetchCustom(Request $request, Response $response, array $args): Response
     {
         try {
             $competitionConfig = $this->competitionConfigRepos->find((int)$args["competitionConfigId"]);
@@ -46,26 +48,63 @@ final class GameRoundAction extends Action
                 throw new \Exception('kan de viewperiod niet vinden', E_ERROR);
             }
 
-            $gameRound = null;
-            $games = $this->againstGameRepos->getCompetitionGames(
+            $firstNotFinished = $this->getFirstNotFinished($competitionConfig->getSourceCompetition(), $viewPeriod);
+            $firstInProgressOrFinished = $this->getFirstFinishedOrInProgress(
                 $competitionConfig->getSourceCompetition(),
-                [State::Created, State::InProgress],
-                null,
-                $viewPeriod->getPeriod(),
-                1
+                $viewPeriod
             );
-            $game = array_shift($games);
-            if ($game !== null) {
-                $gameRound = $this->gameRoundRepos->findOneBy(
-                    ['viewPeriod' => $viewPeriod, 'number' => $game->getGameRoundNumber()]
-                );
-            }
 
-            $json = $this->serializer->serialize($gameRound, 'json');
+            $gameRoundNumbers = [
+                'firstNotFinished' => $firstNotFinished,
+                'firstInProgressOrFinished' => $firstInProgressOrFinished
+            ];
+
+            $json = $this->serializer->serialize($gameRoundNumbers, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
+    }
+
+    protected function getFirstNotFinished(Competition $competition, ViewPeriod $viewPeriod): int|null
+    {
+        $gameRoundNumbers = $this->againstGameRepos->getCompetitionGameRoundNumbers(
+            $competition,
+            [State::Created, State::InProgress],
+            $viewPeriod->getPeriod()
+        );
+        return array_shift($gameRoundNumbers);
+    }
+
+    protected function getFirstFinishedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
+    {
+        $gameRoundNumbersWithFinishedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
+            $competition,
+            [State::Finished],
+            $viewPeriod->getPeriod()
+        );
+        if (count($gameRoundNumbersWithFinishedGames) === 0) {
+            return null;
+        }
+
+        // start mapped created games
+        $gameRoundNumbersWithCreatedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
+            $competition,
+            [State::Created],
+            $viewPeriod->getPeriod()
+        );
+        $mappedGameRoundNumbersWithCreatedGames = [];
+        foreach ($gameRoundNumbersWithCreatedGames as $gameRoundNumberWithCreatedGames) {
+            $mappedGameRoundNumbersWithCreatedGames[$gameRoundNumberWithCreatedGames] = true;
+        }
+        // end mapped created games
+
+        foreach ($gameRoundNumbersWithFinishedGames as $gameRoundNumberWithFinishedGames) {
+            if (!array_key_exists($gameRoundNumberWithFinishedGames, $mappedGameRoundNumbersWithCreatedGames)) {
+                return $gameRoundNumberWithFinishedGames;
+            }
+        }
+        return array_shift($gameRoundNumbersWithFinishedGames);
     }
 
 //    protected function getSerializationContext(): SerializationContext

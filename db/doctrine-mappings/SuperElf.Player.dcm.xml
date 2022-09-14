@@ -12,7 +12,7 @@
                 <join-column name="personId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>
         </many-to-one>
-        <one-to-one field="totals" target-entity="SuperElf\Player\Totals">
+        <one-to-one field="totals" target-entity="SuperElf\Totals">
             <cascade>
                 <cascade-persist/>
                 <cascade-remove/>

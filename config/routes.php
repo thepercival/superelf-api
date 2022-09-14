@@ -72,11 +72,8 @@ return function (App $app): void {
             $group->group(
                 '/{competitionConfigId}/',
                 function (Group $group): void {
-                    $group->options('viewperiods/{viewPeriodId}/firstnotfinished', GameRoundAction::class . ':options');
-                    $group->get(
-                        'viewperiods/{viewPeriodId}/firstnotfinished',
-                        GameRoundAction::class . ':fetchFirstNotFinished'
-                    );
+                    $group->options('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':options');
+                    $group->get('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':fetchCustom');
 
                     $group->options('availableformations', CompetitionConfigAction::class . ':options');
                     $group->get('availableformations', CompetitionConfigAction::class . ':fetchAvailableFormations');

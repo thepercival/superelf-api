@@ -64,6 +64,7 @@ class Syncer
 
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach ($pools as $pool) {
+            $this->logger->info('updating poolGames for "' . $pool->getName() . '" .. ');
             foreach ($pool->getCompetitions() as $poolCompetition) {
                 $sportVariant = $poolCompetition->getSingleSport()->createVariant();
                 foreach ($editPeriods as $editPeriod) {

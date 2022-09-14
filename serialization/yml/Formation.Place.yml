@@ -9,3 +9,9 @@ SuperElf\Formation\Place:
       type: integer
     player:
       type: SuperElf\Player
+    totals:
+      type: SuperElf\Totals
+      read_only: true
+    totalPoints:
+      type: integer
+      read_only: true

@@ -17,16 +17,17 @@ use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Totals\Calculator as PlayerTotalsCalculator;
-use SuperElf\Player\Totals\Repository as PlayerTotalsRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Statistics\Repository as StatisticsRepository;
+use SuperElf\Totals\Calculator as TotalsCalculator;
+use SuperElf\Totals\Repository as TotalsRepository;
 
 class Syncer
 {
@@ -36,15 +37,15 @@ class Syncer
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
-        protected PlayerTotalsRepository $playerTotalsRepos,
+        protected TotalsRepository $totalsRepos,
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
+        protected FormationPlaceRepository $formationPlaceRepos,
         protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
         protected Converter $converter,
         protected PointsCalculator $pointsCalculator
     ) {
-
     }
 
     public function sync(
@@ -58,7 +59,7 @@ class Syncer
         }
 
         // $points = $competitionConfig->getPoints();
-        $playerTotalsCalculator = new PlayerTotalsCalculator($competitionConfig);
+        $totalsCalculator = new TotalsCalculator($competitionConfig);
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
 //
@@ -81,7 +82,7 @@ class Syncer
             }
             $this->syncStatistics(
                 $viewPeriod,
-                $playerTotalsCalculator,
+                $totalsCalculator,
                 $gamePlace,
                 $teamCompetitor->getTeam(),
                 $alwaysUpdateTotals
@@ -94,7 +95,7 @@ class Syncer
 
     protected function syncStatistics(
         ViewPeriod $viewPeriod,
-        PlayerTotalsCalculator $playerTotalsCalculator,
+        TotalsCalculator $totalsCalculator,
         AgainstGamePlace $gamePlace,
         Team $team,
         bool $alwaysUpdateTotals = false
@@ -141,11 +142,22 @@ class Syncer
 //                if( $s11Player->getPerson()->getId() === 100 ) {
 //                    $er = 12;
 //                }
-                $playerTotalsCalculator->updateTotals($s11Player);
-                $this->playerTotalsRepos->save($s11Player->getTotals(), true);
 
-                $playerTotalsCalculator->updateTotalPoints($s11Player);
+                $playerStats = array_values($s11Player->getStatistics()->toArray());
+                $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
+                $this->totalsRepos->save($s11Player->getTotals(), true);
+
+                $totalsCalculator->updateTotalPoints($s11Player);
                 $this->s11PlayerRepos->save($s11Player, true);
+
+                $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
+                foreach ($formationPlaces as $formationPlace) {
+                    $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
+                    $this->totalsRepos->save($s11Player->getTotals(), true);
+
+                    $totalsCalculator->updateTotalPoints($formationPlace);
+                    $this->formationPlaceRepos->save($formationPlace, true);
+                }
             }
         }
         $this->logInfo('calculated statistics');

@@ -1,10 +1,13 @@
 <?php
 
-namespace SuperElf\Player\Totals;
+namespace SuperElf\Totals;
 
 use SportsHelpers\Against\Result;
 use SuperElf\CompetitionConfig;
+use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Player as S11Player;
+use SuperElf\Statistics;
+use SuperElf\Totals;
 
 class Calculator
 {
@@ -12,11 +15,15 @@ class Calculator
     {
     }
 
-    public function updateTotals(S11Player $s11Player): void
+    /**
+     * @param Totals $totals
+     * @param list<Statistics> $stats
+     *
+     */
+    public function updateTotals(Totals $totals, array $stats): void
     {
-        $totals = $s11Player->getTotals();
         $totals->reset();
-        foreach ($s11Player->getStatistics() as $statistics) {
+        foreach ($stats as $statistics) {
             if ($statistics->getResult() === Result::Win) {
                 $totals->incrementNrOfWins();
             }
@@ -53,10 +60,10 @@ class Calculator
         $totals->setUpdatedAt(new \DateTimeImmutable());
     }
 
-    public function updateTotalPoints(S11Player $s11Player): void
+    public function updateTotalPoints(FormationPlace|S11Player $totalsCarier): void
     {
-        $s11Player->setTotalPoints(
-            $s11Player->getTotals()->getPoints($s11Player->getLine(), $this->competitionConfig)
+        $totalsCarier->setTotalPoints(
+            $totalsCarier->getTotals()->getPoints($totalsCarier->getLine(), $this->competitionConfig)
         );
     }
 }

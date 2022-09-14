@@ -90,14 +90,14 @@ class CompetitionsCreator
         $previous = $pool->getUnhaltedPrevious();
         if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
             $poolUsersCoen = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
-                return $poolUser->getUser()->getName() === 'joris';
+                return $poolUser->getUser()->getName() === 'coen';
             });
             $poolUserCoen = array_pop($poolUsersCoen);
             if ($poolUserCoen !== null) {
                 $validPoolUsersSuperCup[] = $poolUserCoen;
             }
             $poolUsersBets = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
-                return $poolUser->getUser()->getName() === 'storm';
+                return $poolUser->getUser()->getName() === 'bets';
             });
             $poolUserBets = array_pop($poolUsersBets);
             if ($poolUserBets !== null) {

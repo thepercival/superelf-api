@@ -11,7 +11,6 @@ use Sports\Sport\FootballLine;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Identifiable;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Player\Totals;
 
 class Player extends Identifiable
 {

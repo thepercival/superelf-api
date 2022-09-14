@@ -40,7 +40,6 @@ class Calculator
     protected function getGoalPoints(FootballLine $line, Statistics $statistics, Points $points): int
     {
         $total = $statistics->getNrOfFieldGoals() * $points->getFieldGoal($line);
-        $total += $statistics->getNrOfAssists() * $points->getAssist($line);
         $total += $statistics->getNrOfPenalties() * $points->getPenalty();
         $total += $statistics->getNrOfOwnGoals() * $points->getOwnGoal();
         return $total;

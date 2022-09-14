@@ -6,7 +6,7 @@ SuperElf\Player:
       type: Sports\Person
       read_only: true
     totals:
-      type: SuperElf\Player\Totals
+      type: SuperElf\Totals
       read_only: true
     statistics:
       groups: [ statistics ]
