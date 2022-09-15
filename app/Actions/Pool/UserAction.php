@@ -7,6 +7,7 @@ namespace App\Actions\Pool;
 use App\Actions\Action;
 use App\Response\ErrorResponse;
 use App\Response\ForbiddenResponse;
+use DateTimeImmutable;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -45,9 +46,11 @@ final class UserAction extends Action
             if ($poolUser->getPool() !== $pool) {
                 return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
             }
-            if (!$pool->getAssemblePeriod()->getViewPeriod()->contains()
-                && !$pool->getTransferPeriod()->getViewPeriod()->contains()) {
-                throw new \Exception('je mag alleen andere deelnemers bekijken in de kijk-periode', E_ERROR);
+            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
+            }
+            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
             }
 
             return $this->fetchOneHelper($response, $poolUser, false);
@@ -115,13 +118,22 @@ final class UserAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
+            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
+            }
+            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
+            }
+
             $poolUser = $pool->getUser($user);
-            $extraContexts = $poolUser !== null && $poolUser->getAdmin() ? ['admin'] : [];
+            $isAdmin = $poolUser !== null && $poolUser->getAdmin();
+            $serGroups = $isAdmin ? ['admin'] : [];
+            $serGroups[] = 'formations';
 
             $json = $this->serializer->serialize(
                 $pool->getUsers(),
                 'json',
-                $this->getSerializationContext($extraContexts)
+                $this->getSerializationContext($serGroups)
             );
 
             return $this->respondWithJson($response, $json);

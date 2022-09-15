@@ -53,7 +53,7 @@ class Formation extends Identifiable
     public function getName(): string
     {
         return implode("-", array_map(function (Line $line): int {
-            return $line->getPlaces()->count();
+            return $line->getStartingPlaces()->count();
         }, $this->getLines()->toArray()));
     }
 
