@@ -32,6 +32,7 @@ use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
+use SuperElf\Totals\Syncer as TotalsSyncer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -45,6 +46,7 @@ class Sync extends Command
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
+    protected TotalsSyncer $totalsSyncer;
     protected PoolGameSyncer $poolGameSyncer;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected EntityManagerInterface $entityManager;
@@ -85,6 +87,10 @@ class Sync extends Command
         $appearanceSyncer = $container->get(AppearanceSyncer::class);
         $this->appearanceSyncer = $appearanceSyncer;
 
+        /** @var TotalsSyncer $totalsSyncer */
+        $totalsSyncer = $container->get(TotalsSyncer::class);
+        $this->totalsSyncer = $totalsSyncer;
+
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
@@ -110,8 +116,6 @@ class Sync extends Command
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
-
-        $this->addOption('alwaysUpdateStatisticTotals', null, InputOption::VALUE_NONE, '');
 
         parent::configure();
     }
@@ -145,13 +149,9 @@ class Sync extends Command
             return false;
         }
 
-        /** @var bool|null $alwaysUpdateTotalsTmp */
-        $alwaysUpdateTotalsTmp = $input->getOption('alwaysUpdateStatisticTotals');
-        $alwaysUpdateTotals = is_bool($alwaysUpdateTotalsTmp) ? $alwaysUpdateTotalsTmp : false;
-
         $gameRoundNrRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
         if ($gameRoundNrRange !== null) {
-            $this->syncGameRounds($competitionConfig, $gameRoundNrRange, $alwaysUpdateTotals);
+            $this->syncGameRounds($competitionConfig, $gameRoundNrRange);
             return true;
         }
 
@@ -165,8 +165,9 @@ class Sync extends Command
         if ($game !== null) {
             $competitionConfig = $this->getCompetitionConfig($game);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
-            $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->totalsSyncer->sync($competitionConfig, $game);
             $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         } else {
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
@@ -181,6 +182,7 @@ class Sync extends Command
         $this->s11PlayerSyncer->setLogger($this->getLogger());
         $this->statisticsSyncer->setLogger($this->getLogger());
         $this->appearanceSyncer->setLogger($this->getLogger());
+        $this->totalsSyncer->setLogger($this->getLogger());
         $this->poolGameSyncer->setLogger($this->getLogger());
     }
 
@@ -295,11 +297,13 @@ class Sync extends Command
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->totalsSyncer->sync($competitionConfig, $game);
             $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
             $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->totalsSyncer->sync($competitionConfig, $game);
             $this->poolGameSyncer->sync($competitionConfig, $game->getGameRoundNumber());
         }
     }
@@ -317,6 +321,7 @@ class Sync extends Command
         $this->gameRoundSyncer->sync($competitionConfig, [$game->getStartDateTime(), $oldStartDateTime]);
         $this->s11PlayerSyncer->sync($competitionConfig, $game);
         $this->statisticsSyncer->sync($competitionConfig, $game);
+        $this->totalsSyncer->sync($competitionConfig, $game);
         $this->appearanceSyncer->sync($competitionConfig, $game);
     }
 
@@ -333,18 +338,15 @@ class Sync extends Command
         return $game;
     }
 
-    protected function syncGameRounds(
-        CompetitionConfig $competitionConfig,
-        SportRange $gameRoundNrRange,
-        bool $alwaysUpdateTotals
-    ): void
+    protected function syncGameRounds(CompetitionConfig $competitionConfig, SportRange $gameRoundNrRange): void
     {
         $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
             $this->gameRoundSyncer->sync($competitionConfig, [$game->getStartDateTime()]);
             $this->s11PlayerSyncer->sync($competitionConfig, $game);
-            $this->statisticsSyncer->sync($competitionConfig, $game, $alwaysUpdateTotals);
+            $this->statisticsSyncer->sync($competitionConfig, $game);
             $this->appearanceSyncer->sync($competitionConfig, $game);
+            $this->totalsSyncer->sync($competitionConfig, $game);
         }
         for ($nr = $gameRoundNrRange->getMin(); $nr <= $gameRoundNrRange->getMax(); $nr++) {
             $this->poolGameSyncer->sync($competitionConfig, $nr);

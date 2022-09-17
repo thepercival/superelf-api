@@ -48,15 +48,18 @@ final class GameRoundAction extends Action
                 throw new \Exception('kan de viewperiod niet vinden', E_ERROR);
             }
 
-            $firstNotFinished = $this->getFirstNotFinished($competitionConfig->getSourceCompetition(), $viewPeriod);
-            $firstInProgressOrFinished = $this->getFirstFinishedOrInProgress(
+            $firstCreatedOrInProgress = $this->getFirstCreatedOrInProgress(
+                $competitionConfig->getSourceCompetition(),
+                $viewPeriod
+            );
+            $lastFinishedOrInPorgress = $this->getLastFinishedOrInPorgress(
                 $competitionConfig->getSourceCompetition(),
                 $viewPeriod
             );
 
             $gameRoundNumbers = [
-                'firstNotFinished' => $firstNotFinished,
-                'firstInProgressOrFinished' => $firstInProgressOrFinished
+                'firstCreatedOrInProgress' => $firstCreatedOrInProgress,
+                'lastFinishedOrInPorgress' => $lastFinishedOrInPorgress
             ];
 
             $json = $this->serializer->serialize($gameRoundNumbers, 'json');
@@ -66,7 +69,7 @@ final class GameRoundAction extends Action
         }
     }
 
-    protected function getFirstNotFinished(Competition $competition, ViewPeriod $viewPeriod): int|null
+    protected function getFirstCreatedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
     {
         $gameRoundNumbers = $this->againstGameRepos->getCompetitionGameRoundNumbers(
             $competition,
@@ -76,34 +79,36 @@ final class GameRoundAction extends Action
         return array_shift($gameRoundNumbers);
     }
 
-    protected function getFirstFinishedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
+    protected function getLastFinishedOrInPorgress(Competition $competition, ViewPeriod $viewPeriod): int|null
     {
-        $gameRoundNumbersWithFinishedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
-            $competition,
-            [State::Finished],
-            $viewPeriod->getPeriod()
+        $gameRoundNumbersWithFinishedGames = array_reverse(
+            $this->againstGameRepos->getCompetitionGameRoundNumbers(
+                $competition,
+                [State::Finished],
+                $viewPeriod->getPeriod()
+            )
         );
         if (count($gameRoundNumbersWithFinishedGames) === 0) {
             return null;
         }
 
         // start mapped created games
-        $gameRoundNumbersWithCreatedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
-            $competition,
-            [State::Created],
-            $viewPeriod->getPeriod()
-        );
-        $mappedGameRoundNumbersWithCreatedGames = [];
-        foreach ($gameRoundNumbersWithCreatedGames as $gameRoundNumberWithCreatedGames) {
-            $mappedGameRoundNumbersWithCreatedGames[$gameRoundNumberWithCreatedGames] = true;
-        }
+//        $gameRoundNumbersWithCreatedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
+//            $competition,
+//            [State::Created],
+//            $viewPeriod->getPeriod()
+//        );
+//        $mappedGameRoundNumbersWithCreatedGames = [];
+//        foreach ($gameRoundNumbersWithCreatedGames as $gameRoundNumberWithCreatedGames) {
+//            $mappedGameRoundNumbersWithCreatedGames[$gameRoundNumberWithCreatedGames] = true;
+//        }
         // end mapped created games
 
-        foreach ($gameRoundNumbersWithFinishedGames as $gameRoundNumberWithFinishedGames) {
-            if (!array_key_exists($gameRoundNumberWithFinishedGames, $mappedGameRoundNumbersWithCreatedGames)) {
-                return $gameRoundNumberWithFinishedGames;
-            }
-        }
+//        foreach ($gameRoundNumbersWithFinishedGames as $gameRoundNumberWithFinishedGames) {
+//            if (!array_key_exists($gameRoundNumberWithFinishedGames, $mappedGameRoundNumbersWithCreatedGames)) {
+//                return $gameRoundNumberWithFinishedGames;
+//            }
+//        }
         return array_shift($gameRoundNumbersWithFinishedGames);
     }
 

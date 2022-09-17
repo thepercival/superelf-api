@@ -47,16 +47,9 @@ class Repository extends EntityRepository
                             select  *
                             from    statistics s
                                     join formationPlaces fpl on fpl.playerId = s.playerId and fpl.formationLineId = fl.id
-                                    join gameRounds gr on gr.viewPeriodId = f.viewPeriodId
-                            where   s.gameRoundId = gr.id and s.beginMinute = -1 and fpl.`number` > 0
+                                    join gameRounds grSub on grSub.viewPeriodId = f.viewPeriodId and grSub.id = s.gameRoundId
+                            where   s.beginMinute = -1 and fpl.number > 0 and s.gameRoundId = gr.id
                         )
-                and     (
-                            select count(*)
-                            from    statistics s
-                                    join formationPlaces fpl on fpl.playerId = s.playerId and fpl.formationLineId = fl.id
-                                    join gameRounds gr on gr.viewPeriodId = f.viewPeriodId
-                            where   s.gameRoundId = gr.id and fpl.`number` > 0
-                        ) = (select count(*) from formationPlaces where formationLineId = fl.id and number > 0) 
                 )";
         $this->getEntityManager()->getConnection()->executeQuery($sql);
     }

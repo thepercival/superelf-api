@@ -15,6 +15,7 @@ use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
+use SuperElf\Totals\Syncer as TotalsSyncer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -45,6 +46,7 @@ class CompetitionConfig extends Command
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
+    protected TotalsSyncer $totalsSyncer;
 
     public function __construct(ContainerInterface $container)
     {
@@ -76,6 +78,9 @@ class CompetitionConfig extends Command
         $appearanceSyncer = $container->get(AppearanceSyncer::class);
         $this->appearanceSyncer = $appearanceSyncer;
 
+        /** @var TotalsSyncer $totalsSyncer */
+        $totalsSyncer = $container->get(TotalsSyncer::class);
+        $this->totalsSyncer = $totalsSyncer;
         parent::__construct($container);
     }
 
@@ -190,8 +195,9 @@ class CompetitionConfig extends Command
             );
             foreach ($games as $game) {
                 $this->s11PlayerSyncer->sync($competitionConfig, $game);
-                $this->statisticsSyncer->sync($competitionConfig, $game, true);
+                $this->statisticsSyncer->sync($competitionConfig, $game);
                 $this->appearanceSyncer->sync($competitionConfig, $game);
+                $this->totalsSyncer->sync($competitionConfig, $game);
             }
         }
         $this->getLogger()->info('s11Player, statistics and appearances synced');

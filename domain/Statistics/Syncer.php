@@ -26,7 +26,6 @@ use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Statistics\Repository as StatisticsRepository;
-use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Totals\Repository as TotalsRepository;
 
 class Syncer
@@ -48,18 +47,13 @@ class Syncer
     ) {
     }
 
-    public function sync(
-        CompetitionConfig $competitionConfig,
-        AgainstGame $game,
-        bool $alwaysUpdateTotals = false
-    ): void {
+    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
+    {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
             throw new Exception('the game is from another competitonconfig', E_ERROR);
         }
 
-        // $points = $competitionConfig->getPoints();
-        $totalsCalculator = new TotalsCalculator($competitionConfig);
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
 //
@@ -82,10 +76,8 @@ class Syncer
             }
             $this->syncStatistics(
                 $viewPeriod,
-                $totalsCalculator,
                 $gamePlace,
-                $teamCompetitor->getTeam(),
-                $alwaysUpdateTotals
+                $teamCompetitor->getTeam()
             );
         }
         // }
@@ -95,10 +87,8 @@ class Syncer
 
     protected function syncStatistics(
         ViewPeriod $viewPeriod,
-        TotalsCalculator $totalsCalculator,
         AgainstGamePlace $gamePlace,
-        Team $team,
-        bool $alwaysUpdateTotals = false
+        Team $team
     ): void {
         $this->logInfo('calculating statistics ' . $team->getName() . ' ..');
         $game = $gamePlace->getGame();
@@ -137,28 +127,6 @@ class Syncer
                 $gameParticipation
             );
             $this->statisticsRepos->save($statistics, true);
-
-            if ($alwaysUpdateTotals || $oldStatistics === null || !$statistics->equals($oldStatistics)) {
-//                if( $s11Player->getPerson()->getId() === 100 ) {
-//                    $er = 12;
-//                }
-
-                $playerStats = array_values($s11Player->getStatistics()->toArray());
-                $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
-                $this->totalsRepos->save($s11Player->getTotals(), true);
-
-                $totalsCalculator->updateTotalPoints($s11Player);
-                $this->s11PlayerRepos->save($s11Player, true);
-
-                $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
-                foreach ($formationPlaces as $formationPlace) {
-                    $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
-                    $this->totalsRepos->save($s11Player->getTotals(), true);
-
-                    $totalsCalculator->updateTotalPoints($formationPlace);
-                    $this->formationPlaceRepos->save($formationPlace, true);
-                }
-            }
         }
         $this->logInfo('calculated statistics');
     }
