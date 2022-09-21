@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
+use Sports\Competition\Sport as CompetitionSport;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Place\Against as AgainstGamePlace;
+use Sports\Round;
 use Sports\Sport;
 use Sports\Structure;
 use SportsHelpers\Against\Side;
@@ -28,7 +30,21 @@ class SuperCupCreator extends BaseCreator
 
     public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
-        return $this->structureEditor->create($competition, [2]);
+        $structure = $this->structureEditor->create($competition, [2]);
+        $round = $structure->getSingleCategory()->getRootRound();
+        $this->updateAgainstQualifyConfig($round, $competition->getSingleSport());
+        return $structure;
+    }
+
+    protected function updateAgainstQualifyConfig(Round $rootRound, CompetitionSport $competitionSport): void
+    {
+        $againstQualifyConfig = $rootRound->getAgainstQualifyConfig($competitionSport);
+        if ($againstQualifyConfig === null) {
+            return;
+        }
+        $againstQualifyConfig->setWinPoints(1);
+        $againstQualifyConfig->setWinPointsExt(0);
+        $againstQualifyConfig->setDrawPointsExt(0);
     }
 
 //    protected function createGames(

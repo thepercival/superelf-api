@@ -181,7 +181,20 @@ return function (App $app): void {
                 '/{playerId}/statistics',
                 function (Group $group): void {
                     $group->options('', StatisticsAction::class . ':options');
-                    $group->get('', StatisticsAction::class . ':fetch');
+                    $group->get('', StatisticsAction::class . ':fetchPlayer');
+                }
+            );
+        }
+    )->add(VersionMiddleware::class);
+
+    $app->group(
+        '/formations',
+        function (Group $group): void {
+            $group->group(
+                '/{formationId}/statistics/{gameRoundNumber}',
+                function (Group $group): void {
+                    $group->options('', StatisticsAction::class . ':options');
+                    $group->get('', StatisticsAction::class . ':fetchFormationGameRound');
                 }
             );
         }

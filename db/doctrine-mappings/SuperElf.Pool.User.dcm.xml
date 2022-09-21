@@ -26,32 +26,42 @@
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
-      <join-columns>
-        <join-column name="transferFormationId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
-      </join-columns>
+        <join-columns>
+            <join-column name="transferFormationId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+        </join-columns>
     </one-to-one>
-    <one-to-many field="transfers" target-entity="SuperElf\Transfer" mapped-by="poolUser">
-        <cascade>
-            <cascade-remove/>
-        </cascade>
-    </one-to-many>
+      <one-to-many field="transfers" target-entity="SuperElf\Transfer" mapped-by="poolUser">
+          <cascade>
+              <cascade-remove/>
+          </cascade>
+      </one-to-many>
       <one-to-many field="substitutions" target-entity="SuperElf\Substitution" mapped-by="poolUser">
           <cascade>
               <cascade-remove/>
           </cascade>
       </one-to-many>
-    <one-to-many field="competitors" target-entity="SuperElf\Competitor" mapped-by="poolUser">
-      <cascade>
-        <cascade-remove/>
-      </cascade>
-    </one-to-many>
-<!--    <one-to-many field="scores" target-entity="SuperElf\Pool\User\GameRoundScore" mapped-by="poolUser">-->
-<!--      <cascade>-->
-<!--        <cascade-remove/>-->
-<!--      </cascade>-->
-<!--    </one-to-many>-->
-    <unique-constraints>
-      <unique-constraint columns="poolId,userId" name="main_u_idx"/>
-    </unique-constraints>
+      <one-to-many field="competitors" target-entity="SuperElf\Competitor" mapped-by="poolUser">
+          <cascade>
+              <cascade-remove/>
+          </cascade>
+      </one-to-many>
+      <one-to-many field="chatMessages" target-entity="SuperElf\ChatMessage" mapped-by="poolUser">
+          <cascade>
+              <cascade-remove/>
+          </cascade>
+      </one-to-many>
+      <one-to-many field="unreadChatMessages" target-entity="SuperElf\ChatMessage\Unread" mapped-by="poolUser">
+          <cascade>
+              <cascade-remove/>
+          </cascade>
+      </one-to-many>
+      <!--    <one-to-many field="scores" target-entity="SuperElf\Pool\User\GameRoundScore" mapped-by="poolUser">-->
+      <!--      <cascade>-->
+      <!--        <cascade-remove/>-->
+      <!--      </cascade>-->
+      <!--    </one-to-many>-->
+      <unique-constraints>
+          <unique-constraint columns="poolId,userId" name="main_u_idx"/>
+      </unique-constraints>
   </entity>
 </doctrine-mapping>

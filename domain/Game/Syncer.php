@@ -211,16 +211,16 @@ class Syncer
         $created = array_filter($againstGames, function (AgainstGame $againstGame): bool {
             return $againstGame->getState() === State::Created;
         });
-        if (count($created) === count($againstGames)) {
-            return State::Created;
-        }
         $finished = array_filter($againstGames, function (AgainstGame $againstGame): bool {
             return $againstGame->getState() === State::Finished;
         });
-        if (count($finished) === count($againstGames)) {
+        if (count($created) > 0 && count($finished) > 0) {
+            return State::InProgress;
+        }
+        if (count($created) === 0 && count($finished) > 0) {
             return State::Finished;
         }
-        return State::InProgress;
+        return State::Created;
     }
 
     public function updatePoolCupGames(
@@ -249,8 +249,11 @@ class Syncer
             // als source finished dan game ook finished
             $sourceGameRoundState = $this->getSourceGameRoundState($competition, $gameRoundNumber);
             if ($sourceGameRoundState !== $againstGame->getState()) {
-                $againstGame->setState(State::Finished);
+                $againstGame->setState($sourceGameRoundState);
                 $this->againstGameRepos->save($againstGame, true);
+                $this->logger->info(
+                    'update gameRound ' . $gameRoundNumber . ' to state "' . $sourceGameRoundState->name
+                );
             }
         }
     }

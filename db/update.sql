@@ -2,6 +2,7 @@
 
 -- insert into leagues(name, abbreviation, associationId) ( select 'SuperCup', null, a.id from associations a where exists ( select * from poolCollections pc where pc.associationId = a.id) )
 
+
 -- POST POST POST doctrine-update ===========================================================
 -- alter table plannings ADD timeoutState varchar(20) DEFAULT NULL COMMENT '(DC2Type:enum_PlanningTimeoutState)';
 

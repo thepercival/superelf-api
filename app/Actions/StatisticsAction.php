@@ -29,7 +29,7 @@ final class StatisticsAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
-    public function fetch(Request $request, Response $response, array $args): Response
+    public function fetchPlayer(Request $request, Response $response, array $args): Response
     {
         try {
             $s11Player = $this->playerRepos->find((int)$args['playerId']);
@@ -45,6 +45,32 @@ final class StatisticsAction extends Action
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchFormationGameRound(Request $request, Response $response, array $args): Response
+    {
+        try {
+            // '/{formationId}/statistics/{gameRoundNumber}',
+            $s11Player = $this->playerRepos->find((int)$args['playerId']);
+            if ($s11Player === null) {
+                throw new \Exception('de speler kan niet gevonden worden', E_ERROR);
+            }
+
+            $statistics = $this->statisticsRepos->findBy(['player' => $s11Player]);
+
+            $json = $this->serializer->serialize($statistics, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+
 
 //    protected function getSerializationContext(): SerializationContext
 //    {

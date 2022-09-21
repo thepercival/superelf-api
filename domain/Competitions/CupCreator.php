@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
+use Sports\Competition\Sport as CompetitionSport;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Qualify\Target;
@@ -39,6 +40,7 @@ class CupCreator extends BaseCreator
         $pouleStructure = $this->createPouleStructure($nrOfValidPoolUsers, $nrOfQualifiers);
         $structure = $this->structureEditor->create($competition, $pouleStructure->toArray());
         $round = $structure->getSingleCategory()->getRootRound();
+        $this->updateAgainstQualifyConfig($round, $competition->getSingleSport());
         while ($nrOfQualifiers > 1) {
             $nextNrOfQualifiers = (int)($nrOfQualifiers / 2);
             $pouleStructure = $this->createPouleStructure($nrOfQualifiers, $nextNrOfQualifiers);
@@ -46,6 +48,17 @@ class CupCreator extends BaseCreator
             $nrOfQualifiers = (int)($nrOfQualifiers / 2);
         }
         return $structure;
+    }
+
+    protected function updateAgainstQualifyConfig(Round $rootRound, CompetitionSport $competitionSport): void
+    {
+        $againstQualifyConfig = $rootRound->getAgainstQualifyConfig($competitionSport);
+        if ($againstQualifyConfig === null) {
+            return;
+        }
+        $againstQualifyConfig->setWinPoints(1);
+        $againstQualifyConfig->setWinPointsExt(0);
+        $againstQualifyConfig->setDrawPointsExt(0);
     }
 
     public function createGames(Structure $structure, Pool $pool): void

@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Competition;
 use SportsHelpers\Identifiable;
+use SuperElf\ChatMessage;
+use SuperElf\ChatMessage\Unread as UnreadChatMessage;
 use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Periods\AssemblePeriod;
@@ -27,13 +29,21 @@ class User extends Identifiable
      */
     protected Collection $transfers;
     /**
-     * @var ArrayCollection<int|string, Substitution>
+     * @var Collection<int|string, Substitution>
      */
     protected Collection $substitutions;
     /**
-     * @var ArrayCollection<int|string, Competitor>
+     * @var Collection<int|string, Competitor>
      */
     protected Collection $competitors;
+    /**
+     * @var Collection<int|string, ChatMessage>
+     */
+    protected Collection $chatMessages;
+    /**
+     * @var Collection<int|string, UnreadChatMessage>
+     */
+    protected Collection $unreadChatMessages;
 //    /**
 //     * @var ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
 //     * @psalm-var ArrayCollection<int|string, GameRoundScore>|
@@ -46,9 +56,11 @@ class User extends Identifiable
         $this->competitors = new ArrayCollection();
         $this->transfers = new ArrayCollection();
         $this->substitutions = new ArrayCollection();
+        $this->chatMessages = new ArrayCollection();
+        $this->unreadChatMessages = new ArrayCollection();
         // $this->scores = new ArrayCollection();
         if (!$pool->getUsers()->contains($this)) {
-            $pool->getUsers()->add($this) ;
+            $pool->getUsers()->add($this);
         }
     }
 
@@ -148,6 +160,22 @@ class User extends Identifiable
 //    {
 //        return $this->scores;
 //    }
+
+    /**
+     * @return Collection<int|string, ChatMessage>
+     */
+    public function getChatMessages(): Collection
+    {
+        return $this->chatMessages;
+    }
+
+    /**
+     * @return Collection<int|string, UnreadChatMessage>
+     */
+    public function getUnreadChatMessages(): Collection
+    {
+        return $this->unreadChatMessages;
+    }
 
     public function getFormation(AssemblePeriod|TransferPeriod $editPeriod): Formation|null
     {
