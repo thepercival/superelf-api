@@ -16,6 +16,9 @@
                              on-delete="CASCADE"/>
             </join-columns>
         </many-to-one>
+        <unique-constraints>
+            <unique-constraint columns="chatMessageId,poolUserId" name="main_u_idx"/>
+        </unique-constraints>
     </entity>
 
 </doctrine-mapping>

@@ -18,6 +18,8 @@ use Sports\League;
 use Sports\League\Repository as LeagueRepository;
 use Sports\Person;
 use Sports\Person\Repository as PersonRepository;
+use Sports\Poule;
+use Sports\Poule\Repository as PouleRepository;
 use Sports\Score\Against as AgainstScore;
 use Sports\Score\Against\Repository as AgainstScoreRepository;
 use Sports\Score\Together as TogetherScore;
@@ -52,6 +54,10 @@ use SportsImport\CacheItemDb;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SuperElf\ChatMessage;
+use SuperElf\ChatMessage\Repository as ChatMessageRepository;
+use SuperElf\ChatMessage\Unread as UnreadChatMessage;
+use SuperElf\ChatMessage\Unread\Repository as UnreadChatMessageRepository;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Competitor;
@@ -143,6 +149,18 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(PoolUser::class);
         return new PoolUserRepository($entityManager, $metaData);
+    },
+    ChatMessageRepository::class => function (ContainerInterface $container): ChatMessageRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(ChatMessage::class);
+        return new ChatMessageRepository($entityManager, $metaData);
+    },
+    UnreadChatMessageRepository::class => function (ContainerInterface $container): UnreadChatMessageRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(UnreadChatMessage::class);
+        return new UnreadChatMessageRepository($entityManager, $metaData);
     },
     FormationRepository::class => function (ContainerInterface $container): FormationRepository {
         /** @var EntityManagerInterface $entityManager */
@@ -365,5 +383,11 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(PersonAttacher::class);
         return new PersonAttacherRepository($entityManager, $metaData);
+    },
+    PouleRepository::class => function (ContainerInterface $container): PouleRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Poule::class);
+        return new PouleRepository($entityManager, $metaData);
     },
 ];

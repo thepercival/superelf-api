@@ -27,6 +27,11 @@ class ChatMessage extends Identifiable
         return $this->poolUser;
     }
 
+    public function getUser(): User
+    {
+        return $this->poolUser->getUser();
+    }
+
     public function getMessage(): string
     {
         return $this->message;

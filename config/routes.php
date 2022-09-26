@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\AuthAction;
+use App\Actions\ChatMessageAction;
 use App\Actions\CompetitionConfigAction;
 use App\Actions\FormationAction;
 use App\Actions\GameRoundAction;
@@ -134,6 +135,16 @@ return function (App $app): void {
                             $group->options('', PoolUserAction::class . ':options');
                             $group->get('', PoolUserAction::class . ':fetch');
                         }
+                    );
+
+                    $group->options('poules/{pouleId}/messages', ChatMessageAction::class . ':options');
+                    $group->get('poules/{pouleId}/messages', ChatMessageAction::class . ':fetch')
+                        ->add(UserThroughPoolAuthMiddleware::class);
+
+                    $group->options('poules/{pouleId}/nrofunreadmessages', ChatMessageAction::class . ':options');
+                    $group->get(
+                        'poules/{pouleId}/nrofunreadmessages',
+                        ChatMessageAction::class . ':fetchNrOfUnreadMessages'
                     );
                 },
             );
