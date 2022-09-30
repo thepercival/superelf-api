@@ -2,12 +2,13 @@ SuperElf\ChatMessage:
   exclusion_policy: ALL
   exclude: false
 
-properties:
-  dateTime:
-    type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-    serialized_name: date
-  message:
-    type: string
+  properties:
+    message:
+      type: string
+    dateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+      serialized_name: date
   virtual_properties:
-    user:
+    getUser:
       type: SuperElf\User
+      serialized_name: user

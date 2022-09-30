@@ -140,7 +140,8 @@ return function (App $app): void {
                     $group->options('poules/{pouleId}/messages', ChatMessageAction::class . ':options');
                     $group->get('poules/{pouleId}/messages', ChatMessageAction::class . ':fetch')
                         ->add(UserThroughPoolAuthMiddleware::class);
-
+                    $group->post('poules/{pouleId}/messages', ChatMessageAction::class . ':add')
+                        ->add(UserThroughPoolAuthMiddleware::class);
                     $group->options('poules/{pouleId}/nrofunreadmessages', ChatMessageAction::class . ':options');
                     $group->get(
                         'poules/{pouleId}/nrofunreadmessages',

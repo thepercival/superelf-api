@@ -44,8 +44,8 @@ class Repository extends EntityRepository
         $qb = $qb->setParameter('pool', $pool);
         $qb = $qb->orderBy('cm.dateTime', 'desc');
         // $sql = $qb->getQuery()->getSQL();
-        /** @var list<ChatMessage> $players */
-        $players = $qb->getQuery()->getResult();
-        return $players;
+        /** @var list<ChatMessage> $messages */
+        $messages = $qb->getQuery()->getResult();
+        return $messages;
     }
 }
