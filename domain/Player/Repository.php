@@ -6,6 +6,7 @@ namespace SuperElf\Player;
 
 use Doctrine\ORM\EntityRepository;
 use Sports\Team;
+use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player as S11Player;
@@ -53,5 +54,23 @@ class Repository extends EntityRepository
         /** @var list<S11Player> $players */
         $players = $qb->getQuery()->getResult();
         return $players;
+    }
+
+    /**
+     * @param ViewPeriod $viewPeriod
+     * @param TeamPlayer $player
+     * @return S11Player|null
+     */
+    public function findOneByExt(ViewPeriod $viewPeriod, TeamPlayer $player): S11Player|null
+    {
+        $qb = $this->createQueryBuilder('s11pl');
+        $qb = $qb->where('s11pl.viewPeriod = :viewPeriod');
+        $qb = $qb->setParameter('viewPeriod', $viewPeriod);
+        $qb = $qb->andWhere('s11pl.player = :player');
+        $qb = $qb->setParameter('player', $player);
+        // $sql = $qb->getQuery()->getSQL();
+        /** @var S11Player|null $s11Player */
+        $s11Player = $qb->getQuery()->getResult();
+        return $s11Player;
     }
 }

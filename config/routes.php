@@ -234,6 +234,18 @@ return function (App $app): void {
                 },
             );
             $group->group(
+                '/sourcegames/{gameId}',
+                function (Group $group): void {
+                    $group->group(
+                        '/lineups/{side}',
+                        function (Group $group): void {
+                            $group->options('', AgainstGameAction::class . ':options');
+                            $group->get('', AgainstGameAction::class . ':fetchLineup');
+                        },
+                    );
+                },
+            );
+            $group->group(
                 '/structure',
                 function (Group $group): void {
                     $group->options('', StructureAction::class . ':options');
