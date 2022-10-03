@@ -2,8 +2,8 @@ parameters:
     level: 6
     inferPrivatePropertyTypeFromConstructor:
         true
-    doctrine:
-        repositoryClass: Sports\Repository
+    #doctrine:
+     #   repositoryClass: Sports\Repository
     paths:
         - domain
         - tests/cases

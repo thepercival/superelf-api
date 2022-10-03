@@ -243,6 +243,13 @@ return function (App $app): void {
                             $group->get('', AgainstGameAction::class . ':fetchLineup');
                         },
                     );
+                    $group->group(
+                        '/events/{side}',
+                        function (Group $group): void {
+                            $group->options('', AgainstGameAction::class . ':options');
+                            $group->get('', AgainstGameAction::class . ':fetchEvents');
+                        },
+                    );
                 },
             );
             $group->group(

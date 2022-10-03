@@ -1,0 +1,9 @@
+SuperElf\Game\Against\Event:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    player:
+      type: Sports\Team\Player
+    minute:
+      type: integer

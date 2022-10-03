@@ -1,0 +1,13 @@
+SuperElf\Game\Against\GoalEvent:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    score:
+      type: string
+      access_type: public_method
+      accessor:
+        getter: getScoreNative
+      read_only: true
+    assistPlayer:
+      type: Sports\Team\Player

@@ -11,17 +11,20 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\State;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SportsHelpers\Against\Side as AgainstSide;
+use SuperElf\Game\Against\EventConverter;
 use SuperElf\LineupItem;
 
 final class AgainstGameAction extends Action
 {
-    protected LineupItem\Converter $converter;
+    protected LineupItem\Converter $lineupConverter;
+    protected EventConverter $eventConverter;
 
     public function __construct(
         protected CompetitionRepository $competitionRepos,
@@ -31,7 +34,8 @@ final class AgainstGameAction extends Action
         SerializerInterface $serializer
     ) {
         parent::__construct($logger, $serializer);
-        $this->converter = new LineupItem\Converter($this->teamPlayerRepository);
+        $this->lineupConverter = new LineupItem\Converter($this->teamPlayerRepository);
+        $this->eventConverter = new EventConverter($this->teamPlayerRepository);
     }
 
     /**
@@ -83,7 +87,7 @@ final class AgainstGameAction extends Action
 
             $againstSide = AgainstSide::from((int)$args["side"]);
 
-            $lineupItems = $this->converter->convert($game->getSingleSidePlace($againstSide));
+            $lineupItems = $this->lineupConverter->convert($game->getSingleSidePlace($againstSide));
 
             $json = $this->serializer->serialize($lineupItems, 'json', $this->getSerializationContext(['person']));
             return $this->respondWithJson($response, $json);
@@ -92,6 +96,34 @@ final class AgainstGameAction extends Action
         }
     }
 
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchEvents(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+            $game = $this->againstGameRepos->find((int)$args["gameId"]);
+            if ($game === null) {
+                throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
+            }
+
+            $againstSide = AgainstSide::from((int)$args["side"]);
+            $gamePlace = $game->getSingleSidePlace($againstSide);
+            $events = $this->eventConverter->convert($gamePlace);
+
+            $json = $this->serializer->serialize($events, 'json', $this->getSerializationContext(['person']));
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
 
     /**
      * @param list<AgainstGame> $games

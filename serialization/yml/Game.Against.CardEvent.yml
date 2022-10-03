@@ -1,0 +1,11 @@
+SuperElf\Game\Against\CardEvent:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    color:
+      type: string
+      access_type: public_method
+      accessor:
+        getter: getColorNative
+      read_only: true

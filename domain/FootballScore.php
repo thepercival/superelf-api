@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use Sports\Sport;
+
 enum FootballScore: string
 {
     case WinResult = 'winresult';
@@ -16,6 +18,28 @@ enum FootballScore: string
     case SpottySheet = 'spottysheet';
     case YellowCard = 'yellowcard';
     case RedCard = 'redcard';
+
+    public static function fromGoal(bool $penalty, bool $own): self
+    {
+        if( $penalty ) {
+            return self::PenaltyGoal;
+        } elseif( $own ){
+            return self::OwnGoal;
+        }
+        return self::Goal;
+    }
+
+    public static function fromCard(int $type): self
+    {
+        if( $type === Sport::WARNING ) {
+            return self::YellowCard;
+        }
+        elseif( $type === Sport::SENDOFF ) {
+            return self::RedCard;
+        }
+        return throw new \Exception('unknown cardtype', E_ERROR);
+    }
+
 
 }
 
