@@ -1,0 +1,9 @@
+SuperElf\LineupItem:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    player:
+      type: Sports\Team\Player
+    substitute:
+      type: SuperElf\LineupItem\Substitute

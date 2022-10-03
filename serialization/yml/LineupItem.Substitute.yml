@@ -1,0 +1,7 @@
+SuperElf\LineupItem\Substitute:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    minute:
+      type: integer

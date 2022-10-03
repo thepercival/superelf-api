@@ -15,17 +15,23 @@ use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\State;
-use SportsHelpers\Against\Side;
+use Sports\Team\Player\Repository as TeamPlayerRepository;
+use SportsHelpers\Against\Side as AgainstSide;
+use SuperElf\LineupItem;
 
 final class AgainstGameAction extends Action
 {
+    protected LineupItem\Converter $converter;
+
     public function __construct(
         protected CompetitionRepository $competitionRepos,
         protected AgainstGameRepository $againstGameRepos,
+        protected TeamPlayerRepository $teamPlayerRepository,
         LoggerInterface $logger,
         SerializerInterface $serializer
     ) {
         parent::__construct($logger, $serializer);
+        $this->converter = new LineupItem\Converter($this->teamPlayerRepository);
     }
 
     /**
@@ -58,6 +64,36 @@ final class AgainstGameAction extends Action
     }
 
     /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchLineup(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+            $game = $this->againstGameRepos->find((int)$args["gameId"]);
+            if ($game === null) {
+                throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
+            }
+
+            $againstSide = AgainstSide::from((int)$args["side"]);
+
+            $lineupItems = $this->converter->convert($game->getSingleSidePlace($againstSide));
+
+            $json = $this->serializer->serialize($lineupItems, 'json', $this->getSerializationContext(['person']));
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+
+    /**
      * @param list<AgainstGame> $games
      * @return array
      */
@@ -82,7 +118,7 @@ final class AgainstGameAction extends Action
 
     protected function hasSameTeams(AgainstGame $gameA, AgainstGame $gameB): bool
     {
-        foreach ([Side::Home, Side::Away] as $side) {
+        foreach ([AgainstSide::Home, AgainstSide::Away] as $side) {
             $sidePlacesGameB = array_map(
                 fn(AgainstGamePlace $sidePlaceGameB) => $sidePlaceGameB->getPlace(),
                 $gameB->getSidePlaces($side)

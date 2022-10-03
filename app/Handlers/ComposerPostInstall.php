@@ -49,20 +49,32 @@ class ComposerPostInstall
     private static function resetSerializerCache(string $pathPrefix): void
     {
         $serializer = $pathPrefix . 'serializer';
+
+        $serializerMetadata = $serializer . '/metadata';
+//        if (is_dir($serializerMetadata)) {
+//            static::rrmdir($serializerMetadata);
+//        }
+//
+        $serializerAnnotations = $serializer . '/annotations';
+//        if (is_dir($serializerAnnotations)) {
+//            static::rrmdir($serializerAnnotations);
+//        }
+
         if (is_dir($serializer)) {
             static::rrmdir($serializer);
         }
+
         mkdir($serializer);
         chmod($serializer, 0775);
         chgrp($serializer, 'www-data');
 
-        $serializer .= '/metadata';
-        if (is_dir($serializer)) {
-            static::rrmdir($serializer);
-        }
-        mkdir($serializer);
-        chmod($serializer, 0775);
-        chgrp($serializer, 'www-data');
+        mkdir($serializerMetadata);
+        chmod($serializerMetadata, 0775);
+        chgrp($serializerMetadata, 'www-data');
+
+        mkdir($serializerAnnotations);
+        chmod($serializerAnnotations, 0775);
+        chgrp($serializerAnnotations, 'www-data');
     }
 
     private static function rrmdir(string $src): void
