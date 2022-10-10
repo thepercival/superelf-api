@@ -13,7 +13,7 @@ class GoalEvent extends Event
         TeamPlayer $player,
         int $minute,
         protected FootballScore $score,
-        protected TeamPlayer|null $substitute)
+        protected TeamPlayer|null $assistPlayer)
     {
         parent::__construct($player, $minute);
     }
@@ -33,8 +33,8 @@ class GoalEvent extends Event
         return $this->score->value;
     }
 
-    public function getSubstitute(): TeamPlayer|null
+    public function getAssistPlayer(): TeamPlayer|null
     {
-        return $this->substitute;
+        return $this->assistPlayer;
     }
 }
