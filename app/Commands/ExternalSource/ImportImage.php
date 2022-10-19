@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+// php bin/console.php app:import:image sofascore teams --league=eredivisie --season=2022/2023
 class ImportImage extends ExternalSourceCommand
 {
     protected Importer $importer;
