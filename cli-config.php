@@ -43,5 +43,6 @@ Type::addType('enum_PointsCalculation', Sports\Ranking\PointsCalculationType::cl
 Type::addType('enum_PlanningState', SportsPlanning\Planning\StateType::class);
 Type::addType('enum_PlanningTimeoutState', SportsPlanning\Planning\TimeoutStateType::class);
 Type::addType('enum_GameState', Sports\Game\StateType::class);
-
+Type::addType('enum_BadgeCategory', SuperElf\Trophy\BadgeCategoryType::class);
+//$em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
 return ConsoleRunner::createHelperSet($em);

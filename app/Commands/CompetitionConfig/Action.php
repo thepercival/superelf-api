@@ -9,4 +9,5 @@ enum Action: string
     case UpdateAssemblePeriod = 'update-assemble-period';
     case UpdateTransferPeriod = 'update-transfer-period';
     case Show = 'show';
+    case Remove = 'remove';
 }

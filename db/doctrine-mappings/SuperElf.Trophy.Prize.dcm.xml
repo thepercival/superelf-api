@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="SuperElf\Trophy\Prize" table="prizes" repository-class="SuperElf\Trophy\Prize\Repository">
+        <unique-constraints>
+            <unique-constraint columns="competitionId,rank,poolUserId" name="main_u_idx"/>
+        </unique-constraints>
+    </entity>
+</doctrine-mapping>
+
+<!-- prizes
+Nr 1, 2 van de competities van alle pools van het seizoen
+Nr 1, 2 van de competitie van de pool
+Nr 1, 2 van de beker van de pool
+Nr 1, 2 van de cup van de pool
+Nr 1, 2 van de world-cup van de pool
+-->

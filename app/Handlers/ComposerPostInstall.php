@@ -51,14 +51,14 @@ class ComposerPostInstall
         $serializer = $pathPrefix . 'serializer';
 
         $serializerMetadata = $serializer . '/metadata';
-//        if (is_dir($serializerMetadata)) {
-//            static::rrmdir($serializerMetadata);
-//        }
-//
+        if (is_dir($serializerMetadata)) {
+            static::rrmdir($serializerMetadata);
+        }
+
         $serializerAnnotations = $serializer . '/annotations';
-//        if (is_dir($serializerAnnotations)) {
-//            static::rrmdir($serializerAnnotations);
-//        }
+        if (is_dir($serializerAnnotations)) {
+            static::rrmdir($serializerAnnotations);
+        }
 
         if (is_dir($serializer)) {
             static::rrmdir($serializer);

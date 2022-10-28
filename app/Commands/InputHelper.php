@@ -233,7 +233,7 @@ class InputHelper
         }
         $competitionConfig = $this->competitionConfigRepos->findOneBy(['sourceCompetition' => $competition]);
         if ($competitionConfig === null) {
-            throw new \Exception('competition not found', E_ERROR);
+            throw new \Exception('competitionConfig not found', E_ERROR);
         }
         return $competitionConfig;
     }

@@ -120,6 +120,8 @@ class CompetitionConfig extends Command
                     return $this->updateTransferPeriod($input);
                 case CompetitionConfigAction::Show:
                     return $this->show($input);
+                case CompetitionConfigAction::Remove:
+                    return $this->remove($input);
                 default:
                     throw new \Exception('onbekende actie', E_ERROR);
             }
@@ -240,6 +242,24 @@ class CompetitionConfig extends Command
         $output = new CompetitionConfigOutput($this->logger);
         $againstGames = $this->againstGameRepos->getCompetitionGames($competitionConfig->getSourceCompetition());
         $output->output($competitionConfig, $againstGames);
+        return 0;
+    }
+
+    protected function remove(InputInterface $input): int
+    {
+        $sourceCompetition = $this->inputHelper->getCompetitionFromInput($input);
+        if ($sourceCompetition === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+
+        $competitionConfigs = $this->competitionConfigRepos->findBy(['sourceCompetition' => $sourceCompetition]);
+        $nrOfCompetitionConfigs = count($competitionConfigs);
+        while( $competitionConfig = array_shift($competitionConfigs ) ) {
+            $this->competitionConfigRepos->remove($competitionConfig);
+        }
+
+        $this->getLogger()->info( $nrOfCompetitionConfigs . ' competitionConfigs removed');
+        // throw new \Exception('implement', E_ERROR);
         return 0;
     }
 }

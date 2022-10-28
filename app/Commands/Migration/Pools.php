@@ -30,6 +30,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * create competitionSeason
+ * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"  --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
+ * migrate competitionConfig
  * php bin/console.php app:migrate-pools --league=eredivisie --season=2015/2016 --loglevel=200
  */
 class Pools extends Command
@@ -139,6 +142,7 @@ class Pools extends Command
             $sql .= 'join Seasons s on s.id = cs.SeasonId ';
             $sql .= "where	c.name = '" . $comp->getLeague()->getName() . "'";
             $sql .= "and s.name = '" . $comp->getSeason()->getName() . "'";
+            $sql .= "and (select count(*) from UsersPerPool pu where pu.PoolId = p.Id) > 1";
 
             $stmt = $this->migrationConn->executeQuery($sql);
 
@@ -203,8 +207,8 @@ class Pools extends Command
         $sql .= 'join UsersPerPool pu on b.UsersPerPoolId = pu.Id ';
         $sql .= 'join Persons p on b.PersonId = p.Id ';
         $sql .= 'where pu.Id = ' . $oldPoolUserId . ' ';
-        $sql .= 'and b.StartDateTime > "' . $assembleStart->format('Y-m-d H:i:s') . '" ';
-        $sql .= 'and b.StartDateTime < "' . $assembleEnd->format('Y-m-d H:i:s') . '" ';
+        $sql .= 'and b.StartDateTime >= "' . $assembleStart->format('Y-m-d H:i:s') . '" ';
+        $sql .= 'and b.StartDateTime <= "' . $assembleEnd->modify('+2 hours')->format('Y-m-d H:i:s') . '" ';
         $sql .= 'order by b.Line, b.Number ';
 
         $stmt = $this->migrationConn->executeQuery($sql);

@@ -119,6 +119,8 @@ return [
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_PlanningTimeoutState');
         Type::addType('enum_GameState', Sports\Game\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
+        Type::addType('enum_BadgeCategory', SuperElf\Trophy\BadgeCategoryType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
 
         Type::overrideType('datetime_immutable', UTCDateTimeType::class);
         return $em;

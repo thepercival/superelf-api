@@ -56,7 +56,7 @@ class TeamPlayers extends Command
     {
         $this->initLogger($input, 'command-validate-team-players');
 
-        $this->getLogger()->info('for example checks if there are no overlapping player periods');
+        // $this->getLogger()->info('for example checks if there are no overlapping player periods');
 
 
         // $teamPlayerOutput = new TeamPlayerOutput($this->getLogger());
