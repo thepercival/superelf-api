@@ -338,13 +338,7 @@ class Import extends ExternalSourceCommand
 
         foreach ($minutesAfterStart as $nrOfMinutesAfterStart) {
             $startDateTime = $currentDateTime->sub(new \DateInterval('PT' . $nrOfMinutesAfterStart . 'M'));
-            if ($startDateTime === false) {
-                continue;
-            }
             $periodStart = $startDateTime->sub(new \DateInterval('PT1S'));
-            if ($periodStart === false) {
-                continue;
-            }
             $period = new Period($periodStart, $startDateTime->add(new \DateInterval('PT1S')));
 
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);

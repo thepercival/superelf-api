@@ -140,9 +140,6 @@ EOT;
             throw new Exception('je hebt je wachtwoord al gewijzigd, vraag opnieuw een nieuw wachtwoord aan', E_ERROR);
         }
         $forgetpasswordDeadlineTmp = $forgetpasswordDeadline->sub(new \DateInterval('P1D'));
-        if ($forgetpasswordDeadlineTmp === false) {
-            throw new Exception('je wachtwoord kan niet gewijzigd worden', E_ERROR);
-        }
         $forgetpasswordDeadline = $forgetpasswordDeadlineTmp->format('Y-m-d');
         $body = <<<EOT
 <p>Hallo,</p>

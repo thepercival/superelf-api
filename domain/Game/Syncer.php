@@ -15,6 +15,10 @@ use Sports\Game\Place\Together as TogetherGamePlace;
 use Sports\Game\State;
 use Sports\Game\Together as TogetherGame;
 use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\Poule;
+use Sports\Place\Repository as PlaceRepository;
+use Sports\Qualify\Service as QualifyService;
+use Sports\Round;
 use Sports\Score\Against as AgainstScore;
 use Sports\Score\Against\Repository as AgainstScoreRepository;
 use Sports\Score\Together as TogetherScore;
@@ -27,6 +31,7 @@ use SuperElf\CompetitionConfig;
 use SuperElf\Competitor as PoolCompetitor;
 use SuperElf\Formation;
 use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\League as S11League;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
@@ -46,6 +51,7 @@ class Syncer
         protected TogetherGameRepository $togetherGameRepos,
         protected AgainstScoreRepository $againstScoreRepos,
         protected TogetherScoreRepository $togetherScoreRepos,
+        protected PlaceRepository $placeRepos,
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
@@ -223,6 +229,7 @@ class Syncer
         return State::Created;
     }
 
+    /** @psalm-suppress UnusedVariable */
     public function updatePoolCupGames(
         CompetitionConfig $competitionConfig,
         AssemblePeriod|TransferPeriod $editPeriod,
@@ -233,6 +240,13 @@ class Syncer
         $competitors = $pool->getCompetitors($poolCompetition);
         $startLocationMap = new StartLocationMap($competitors);
         $competition = $competitionConfig->getSourceCompetition();
+
+//        if( $poolCompetition->getLeague() === S11League::Cup && $pool->getName() === 'kamp duim') {
+//            $erm = 12;
+//        }
+        // first get complete structure
+
+        $structure = $this->structureRepos->getStructure($poolCompetition);
 
         $againstGames = $this->againstGameRepos->getCompetitionGames($poolCompetition, null, $gameRoundNumber);
         foreach ($againstGames as $againstGame) {
@@ -248,14 +262,32 @@ class Syncer
 
             // als source finished dan game ook finished
             $sourceGameRoundState = $this->getSourceGameRoundState($competition, $gameRoundNumber);
-            if ($sourceGameRoundState !== $againstGame->getState()) {
-                $againstGame->setState($sourceGameRoundState);
+            if ($sourceGameRoundState === State::Finished) {
+                $againstGame->setState(State::Finished);
                 $this->againstGameRepos->save($againstGame, true);
                 $this->logger->info(
-                    'update gameRound ' . $gameRoundNumber . ' to state "' . $sourceGameRoundState->name
-                );
+                    '   update poolGameState to "' . State::Finished->name .'" for poule');
+
+                if( $againstGame->getPoule()->getGamesState() === State::Finished) {
+                    $this->logger->info('   poule finished : calculating qualify-places ..');
+                    $this->setQualifiedPlaces($againstGame->getPoule());
+                    // bye' s
+                    foreach ($this->getPoulesWithoutGames($againstGame->getPoule()->getRound()) as $pouleIt ) {
+                        $this->setQualifiedPlaces($pouleIt);
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * @param Round $round
+     * @return list<Poule>
+     */
+    protected function getPoulesWithoutGames(Round $round): array {
+        return array_values( $round->getPoules()->filter( function(Poule $poule): bool {
+            return count($poule->getGames()) === 0;
+        })->toArray() );
     }
 
     protected function createAndSaveAgainstScores(
@@ -289,6 +321,19 @@ class Syncer
             GamePhase::RegularTime
         );
         $this->againstScoreRepos->save($score, true);
+    }
+
+    protected function setQualifiedPlaces(Poule $poule): void {
+        $qualifyService = new QualifyService($poule->getRound());
+        $changedPlaces = $qualifyService->setQualifiers($poule);
+        foreach( $changedPlaces as $changedPlace) {
+            if( $changedPlace->getGamesState() !== State::Created ) {
+                $this->logger->info('       qualifyPlace not set, because already has finished games');
+                continue;
+            }
+            $this->logger->info('       set qualifyPlace for ' . $changedPlace->getStructureLocation());
+            $this->placeRepos->save($changedPlace, true );
+        }
     }
 
     protected function getFormation(

@@ -20,6 +20,8 @@ use Sports\Person;
 use Sports\Person\Repository as PersonRepository;
 use Sports\Poule;
 use Sports\Poule\Repository as PouleRepository;
+use Sports\Place;
+use Sports\Place\Repository as PlaceRepository;
 use Sports\Score\Against as AgainstScore;
 use Sports\Score\Against\Repository as AgainstScoreRepository;
 use Sports\Score\Together as TogetherScore;
@@ -389,5 +391,11 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(Poule::class);
         return new PouleRepository($entityManager, $metaData);
+    },
+    PlaceRepository::class => function (ContainerInterface $container): PlaceRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Place::class);
+        return new PlaceRepository($entityManager, $metaData);
     },
 ];
