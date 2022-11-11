@@ -241,11 +241,7 @@ class Syncer
         $startLocationMap = new StartLocationMap($competitors);
         $competition = $competitionConfig->getSourceCompetition();
 
-//        if( $poolCompetition->getLeague() === S11League::Cup && $pool->getName() === 'kamp duim') {
-//            $erm = 12;
-//        }
         // first get complete structure
-
         $structure = $this->structureRepos->getStructure($poolCompetition);
 
         $againstGames = $this->againstGameRepos->getCompetitionGames($poolCompetition, null, $gameRoundNumber);
