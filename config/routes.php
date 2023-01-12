@@ -12,6 +12,7 @@ use App\Actions\Pool\ShellAction;
 use App\Actions\Pool\UserAction as PoolUserAction;
 use App\Actions\PoolAction;
 use App\Actions\ScoutedPlayerAction;
+use App\Actions\SeasonAction;
 use App\Actions\Sports\AgainstGameAction;
 use App\Actions\Sports\CompetitionAction;
 use App\Actions\Sports\StructureAction;
@@ -51,6 +52,91 @@ return function (App $app): void {
 
             $group->options('/shells', ShellAction::class . ':options');
             $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
+            $group->options('/seasons', SeasonAction::class . ':options');
+            $group->get('/seasons', SeasonAction::class . ':fetch')->add(VersionMiddleware::class);
+            $group->options('/pools/{poolId}', PoolAction::class . ':options');
+            $group->get('/pools/{poolId}', PoolAction::class . ':fetchOne')->add(PoolMiddleware::class);
+
+            $group->group(
+                '/competitionconfigs',
+                function (Group $group): void {
+                    $group->options('/active', CompetitionConfigAction::class . ':options');
+                    $group->get('/active', CompetitionConfigAction::class . ':fetchActive');
+
+                    $group->group(
+                        '/{competitionConfigId}/',
+                        function (Group $group): void {
+                            $group->options('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':options');
+                            $group->get('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':fetchCustom');
+
+                            $group->options('availableformations', CompetitionConfigAction::class . ':options');
+                            $group->get('availableformations', CompetitionConfigAction::class . ':fetchAvailableFormations');
+                        }
+                    );
+                }
+
+            )->add(VersionMiddleware::class);
+
+            $group->group(
+                '/competitions/{competitionId}',
+                function (Group $group): void {
+                    $group->options('', CompetitionAction::class . ':options');
+                    $group->get('', CompetitionAction::class . ':fetchOne');
+
+                    $group->group(
+                        '/gamerounds/{gameRoundNumber}',
+                        function (Group $group): void {
+                            $group->options('', AgainstGameAction::class . ':options');
+                            $group->get('', AgainstGameAction::class . ':fetch');
+                        },
+                    );
+                    $group->group(
+                        '/sourcegames/{gameId}',
+                        function (Group $group): void {
+                            $group->group(
+                                '/lineups/{side}',
+                                function (Group $group): void {
+                                    $group->options('', AgainstGameAction::class . ':options');
+                                    $group->get('', AgainstGameAction::class . ':fetchLineup');
+                                },
+                            );
+                            $group->group(
+                                '/events/{side}',
+                                function (Group $group): void {
+                                    $group->options('', AgainstGameAction::class . ':options');
+                                    $group->get('', AgainstGameAction::class . ':fetchEvents');
+                                },
+                            );
+                        },
+                    );
+                    $group->group(
+                        '/structure',
+                        function (Group $group): void {
+                            $group->options('', StructureAction::class . ':options');
+                            $group->get('', StructureAction::class . ':fetchOne');
+                        },
+                    );
+                },
+            )->add(VersionMiddleware::class);
+
+            $group->group(
+                '/pools',
+                function (Group $group): void {
+                    $group->group(
+                        '/{poolId}/',
+                        function (Group $group): void {
+
+                            $group->group(
+                                'users',
+                                function (Group $group): void {
+                                    $group->options('/{poolUserId}', PoolUserAction::class . ':options');
+                                    $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne');
+                                }
+                            );
+                        },
+                    );
+                }
+            )->add(PoolMiddleware::class)->add(VersionMiddleware::class);
         }
     );
 
@@ -63,26 +149,6 @@ return function (App $app): void {
             $group->put('/profile/{userId}', AuthAction::class . ':profile');
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
-
-    $app->group(
-        '/competitionconfigs',
-        function (Group $group): void {
-            $group->options('/active', CompetitionConfigAction::class . ':options');
-            $group->get('/active', CompetitionConfigAction::class . ':fetchActive');
-
-            $group->group(
-                '/{competitionConfigId}/',
-                function (Group $group): void {
-                    $group->options('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':options');
-                    $group->get('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':fetchCustom');
-
-                    $group->options('availableformations', CompetitionConfigAction::class . ':options');
-                    $group->get('availableformations', CompetitionConfigAction::class . ':fetchAvailableFormations');
-                }
-            );
-        }
-
-    )->add(VersionMiddleware::class);
 
     $app->group(
         '/users/{userId}',
@@ -219,48 +285,6 @@ return function (App $app): void {
             $group->post('', PlayerAction::class . ':fetch');
         }
     )->add(VersionMiddleware::class);*/
-
-    $app->group(
-        '/competitions/{competitionId}',
-        function (Group $group): void {
-            $group->options('', CompetitionAction::class . ':options');
-            $group->get('', CompetitionAction::class . ':fetchOne');
-
-            $group->group(
-                '/gamerounds/{gameRoundNumber}',
-                function (Group $group): void {
-                    $group->options('', AgainstGameAction::class . ':options');
-                    $group->get('', AgainstGameAction::class . ':fetch');
-                },
-            );
-            $group->group(
-                '/sourcegames/{gameId}',
-                function (Group $group): void {
-                    $group->group(
-                        '/lineups/{side}',
-                        function (Group $group): void {
-                            $group->options('', AgainstGameAction::class . ':options');
-                            $group->get('', AgainstGameAction::class . ':fetchLineup');
-                        },
-                    );
-                    $group->group(
-                        '/events/{side}',
-                        function (Group $group): void {
-                            $group->options('', AgainstGameAction::class . ':options');
-                            $group->get('', AgainstGameAction::class . ':fetchEvents');
-                        },
-                    );
-                },
-            );
-            $group->group(
-                '/structure',
-                function (Group $group): void {
-                    $group->options('', StructureAction::class . ':options');
-                    $group->get('', StructureAction::class . ':fetchOne');
-                },
-            );
-        },
-    )->add(VersionMiddleware::class);
 
     $app->group(
         '/viewperiods/{viewPeriodId}/scoutedplayers',

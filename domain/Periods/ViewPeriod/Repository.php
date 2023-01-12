@@ -9,7 +9,7 @@ use Sports\Competition;
 use Sports\Poule;
 use SportsHelpers\Repository as BaseRepository;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
-use SportsHelpers\Sport\VariantWithPoule;
+use SportsHelpers\Sport\Variant\WithPoule\Against\H2h as AgainstH2hWithPoule;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 /**
@@ -55,7 +55,7 @@ class Repository extends EntityRepository
 //    where (select count(*) from games where startDateTime > vp.startDateTime and startDateTime < vp.endDateTime and resourceBatch = 1 )  > 4.5
     public function findGameRoundOwner(Poule $poule, AgainstH2h $sportVariant, int $gameRoundNumber): ?ViewPeriod
     {
-        $variantWithPoule = new VariantWithPoule($sportVariant, count($poule->getPlaces()));
+        $variantWithPoule = new AgainstH2hWithPoule(count($poule->getPlaces()), $sportVariant);
         $halfNrOfGamesPerRound = (int)floor($variantWithPoule->getNrOfGamesSimultaneously() / 2);
 
         $exprCount = $this->getEntityManager()->getExpressionBuilder();

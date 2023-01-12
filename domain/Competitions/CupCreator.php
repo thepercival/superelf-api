@@ -37,15 +37,18 @@ class CupCreator extends BaseCreator
     {
         // $nrOfRounds = $this->getNrOfRounds($nrOfValidPoolUsers);
         $nrOfQualifiers = $this->getNrOfQualifiers($nrOfValidPoolUsers);
-        $pouleStructure = $this->createPouleStructure($nrOfValidPoolUsers, $nrOfQualifiers);
-        $structure = $this->structureEditor->create($competition, $pouleStructure->toArray());
+        $firstRoundPouleStructure = $this->createPouleStructure($nrOfValidPoolUsers, $nrOfQualifiers);
+        $structure = $this->structureEditor->create($competition, $firstRoundPouleStructure->toArray());
         $round = $structure->getSingleCategory()->getRootRound();
         $this->updateAgainstQualifyConfig($round, $competition->getSingleSport());
+//        if( $firstRoundPouleStructure->getNrOfPlaces() % 2 === 0) {
+//            $nrOfQualifiers = (int)($nrOfQualifiers / 2);
+//        }
         while ($nrOfQualifiers > 1) {
-            $nextNrOfQualifiers = (int)($nrOfQualifiers / 2);
+            $nextNrOfQualifiers = $this->getNrOfQualifiers($nrOfQualifiers);
             $pouleStructure = $this->createPouleStructure($nrOfQualifiers, $nextNrOfQualifiers);
             $round = $this->structureEditor->addChildRound($round, Target::Winners, $pouleStructure->toArray());
-            $nrOfQualifiers = (int)($nrOfQualifiers / 2);
+            $nrOfQualifiers = $nextNrOfQualifiers;
         }
         return $structure;
     }
@@ -204,7 +207,7 @@ class CupCreator extends BaseCreator
             throw new \Exception('too many competitors', E_ERROR);
         }
         $nrOfQualifiers = 32;
-        while ($nrOfCompetitors < $nrOfQualifiers) {
+        while ($nrOfCompetitors <= $nrOfQualifiers) {
             if ($nrOfQualifiers === 1) {
                 return 0;
             }
@@ -213,32 +216,35 @@ class CupCreator extends BaseCreator
         return $nrOfQualifiers;
     }
 
-    protected function createPouleStructure(int $nrOfCompetitors, int $nrOfQualifiers): BalancedPouleStructure
+    protected function createPouleStructure(int $nrOfPlaces, int $nextNrOfPlaces): BalancedPouleStructure
     {
         $creator = new BalancedPouleStructureCreator();
-        $nrOfPoules = $this->calculateNrOfPoules($nrOfCompetitors, $nrOfQualifiers);
-        return $creator->createBalanced($nrOfCompetitors, $nrOfPoules);
+        $nrOfPoules = $this->calculateNrOfPoules($nrOfPlaces, $nextNrOfPlaces);
+        return $creator->createBalanced($nrOfPlaces, $nrOfPoules);
     }
 
-    protected function calculateNrOfPoules(int $nrOfCompetitors, int $nrOfQualifiers): int
+    protected function calculateNrOfPoules(int $nrOfPlaces, int $nextNrOfPlaces): int
     {
         $nrOfPoules = 0;
         $nrOfPlacesPerPoule = 2;
-        while ($nrOfCompetitors >= $nrOfPlacesPerPoule) {
+        while ($nrOfPlaces > 0) {
             $nrOfPoules++;
-            $nrOfCompetitors -= $nrOfPlacesPerPoule;
+            $nrOfPlaces -= $nrOfPlacesPerPoule;
+            if($nrOfPlacesPerPoule > 1 && ($nrOfPlaces + $nrOfPoules) === $nextNrOfPlaces) {
+                $nrOfPlacesPerPoule--;
+            }
         }
-        return $nrOfPoules + $nrOfCompetitors;
+        return $nrOfPoules;
     }
 
-    protected function calculateNrOfRounds(int $nrOfCompetitors): int
-    {
-        $nrOfRounds = 0;
-        $nrOfPlaces = 1;
-        while ($nrOfPlaces <= $nrOfCompetitors) {
-            $nrOfRounds++;
-            $nrOfPlaces = (int)($nrOfPlaces * 2);
-        }
-        return $nrOfRounds;
-    }
+//    protected function calculateNrOfRounds(int $nrOfCompetitors): int
+//    {
+//        $nrOfRounds = 0;
+//        $nrOfPlaces = 1;
+//        while ($nrOfPlaces <= $nrOfCompetitors) {
+//            $nrOfRounds++;
+//            $nrOfPlaces = (int)($nrOfPlaces * 2);
+//        }
+//        return $nrOfRounds;
+//    }
 }

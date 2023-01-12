@@ -22,7 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:competitionconfig
+ * php bin/console.php app:admin-competitionconfigs
  *      create                  --league=Eredivisie
  *                              --season=2014/2015
  *                              --createAndJoinStart="2014-07-23 12:00"

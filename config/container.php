@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Mailer;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection as DBConnection;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\DeserializationContext;
@@ -93,9 +95,8 @@ return [
         $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($entityPath);
         $docConfig->setMetadataDriverImpl($driver);
 
-        /** @var array<string, mixed> $connectionParams */
-        $connectionParams = $doctrineAppConfig['connection'];
-        $em = Doctrine\ORM\EntityManager::create($connectionParams, $docConfig);
+        $connection = DriverManager::getConnection($doctrineAppConfig['connection'], $docConfig, new EventManager());
+        $em = new Doctrine\ORM\EntityManager($connection, $docConfig);
 
         Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');

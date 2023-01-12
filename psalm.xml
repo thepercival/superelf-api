@@ -10,7 +10,7 @@
         <directory name="config/"/>
         <directory name="domain/"/>
         <directory name="tests/cases/"/>
-<!--        <directory name="serialization/handler/"/>-->
+        <directory name="tests/helpers"/>
         <ignoreFiles>
             <directory name="vendor"/>
             <directory name="app/Commands/Migration"/>

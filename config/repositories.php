@@ -56,6 +56,7 @@ use SportsImport\CacheItemDb;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SuperElf\Season\Repository as S11SeasonRepository;
 use SuperElf\ChatMessage;
 use SuperElf\ChatMessage\Repository as ChatMessageRepository;
 use SuperElf\ChatMessage\Unread as UnreadChatMessage;
@@ -398,4 +399,10 @@ return [
         $metaData = $entityManager->getClassMetadata(Place::class);
         return new PlaceRepository($entityManager, $metaData);
     },
+    S11SeasonRepository::class => function (ContainerInterface $container): S11SeasonRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Season::class);
+        return new S11SeasonRepository($entityManager, $metaData);
+    }
 ];

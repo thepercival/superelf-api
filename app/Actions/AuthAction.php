@@ -141,8 +141,12 @@ final class AuthAction extends Action
             $password = (string)$authData->password;
             $user = $this->userRepos->findOneBy(array('emailaddress' => $emailaddress));
 
-            if ($user === null ||
-                (!password_verify($user->getSalt() . $password, $user->getPassword())
+            if ($user === null) {
+                throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
+            }
+            $environment = $this->config->getString('environment');
+            if (!($environment === 'development' && $this->config->getBool('ignorePassword') === true)
+                && (!password_verify($user->getSalt() . $password, $user->getPassword())
                     && hash('sha512', $user->getSalt() . $password) !== $user->getPassword())
             ) {
                 throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");

@@ -48,8 +48,9 @@ class Repository extends EntityRepository
         $query = $this->createQueryBuilder('p')
             ->join("p.collection", "pc")
             ->join("pc.association", "a")
-            ->join("p.sourceCompetition", "sourceC")
-            ->join("sourceC.season", "s")
+            ->join("p.competitionConfig", "cc")
+            ->join("cc.sourceCompetition", "sc")
+            ->join("sc.season", "s")
         ;
 
         if ($startDateTime !== null) {

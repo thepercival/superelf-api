@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use Doctrine\Common\EventManager;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 
 require 'vendor/autoload.php';
@@ -30,7 +33,8 @@ $proxyDir = $settings['meta']['proxy_dir'];
 $config->setProxyDir($proxyDir);
 $config->setProxyNamespace('superelf');
 
-$em = \Doctrine\ORM\EntityManager::create($settings['connection'], $config);
+$connection = DriverManager::getConnection($settings['connection'], $config, new EventManager());
+$em = new Doctrine\ORM\EntityManager($connection, $config);
 
 Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
 Type::addType('enum_AgainstResult', SportsHelpers\Against\ResultType::class);
@@ -45,4 +49,5 @@ Type::addType('enum_PlanningTimeoutState', SportsPlanning\Planning\TimeoutStateT
 Type::addType('enum_GameState', Sports\Game\StateType::class);
 Type::addType('enum_BadgeCategory', SuperElf\Trophy\BadgeCategoryType::class);
 //$em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
-return ConsoleRunner::createHelperSet($em);
+
+return new SingleManagerProvider($em);

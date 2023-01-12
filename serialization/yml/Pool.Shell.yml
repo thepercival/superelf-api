@@ -16,3 +16,7 @@ SuperElf\Pool\Shell:
     roles:
       type: integer
       read_only: true
+    nrOfUsers:
+      groups: [ nrOfUsers ]
+      type: integer
+      read_only: true

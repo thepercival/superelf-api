@@ -14,8 +14,9 @@ class Shell
     private string $name;
     private string $seasonName;
     private int $roles;
+    private int|null $nrOfUsers = null;
 
-    public function __construct(Pool $pool, User $user = null)
+    public function __construct(Pool $pool, User $user = null, bool $nrOfUsers = false)
     {
         $this->poolId = (string)$pool->getId();
         $this->name = $pool->getName();
@@ -30,6 +31,9 @@ class Shell
                     $this->roles += Role::ADMIN;
                 }
             }
+        }
+        if( $nrOfUsers ) {
+            $this->nrOfUsers = count($pool->getUsers());
         }
     }
 
@@ -51,5 +55,13 @@ class Shell
     public function getRoles(): int
     {
         return $this->roles;
+    }
+
+    public function getNrOfUsers(): int
+    {
+        if( $this->nrOfUsers === null ) {
+            throw new \Exception('should be initialized with nrOfUsers = true', E_ERROR);
+        }
+        return $this->nrOfUsers;
     }
 }

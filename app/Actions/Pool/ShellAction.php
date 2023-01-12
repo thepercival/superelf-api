@@ -6,29 +6,26 @@ namespace App\Actions\Pool;
 
 use App\Actions\Action;
 use App\Response\ErrorResponse;
+use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Season\Repository as S11SeasonRepository;
 use SuperElf\Pool\Shell;
 use SuperElf\User;
 
 final class ShellAction extends Action
 {
-    /**
-     * @var PoolRepository
-     */
-    private $poolRepos;
-
     public function __construct(
-        LoggerInterface $logger,
-        SerializerInterface $serializer,
-        PoolRepository $poolRepos
+        protected SerializerInterface $serializer,
+        protected PoolRepository $poolRepos,
+        protected S11SeasonRepository $s11SeasonRepos,
+        LoggerInterface $logger
     ) {
         parent::__construct($logger, $serializer);
-        $this->poolRepos = $poolRepos;
-        $this->serializer = $serializer;
+
     }
 
     /**
@@ -44,6 +41,8 @@ final class ShellAction extends Action
         try {
             $queryParams = $request->getQueryParams();
 
+            $nrOfUsers = false;
+
             $name = null;
             if (array_key_exists("name", $queryParams)) {
                 $nameParam = (string)$queryParams["name"];
@@ -52,13 +51,31 @@ final class ShellAction extends Action
                 }
             }
 
-            $shells = [];
-            $poolsByDates = $this->poolRepos->findByFilter($name);
-            foreach ($poolsByDates as $pool) {
-                $shells[] = new Shell($pool, $user);
+            $startDateTime = null;
+            $endDateTime = null;
+            if (array_key_exists("seasonId", $queryParams)) {
+                $nrOfUsers = true;
+                $seasonIdParam = (string)$queryParams["seasonId"];
+                if (strlen($seasonIdParam) > 0) {
+                    $season = $this->s11SeasonRepos->find($seasonIdParam);
+                    if( $season !== null ) {
+                        $startDateTime = $season->getStartDateTime();
+                        $endDateTime = $season->getEndDateTime();
+                    }
+
+
+                }
             }
 
-            $json = $this->serializer->serialize($shells, 'json');
+            $context = $this->getSerializationContext( $nrOfUsers ?  ['nrOfUsers'] : [] );
+
+            $shells = [];
+            $poolsByDates = $this->poolRepos->findByFilter($name, $startDateTime, $endDateTime);
+            foreach ($poolsByDates as $pool) {
+                $shells[] = new Shell($pool, $user, $nrOfUsers);
+            }
+
+            $json = $this->serializer->serialize($shells, 'json', $context);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);

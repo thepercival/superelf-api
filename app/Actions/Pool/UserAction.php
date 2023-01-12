@@ -46,14 +46,15 @@ final class UserAction extends Action
             if ($poolUser->getPool() !== $pool) {
                 return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
             }
-            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
-            }
-            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
-            }
 
-            return $this->fetchOneHelper($response, $poolUser, false);
+            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())
+            || $pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())
+            ) {
+                $withFormations = false;
+            } else {
+                $withFormations = true;
+            }
+            return $this->fetchOneHelper($response, $poolUser, false, $withFormations);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
@@ -78,15 +79,19 @@ final class UserAction extends Action
                 return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
             }
 
-            return $this->fetchOneHelper($response, $poolUser, true);
+            return $this->fetchOneHelper($response, $poolUser, true, true);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
-    public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self): Response
+    public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self, bool $withFormations): Response
     {
-        $serGroups = ['formations'];
+        if( $withFormations ) {
+            $serGroups = ['formations'];
+        } else {
+            $serGroups = [];
+        }
         if ($self) {
             $serGroups[] = 'admin';
         }
