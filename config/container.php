@@ -95,7 +95,9 @@ return [
         $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($entityPath);
         $docConfig->setMetadataDriverImpl($driver);
 
-        $connection = DriverManager::getConnection($doctrineAppConfig['connection'], $docConfig, new EventManager());
+        /** @var array<string, string|bool|null> $doctrineConnectionConfig */
+        $doctrineConnectionConfig = $doctrineAppConfig['connection'];
+        $connection = DriverManager::getConnection($doctrineConnectionConfig, $docConfig, new EventManager());
         $em = new Doctrine\ORM\EntityManager($connection, $docConfig);
 
         Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);

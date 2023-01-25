@@ -83,20 +83,26 @@ class CompetitionConfig extends Identifiable
         return $this->assemblePeriod;
     }
 
+    public function updateAssemblePeriod(Period $period): void
+    {
+        $this->createAndJoinPeriod->setEndDateTime($period->getEndDate());
+        $this->assemblePeriod->setStartDateTime($period->getStartDate());
+        $this->assemblePeriod->setEndDateTime($period->getEndDate());
+        $this->assemblePeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
+    }
+
     public function getTransferPeriod(): TransferPeriod
     {
         return $this->transferPeriod;
     }
 
-    public function updateAssemblePeriod(\League\Period\Period $period): void
+    public function updateTransferPeriod(Period $period): void
     {
-        $this->assemblePeriod->setStartDateTime($period->getStartDate());
-
-        $this->createAndJoinPeriod->setEndDateTime($period->getEndDate());
-        $this->assemblePeriod->setEndDateTime($period->getEndDate());
-        $this->assemblePeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
+        $this->assemblePeriod->getViewPeriod()->setEndDateTime($period->getStartDate());
+        $this->transferPeriod->setStartDateTime($period->getStartDate());
+        $this->transferPeriod->setEndDateTime($period->getEndDate());
+        $this->transferPeriod->getViewPeriod()->setStartDateTime($period->getStartDate());
     }
-
 
     /**
      * @param Period|null $period = null

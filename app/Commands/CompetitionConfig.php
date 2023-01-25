@@ -9,6 +9,7 @@ use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SuperElf\CompetitionConfig\Administrator;
+use SuperElf\CompetitionConfig as CompetitionConfigBase;
 use SuperElf\CompetitionConfig\Output as CompetitionConfigOutput;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
@@ -22,17 +23,24 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:admin-competitionconfigs
+ * php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
  *      create                  --league=Eredivisie
  *                              --season=2014/2015
  *                              --createAndJoinStart="2014-07-23 12:00"
  *                              --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"
  *                              --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00"
  *                              --loglevel=200
+ * php bin/console.php app:admin-competitionconfigs update-assemble-period  --league=Eredivisie --season=2022/2023 --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30" --loglevel=200
  *      update-assemble-period  --league=Eredivisie
  *                              --season=2022/2023
  *                              --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30"
  *                              --loglevel=200
+ * php bin/console.php app:admin-competitionconfigs update-transfer-period  --league=Eredivisie --season=2022/2023 --transferPeriod="2023-01-23 15:00=>2023-01-24 18:45" --loglevel=200
+ *      update-transfer-period  --league=Eredivisie
+ *                              --season=2022/2023
+ *                              --transferPeriod="2023-01-23 15:00=>2023-01-24 18:45"
+ *                              --loglevel=200
+ * php bin/console.php app:admin-competitionconfigs show --league=Eredivisie --season=2022/2023
  *      show                    --league=Eredivisie
  *                              --season=2022/2023
  */
@@ -179,12 +187,36 @@ class CompetitionConfig extends Command
             $this->againstGameRepos->getCompetitionGames($competition)
         );
         $this->competitionConfigRepos->save($competitionConfig);
+        $this->getLogger()->info('competitionConfig updated and saved assemblePeriod');
 
-        $this->getLogger()->info('competitionConfig updated and saved');
+        $this->syncGameRoundNumbers($competition, $competitionConfig);
+        $this->getLogger()->info('s11Player, statistics and appearances synced');
 
-        // $leagueName = $competition->getLeague()->getName();
-        // $seasonName = $competition->getSeason()->getName();
+        return 0;
+    }
 
+    protected function updateTransferPeriod(InputInterface $input): int
+    {
+        $competition = $this->inputHelper->getCompetitionFromInput($input);
+        if ($competition === null) {
+            throw new \Exception('competition not found', E_ERROR);
+        }
+        $admin = $this->getAdministrator($competition);
+        $competitionConfig = $admin->updateTransferPeriod(
+            $competition,
+            $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
+            $this->againstGameRepos->getCompetitionGames($competition)
+        );
+        $this->competitionConfigRepos->save($competitionConfig);
+        $this->getLogger()->info('competitionConfig updated and saved transferPeriod');
+
+        $this->syncGameRoundNumbers($competition, $competitionConfig);
+        $this->getLogger()->info('s11Player, statistics and appearances synced');
+
+        return 0;
+    }
+
+    private function syncGameRoundNumbers(Competition $competition, CompetitionConfigBase $competitionConfig): void {
         $changedGameRoundNumbers = $this->gameRoundSyncer->sync($competitionConfig);
         $this->getLogger()->info(count($changedGameRoundNumbers) . ' gameRoundNumbers synced');
 
@@ -202,37 +234,6 @@ class CompetitionConfig extends Command
                 $this->totalsSyncer->sync($competitionConfig, $game);
             }
         }
-        $this->getLogger()->info('s11Player, statistics and appearances synced');
-
-        return 0;
-    }
-
-    protected function updateTransferPeriod(InputInterface $input): int
-    {
-//        $competition = $this->inputHelper->getCompetitionFromInput($input);
-//        if ($competition === null) {
-//            throw new \Exception('competition not found', E_ERROR);
-//        }
-//        $admin = $this->getAdministrator($competition);
-//        $competitionConfig = $admin->create(
-//            $competition,
-//            $this->inputHelper->getDateTimeFromInput($input, 'createAndJoinStart'),
-//            $this->inputHelper->getPeriodFromInput($input, 'assemblePeriod'),
-//            $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
-//            $this->againstGameRepos->getCompetitionGames($competition)
-//        );
-//        $this->competitionConfigRepos->save($competitionConfig);
-//        $this->getLogger()->info('competitionConfig created and saved');
-        throw new \Exception('implement', E_ERROR);
-        // return 0;
-
-        // input seasonname and TransferPeriod-dates
-
-        // check if     no games within period
-        //              if after assembleperiod end
-        //              if before season end
-        //              check if no transfers has been done? maybe check if is in past and show warning
-        //              run gameRoundSync in some way
     }
 
     protected function show(InputInterface $input): int

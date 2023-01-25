@@ -43,20 +43,15 @@ class Administrator
     ): CompetitionConfig {
         $this->validateNonexistance($sourceCompetition);
 
-        $assembleStart = $assemblePeriodInput->getStartDate();
-        $season = $sourceCompetition->getSeason();
-        $seasonStart = $season->getPeriod()->getStartDate();
-        $this->validateCreateAndJoinStart($createAndJoinStart, $seasonStart, $assembleStart);
-        $transferStart = $transferPeriodInput->getStartDate();
-        $this->validateAssemblePeriod(
+        $this->validatePeriods(
+            $sourceCompetition,
             $assemblePeriodInput,
             $createAndJoinStart,
-            $transferStart,
+            $transferPeriodInput,
             $sourceCompetitionGames
         );
-        $assembleEnd = $assemblePeriodInput->getEndDate();
+        $season = $sourceCompetition->getSeason();
         $seasonEnd = $season->getPeriod()->getEndDate();
-        $this->validateTransferPeriod($transferPeriodInput, $assembleEnd, $seasonEnd, $sourceCompetitionGames);
 
         $assembleEnd = $assemblePeriodInput->getEndDate();
         $assembleViewPeriod = new ViewPeriod(new Period($assembleEnd, $transferPeriodInput->getStartDate()));
@@ -78,11 +73,8 @@ class Administrator
 
     /**
      * @param Competition $sourceCompetition
-     * @param DateTimeImmutable $createAndJoinStart
      * @param Period $assemblePeriodInput
-     * @param Period $transferPeriodInput
      * @param list<AgainstGame> $sourceCompetitionGames
-     * @return CompetitionConfig
      * @throws \League\Period\Exception
      */
     public function updateAssemblePeriod(
@@ -91,31 +83,74 @@ class Administrator
         array $sourceCompetitionGames
     ): CompetitionConfig {
         $competitionConfig = $this->getCompetitionConfig($sourceCompetition);
-        $season = $sourceCompetition->getSeason();
-        $seasonStart = $season->getPeriod()->getStartDate();
 
-        $createAndJoinPeriod = $competitionConfig->getCreateAndJoinPeriod();
-        $assembleStart = $assemblePeriodInput->getStartDate();
-        $this->validateCreateAndJoinStart($createAndJoinPeriod->getStartDateTime(), $seasonStart, $assembleStart);
-
-        $this->validateAssemblePeriod(
+        $this->validatePeriods(
+            $sourceCompetition,
             $assemblePeriodInput,
-            $createAndJoinPeriod->getStartDateTime(),
-            $competitionConfig->getTransferPeriod()->getStartDateTime(),
-            $sourceCompetitionGames
-        );
-
-        $assembleEnd = $assemblePeriodInput->getEndDate();
-        $seasonEnd = $season->getPeriod()->getEndDate();
-        $this->validateTransferPeriod(
+            $competitionConfig->getCreateAndJoinPeriod()->getStartDateTime(),
             $competitionConfig->getTransferPeriod()->getPeriod(),
-            $assembleEnd,
-            $seasonEnd,
             $sourceCompetitionGames
         );
 
         $competitionConfig->updateAssemblePeriod($assemblePeriodInput);
         return $competitionConfig;
+    }
+
+    /**
+     * @param Competition $sourceCompetition
+     * @param Period $transferPeriodInput
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @throws \League\Period\Exception
+     */
+    public function updateTransferPeriod(
+        Competition $sourceCompetition,
+        Period $transferPeriodInput,
+        array $sourceCompetitionGames
+    ): CompetitionConfig {
+        $competitionConfig = $this->getCompetitionConfig($sourceCompetition);
+
+        $this->validatePeriods(
+            $sourceCompetition,
+            $competitionConfig->getAssemblePeriod()->getPeriod(),
+            $competitionConfig->getCreateAndJoinPeriod()->getStartDateTime(),
+            $transferPeriodInput,
+            $sourceCompetitionGames
+        );
+
+        $competitionConfig->updateTransferPeriod($transferPeriodInput);
+        return $competitionConfig;
+    }
+
+    /**
+     * @param Competition $sourceCompetition
+     * @param Period $assemblePeriodInput
+     * @param DateTimeImmutable $createAndJoinStart
+     * @param Period $transferPeriodInput
+     * @param list<AgainstGame> $sourceCompetitionGames
+     * @return void
+     * @throws \Exception
+     */
+    private function validatePeriods(
+        Competition $sourceCompetition,
+        Period $assemblePeriodInput,
+        DateTimeImmutable $createAndJoinStart,
+        Period $transferPeriodInput,
+        array $sourceCompetitionGames
+    ): void {
+        $assembleStart = $assemblePeriodInput->getStartDate();
+        $season = $sourceCompetition->getSeason();
+        $seasonStart = $season->getPeriod()->getStartDate();
+        $this->validateCreateAndJoinStart($createAndJoinStart, $seasonStart, $assembleStart);
+        $transferStart = $transferPeriodInput->getStartDate();
+        $this->validateAssemblePeriod(
+            $assemblePeriodInput,
+            $createAndJoinStart,
+            $transferStart,
+            $sourceCompetitionGames
+        );
+        $assembleEnd = $assemblePeriodInput->getEndDate();
+        $seasonEnd = $season->getPeriod()->getEndDate();
+        $this->validateTransferPeriod($transferPeriodInput, $assembleEnd, $seasonEnd, $sourceCompetitionGames);
     }
 
     protected function validateNonexistance(Competition $sourceCompetition): void
