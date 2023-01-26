@@ -77,12 +77,12 @@ class Converter
         GameRound $gameRound,
         AgainstGame $game
     ): Statistics {
-        $player = $this->oneTeamSimultaneous->getPlayer($s11Player->getPerson(), $game->getStartDateTime());
-        if ($player === null) {
-            throw new \Exception('"' . $s11Player->getPerson()->getName() .'" is no active player at "' . $game->getStartDateTime()->format(
-                DateTimeInterface::ISO8601
-            ) .'"', E_ERROR);
-        }
+//        $player = $this->oneTeamSimultaneous->getPlayer($s11Player->getPerson(), $game->getStartDateTime());
+//        if ($player === null) {
+//            throw new \Exception('"' . $s11Player->getPerson()->getName() .'" is no active player at "' . $game->getStartDateTime()->format(
+//                DateTimeInterface::ISO8601
+//            ) .'"', E_ERROR);
+//        }
         return new Statistics(
             $s11Player,
             $gameRound,

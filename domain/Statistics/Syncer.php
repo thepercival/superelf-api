@@ -110,7 +110,7 @@ class Syncer
             $player = $person->getPlayer($team, $game->getStartDateTime());
             if ($player === null) {
                 $this->logNoS11Player($person, $team, $game->getStartDateTime());
-                continue;
+                // continue;
             }
             $gameParticipation = $this->getGameParticipation($s11Player, $gameParticipations);
             $oldStatistics = $s11Player->getGameRoundStatistics($gameRound);
@@ -178,7 +178,7 @@ class Syncer
         $this->logInfo(
             '  voor "' . $person->getName() . '" en team "' . $team->getName() . '" op "' . $dateTime->format(
                 'Y-m-d'
-            ) . '" is geen spelersperiode gevonden'
+            ) . '" is geen spelersperiode gevonden, kan zijn dat de speler is getransfereerd'
         );
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod()->toIso80000('Y-m-d');
