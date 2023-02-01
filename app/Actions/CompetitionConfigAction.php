@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Formation\Editor;
+use SuperElf\Formation\Validator as FormationValidator;
 
 final class CompetitionConfigAction extends Action
 {
@@ -20,7 +20,7 @@ final class CompetitionConfigAction extends Action
         SerializerInterface $serializer,
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected Configuration $config,
-        protected Editor $editor
+        protected FormationValidator $formationValidator
     ) {
         parent::__construct($logger, $serializer);
     }
@@ -84,7 +84,7 @@ final class CompetitionConfigAction extends Action
                 throw new \Exception("er kan geen bron-competitie gevonden worden", E_ERROR);
             }
 
-            $availableFormations = $this->editor->getAvailable();
+            $availableFormations = $this->formationValidator->getAvailable();
 
             $json = $this->serializer->serialize($availableFormations, 'json');
             return $this->respondWithJson($response, $json);

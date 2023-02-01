@@ -3,9 +3,6 @@ SuperElf\Pool\User:
   exclude: false
   access_type: public_property
   properties:
-    id:
-      type: integer
-      read_only: true
     user:
       type: SuperElf\User
     admin:
@@ -15,6 +12,10 @@ SuperElf\Pool\User:
     assembleFormation:
       type: SuperElf\Formation
       groups: [formations]
+      read_only: true
+    replacements:
+      type: ArrayCollection<SuperElf\Replacement>
+      groups: [ formations ]
       read_only: true
     transfers:
       type: ArrayCollection<SuperElf\Transfer>

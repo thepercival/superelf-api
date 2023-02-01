@@ -1,0 +1,12 @@
+SuperElf\Periods\TransferPeriod\Action:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+  virtual_properties:
+    getLineNumber:
+      type: integer
+      serialized_name: lineNumber
+    getPlaceNumber:
+      type: integer
+      serialized_name: placeNumber

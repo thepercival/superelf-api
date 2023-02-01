@@ -35,8 +35,13 @@ class Action extends Identifiable
         return $this->formationPlace;
     }
 
-//    public function outHasTeam(): bool
-//    {
-//        return $this->outHasTeam;
-//    }
+    public function getLineNumber(): int
+    {
+        return $this->formationPlace->getFormationLine()->getNumber();
+    }
+
+    public function getPlaceNumber(): int
+    {
+        return $this->formationPlace->getNumber();
+    }
 }

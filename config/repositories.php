@@ -99,6 +99,8 @@ use SuperElf\Substitution;
 use SuperElf\Substitution\Repository as SubstitutionRepository;
 use SuperElf\Totals as S11Totals;
 use SuperElf\Totals\Repository as S11TotalsRepository;
+use SuperElf\Replacement;
+use SuperElf\Replacement\Repository as ReplacementRepository;
 use SuperElf\Transfer;
 use SuperElf\Transfer\Repository as TransferRepository;
 use SuperElf\User;
@@ -128,6 +130,12 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(TransferPeriod::class);
         return new TransferPeriodRepository($entityManager, $metaData);
+    },
+    ReplacementRepository::class => function (ContainerInterface $container): ReplacementRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Replacement::class);
+        return new ReplacementRepository($entityManager, $metaData);
     },
     TransferRepository::class => function (ContainerInterface $container): TransferRepository {
         /** @var EntityManagerInterface $entityManager */

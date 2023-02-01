@@ -8,9 +8,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Person as BasePerson;
 use Sports\Sport\FootballLine;
+use Sports\Team;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Identifiable;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
+use League\Period\Period;
 
 class Player extends Identifiable
 {
@@ -95,5 +97,19 @@ class Player extends Identifiable
     public function getPlayers(): Collection
     {
         return $this->getPerson()->getPlayers(null, $this->getViewPeriod()->getPeriod());
+    }
+
+    /**
+     * @param Team|null $team
+     * @param Period|null $period
+     * @param int|null $line
+     * @return list<TeamPlayer>
+     */
+    public function getPlayersDescendingStart(Team|null $team = null, Period|null $period = null, int|null $line = null): array {
+        $players = $this->getPerson()->getPlayers($team, $period, $line)->toArray();
+        uasort( $players, function(TeamPlayer $plA, TeamPlayer $plB): int {
+            return $plB->getStartDateTime()->getTimestamp() - $plA->getStartDateTime()->getTimestamp();
+        });
+        return array_values($players);
     }
 }

@@ -163,7 +163,85 @@ final class FormationAction extends Action
             }
 
             if ($formation !== $formationPlace->getFormationLine()->getFormation()) {
-                throw new \Exception("je mag alleem eem plaats van je eigen formatie wijzigen");
+                throw new \Exception("je mag alleem een plaats van je eigen formatie wijzigen");
+            }
+
+            $rawData = $this->getRawData();
+            $person = null;
+            if (strlen($rawData) > 0) {
+                /** @var Person $serPerson */
+                $serPerson = $this->serializer->deserialize(
+                    $rawData,
+                    Person::class,
+                    'json'
+                );
+                $person = $this->personRepos->find($serPerson->getId());
+            }
+
+            $s11Player = null;
+            if ($person !== null) {
+                $player = $this->oneTeamSimultaneous->getPlayer($person);
+                if ($player === null) {
+                    throw new \Exception('"' . $person->getName() . '" speelt niet voor een team', E_ERROR);
+                }
+                $personSameTeam = $formation->getPerson($player->getTeam());
+                if ($personSameTeam !== null) {
+                    throw new \Exception("er is al een persoon in je team die voor dezelfde club uitkomt", E_ERROR);
+                }
+                $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
+                $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $player->getPerson());
+            }
+            if ($s11Player && $formationPlace->getFormationLine()->getNumber() !== $s11Player->getLine()->value) {
+                throw new \Exception("de linies komen niet overeen", E_ERROR);
+            }
+            $formationPlace->setPlayer($s11Player);
+
+            $this->formationPlaceRepos->save($formationPlace);
+
+            if ($s11Player === null) {
+                return $response->withStatus(200);
+            }
+            $json = $this->serializer->serialize($s11Player, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function replacePlace(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            $transferPeriod = $poolUser->getPool()->getTransferPeriod();
+
+            if (!$transferPeriod->contains()) {
+                throw new \Exception("je kan alleen een vervanging tijdens de transferperiode doen");
+            }
+
+            $formation = $poolUser->getAssembleFormation();
+            if ($formation === null) {
+                throw new \Exception("je hebt geen formatie gekozen");
+            }
+
+            $placeId = (int) $args["placeId"];
+            if ($placeId === 0) {
+                throw new \Exception("de formatie-plaats-id is niet opgegeven", E_ERROR);
+            }
+            $formationPlace = $this->formationPlaceRepos->find($placeId);
+            if ($formationPlace === null) {
+                throw new \Exception("de formatie-plaats kan niet gevonden worden", E_ERROR);
+            }
+
+            if ($formation !== $formationPlace->getFormationLine()->getFormation()) {
+                throw new \Exception("je mag alleem een plaats van je eigen formatie wijzigen");
             }
 
             $rawData = $this->getRawData();

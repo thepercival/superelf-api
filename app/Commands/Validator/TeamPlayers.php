@@ -70,6 +70,7 @@ class TeamPlayers extends Command
 
             $seasonPeriod = $competition->getSeason()->getPeriod();
             foreach ($competition->getTeams() as $team) {
+                $this->getLogger()->info('validating team ' . $team);
                 $teamPlayers = $this->teamPlayerRepos->findByExt($seasonPeriod, $team);
                 foreach ($teamPlayers as $teamPlayer) {
                     $validator->validate($teamPlayer, $competition);

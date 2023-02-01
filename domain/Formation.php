@@ -9,8 +9,11 @@ use Doctrine\Common\Collections\Collection;
 use Sports\Person;
 use Sports\Team;
 use Sports\Team\Player;
+use Sports\Formation as SportsFormation;
+use Sports\Formation\Line as SportsFormationLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line;
+use SuperElf\Formation\Place;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 class Formation extends Identifiable
@@ -57,6 +60,18 @@ class Formation extends Identifiable
         }, $this->getLines()->toArray()));
     }
 
+    /**
+     * @return list<Place>
+     */
+    public function getPlaces(): array
+    {
+        $places = [];
+        foreach ($this->lines as $line) {
+            $places = array_merge($places, $line->getPlaces()->toArray() );
+        }
+        return array_values($places);
+    }
+
     public function getNrOfPersons(): int
     {
         $nrOfPersons = 0;
@@ -98,6 +113,14 @@ class Formation extends Identifiable
         });
         $firstPlayer = $filtered->first();
         return $firstPlayer === false ? null : $firstPlayer;
+    }
+
+    public function convertToBase(): SportsFormation {
+        $formation = new SportsFormation();
+        foreach( $this->getLines() as $s11Line ) {
+            new SportsFormationLine($formation, $s11Line->getNumber(), count($s11Line->getStartingPlaces()) );
+        }
+        return $formation;
     }
 
     public function allPlacesHaveAPlayer(): bool

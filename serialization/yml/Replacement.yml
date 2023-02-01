@@ -1,0 +1,8 @@
+SuperElf\Replacement:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    personIn:
+      type: Sports\Person
+      read_only: true

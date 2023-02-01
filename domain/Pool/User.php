@@ -15,6 +15,7 @@ use SuperElf\Formation;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
 use SuperElf\Pool;
+use SuperElf\Replacement;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
@@ -24,6 +25,10 @@ class User extends Identifiable
     protected bool $admin;
     protected Formation|null $assembleFormation = null;
     protected Formation|null $transferFormation = null;
+    /**
+     * @var Collection<int|string, Replacement>
+     */
+    protected Collection $replacements;
     /**
      * @var Collection<int|string, Transfer>
      */
@@ -54,6 +59,7 @@ class User extends Identifiable
     {
         $this->admin = false;
         $this->competitors = new ArrayCollection();
+        $this->replacements = new ArrayCollection();
         $this->transfers = new ArrayCollection();
         $this->substitutions = new ArrayCollection();
         $this->chatMessages = new ArrayCollection();
@@ -102,16 +108,19 @@ class User extends Identifiable
     }
 
     /**
+     * @return Collection<int|string, Replacement>
+     */
+    public function getReplacements(): Collection
+    {
+        return $this->replacements;
+    }
+
+    /**
      * @return Collection<int|string, Transfer>
      */
-    public function getTransfers(/*bool $outHasTeam = null*/): Collection
+    public function getTransfers(): Collection
     {
-//      if ($outHasTeam === null) {
         return $this->transfers;
-//      }
-//        return $this->transfers->filter(function (Transfer $transfer) use ($outHasTeam): bool {
-//            return $transfer->outHasTeam() === $outHasTeam;
-//        });
     }
 
     /**

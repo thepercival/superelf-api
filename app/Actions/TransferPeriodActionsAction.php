@@ -1,0 +1,121 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions;
+
+use App\Response\ErrorResponse;
+use JMS\Serializer\SerializerInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
+use Selective\Config\Configuration;
+use Sports\Person;
+use Sports\Person\Repository as PersonRepository;
+use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
+use SuperElf\Formation\Repository as FormationRepository;
+use SuperElf\OneTeamSimultaneous;
+use SuperElf\Replacement\Repository as ReplacementRepository;
+use SuperElf\Formation\Validator as FormationValidator;
+use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Replacement;
+
+final class TransferPeriodActionsAction extends Action
+{
+    protected FormationValidator $formationValidator;
+    protected OneTeamSimultaneous $oneTeamSimultaneous;
+
+    public function __construct(
+        protected PoolUserRepository $poolUserRepos,
+        protected FormationRepository $formationRepos,
+        protected FormationPlaceRepository $formationPlaceRepos,
+        protected ReplacementRepository $replacementRepos,
+        protected PersonRepository $personRepos,
+        protected S11PlayerRepository $s11PlayerRepos,
+        protected S11PlayerSyncer $s11PlayerSyncer,
+        protected Configuration $config,
+        LoggerInterface $logger,
+        SerializerInterface $serializer
+    ) {
+        parent::__construct($logger, $serializer);
+        $this->formationValidator = new FormationValidator($config);
+        $this->oneTeamSimultaneous = new OneTeamSimultaneous();
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function replace(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            $transferPeriod = $poolUser->getPool()->getTransferPeriod();
+
+            if (!$transferPeriod->contains()) {
+                throw new \Exception("je kan alleen een vervanging tijdens de transferperiode doen");
+            }
+
+            $formation = $poolUser->getAssembleFormation();
+            if ($formation === null) {
+                throw new \Exception("je hebt geen formatie gekozen");
+            }
+
+            $placeId = (int) $args["placeId"];
+            if ($placeId === 0) {
+                throw new \Exception("de formatie-plaats-id is niet opgegeven", E_ERROR);
+            }
+            $formationPlace = $this->formationPlaceRepos->find($placeId);
+            if ($formationPlace === null) {
+                throw new \Exception("de formatie-plaats kan niet gevonden worden", E_ERROR);
+            }
+
+            if ($formation !== $formationPlace->getFormationLine()->getFormation()) {
+                throw new \Exception("je mag alleem een plaats van je eigen formatie wijzigen");
+            }
+
+            $rawData = $this->getRawData();
+            $personIn = null;
+            if (strlen($rawData) > 0) {
+                /** @var Person $serPerson */
+                $serPerson = $this->serializer->deserialize(
+                    $rawData,
+                    Person::class,
+                    'json'
+                );
+                $personIn = $this->personRepos->find($serPerson->getId());
+            }
+            if ($personIn === null) {
+                throw new \Exception("de vervanger is niet gevuld");
+            }
+
+            // 1 check transferactions
+            if ($poolUser->getTransfers()->count() > 0) {
+                throw new \Exception("je hebt al transfers gedaan en kunt geen vervanging meer doen");
+            }
+            if ($poolUser->getSubstitutions()->count() > 0) {
+                throw new \Exception("je hebt al wissels gedaan en kunt geen vervanging meer doen");
+            }
+
+            $replacement = new Replacement($poolUser, $transferPeriod, $formationPlace, $personIn );
+
+            // 3 check if new action creates valid formation
+            $this->formationValidator->validateTransferActions( $poolUser );
+
+            // 4 add to replacements
+            $this->replacementRepos->save($replacement, true);
+
+            $json = $this->serializer->serialize($replacement, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+}
