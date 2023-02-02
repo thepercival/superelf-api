@@ -139,7 +139,8 @@ class Validator
         foreach($poolUser->getReplacements() as $replacement) {
             foreach($poolUser->getReplacements() as $replacementCompare) {
                 if($replacementCompare !== $replacement
-                    && $replacementCompare->getFormationPlace() === $replacement->getFormationPlace() ) {
+                    && $replacementCompare->getLineNumberOut() === $replacement->getLineNumberOut()
+                    && $replacementCompare->getPlaceNumberOut() === $replacement->getPlaceNumberOut()) {
                     throw new \Exception('2 replacements for same formationplace');
                 }
             }
@@ -151,8 +152,13 @@ class Validator
 
     protected function validateReplacement(Replacement $replacement): void {
         $transferPeriodStart = $replacement->getTransferPeriod()->getStartDateTime();
+        $assembleFormation = $replacement->getPoolUser()->getAssembleFormation();
+        if( $assembleFormation === null ) {
+            throw new \Exception('de formatie kan niet leeg zijn');
+        }
         // check als formationplace echt een speler heeft zonder team
-        if( $this->getTeam($replacement->getFormationPlace(), $transferPeriodStart ) !== null ){
+        $formationPlace = $assembleFormation->getPlace($replacement->getLineNumberOut(), $replacement->getPlaceNumberOut());
+        if( $this->getTeam($formationPlace, $transferPeriodStart ) !== null ){
             throw new \Exception('de formatieplaats heeft al een team');
         }
 
@@ -215,11 +221,14 @@ class Validator
         $poolUser = $replacement->getPoolUser();
         $transferPeriodStart = $poolUser->getPool()->getTransferPeriod()->getStartDateTime();
 
-//        $this->getTeam($place)
-//        $replacement->getFormationPlace()-getPlayer()->getPerson()
+        $assembleFormation = $poolUser->getAssembleFormation();
+        if( $assembleFormation === null ) {
+            throw new \Exception('de formatie is leeg');
+        }
+        $formationPlace = $assembleFormation->getPlace($replacement->getLineNumberOut(), $replacement->getPlaceNumberOut());
 
         $oneTeamSim = new OneTeamSimultaneous();
-        $s11PlayerOut = $replacement->getFormationPlace()->getPlayer();
+        $s11PlayerOut = $formationPlace->getPlayer();
         if( $s11PlayerOut === null ) {
             throw new \Exception('de formatieplaats heeft geen speler');
         }

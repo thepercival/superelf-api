@@ -12,17 +12,10 @@
                 <join-column name="transferPeriodId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
             </join-columns>
         </many-to-one>
-        <one-to-one field="formationPlace" target-entity="SuperElf\Formation\Place">
-            <cascade>
-            <cascade-persist/>
-            <cascade-remove/>
-        </cascade>
-        <join-columns>
-            <join-column name="formationPlaceId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
-        </join-columns>
-    </one-to-one>
+        <field name="lineNumberOut" column="lineNumberOut" type="enum_FootballLine" nullable="false" unique="false"/>
+        <field name="placeNumberOut" column="placeNumberOut" type="smallint" nullable="false" unique="false"/>
     <unique-constraints>
-        <unique-constraint columns="poolUserId,transferPeriodId,formationPlaceId" name="main_u_idx"/>
+        <unique-constraint columns="poolUserId,transferPeriodId,lineNumberOut,placeNumberOut" name="main_u_idx"/>
     </unique-constraints>
   </mapped-superclass>
 </doctrine-mapping>

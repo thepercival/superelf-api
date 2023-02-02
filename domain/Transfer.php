@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Person;
-use SuperElf\Formation\Place as FormationPlace;
+use Sports\Sport\FootballLine;
+use Sports\Team\Player;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Periods\TransferPeriod\Action;
 use SuperElf\Pool\User as PoolUser;
@@ -15,25 +16,23 @@ class Transfer extends Action
     public function __construct(
         PoolUser $poolUser,
         TransferPeriod $transferPeriod,
-        FormationPlace $formationPlace,
-        protected Person $personIn
+        protected FootballLine $lineNumberOut,
+        protected int $placeNumberOut,
+        protected Player $playerIn
     )
     {
-        parent::__construct($poolUser, $transferPeriod, $formationPlace);
+        parent::__construct($poolUser, $transferPeriod, $lineNumberOut, $placeNumberOut);
         if (!$poolUser->getTransfers()->contains($this)) {
             $poolUser->getTransfers()->add($this);
         }
     }
 
-    public function getPersonIn(): Person
+    public function getPlayerIn(): Player
     {
-        return $this->personIn;
+        return $this->playerIn;
     }
 
-//    public function outHasTeam(): bool
-//    {
-//        $seasonPeriod = $this->poolUser->getPool()->getSeason()->getPeriod();
-//        $this->formationPlace->getPlayer()->
-//        return $this->personIn->get();
-//    }
+    public function getPersonIn(): Person {
+        return $this->getPlayerIn()->getPerson();
+    }
 }

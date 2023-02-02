@@ -87,10 +87,9 @@ final class UserAction extends Action
 
     public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self, bool $withFormations): Response
     {
+        $serGroups = ['person'/* for transferActions */];
         if( $withFormations ) {
-            $serGroups = ['formations'];
-        } else {
-            $serGroups = [];
+            $serGroups[] = 'formations';
         }
         if ($self) {
             $serGroups[] = 'admin';

@@ -7,6 +7,7 @@ namespace SuperElf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Person;
+use Sports\Sport\FootballLine;
 use Sports\Team;
 use Sports\Team\Player;
 use Sports\Formation as SportsFormation;
@@ -70,6 +71,10 @@ class Formation extends Identifiable
             $places = array_merge($places, $line->getPlaces()->toArray() );
         }
         return array_values($places);
+    }
+
+    public function getPlace(FootballLine $lineNumber, int $placeNumber): Place {
+        return $this->getLine($lineNumber->value)->getPlace($placeNumber);
     }
 
     public function getNrOfPersons(): int

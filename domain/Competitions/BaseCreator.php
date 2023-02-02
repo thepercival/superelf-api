@@ -51,6 +51,7 @@ abstract class BaseCreator
             $sport,
             $competition,
             $pointsCalculation,
+            3, 1, 2, 1, 0,
             $this->convertSportToPersistVariant($sport)
         );
         return $competition;

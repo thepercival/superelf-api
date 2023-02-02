@@ -239,16 +239,16 @@ return function (App $app): void {
             $group->group(
                 '/{poolUserId}/replace',
                 function (Group $group): void {
-                    $group->options('/{placeId}', TransferPeriodActionsAction::class . ':options');
-                    $group->post('/{placeId}', TransferPeriodActionsAction::class . ':replace');
+                    $group->options('', TransferPeriodActionsAction::class . ':options');
+                    $group->post('', TransferPeriodActionsAction::class . ':replace');
                 }
             )->add(PoolUserAuthMiddleware::class);
 
             $group->group(
                 '/{poolUserId}/transfer',
                 function (Group $group): void {
-                    $group->options('/{placeId}', TransferPeriodActionsAction::class . ':options');
-                    $group->post('/{placeId}', TransferPeriodActionsAction::class . ':transfer');
+                    $group->options('', TransferPeriodActionsAction::class . ':options');
+                    $group->post('', TransferPeriodActionsAction::class . ':transfer');
                 }
             )->add(PoolUserAuthMiddleware::class);
 
@@ -263,8 +263,8 @@ return function (App $app): void {
             $group->group(
                 '/{poolUserId}/substitute',
                 function (Group $group): void {
-                    $group->options('/{placeId}', TransferPeriodActionsAction::class . ':options');
-                    $group->post('/{placeId}', TransferPeriodActionsAction::class . ':substitute');
+                    $group->options('', TransferPeriodActionsAction::class . ':options');
+                    $group->post('', TransferPeriodActionsAction::class . ':substitute');
                 }
             )->add(PoolUserAuthMiddleware::class);
         }

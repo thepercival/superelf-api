@@ -101,7 +101,7 @@ class CompetitionConfig extends Identifiable
         $this->assemblePeriod->getViewPeriod()->setEndDateTime($period->getStartDate());
         $this->transferPeriod->setStartDateTime($period->getStartDate());
         $this->transferPeriod->setEndDateTime($period->getEndDate());
-        $this->transferPeriod->getViewPeriod()->setStartDateTime($period->getStartDate());
+        $this->transferPeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
     }
 
     /**

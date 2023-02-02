@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Periods\TransferPeriod;
 
+use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
@@ -16,7 +17,8 @@ class Action extends Identifiable
     public function __construct(
         protected PoolUser $poolUser,
         protected TransferPeriod $transferPeriod,
-        protected FormationPlace $formationPlace
+        protected FootballLine $lineNumberOut,
+        protected int $placeNumberOut,
     ) {
     }
 
@@ -30,18 +32,23 @@ class Action extends Identifiable
         return $this->transferPeriod;
     }
 
-    public function getFormationPlace(): FormationPlace
+    public function getLineNumberOut(): FootballLine
     {
-        return $this->formationPlace;
+        return $this->lineNumberOut;
     }
 
-    public function getLineNumber(): int
+    public function getLineNumberOutNative(): int
     {
-        return $this->formationPlace->getFormationLine()->getNumber();
+        return $this->lineNumberOut->value;
     }
 
-    public function getPlaceNumber(): int
+    public function setLineNumberOutNative(int $lineNumberOutNative): void
     {
-        return $this->formationPlace->getNumber();
+        $this->lineNumberOut = FootballLine::from($lineNumberOutNative);
+    }
+
+    public function getPlaceNumberOut(): int
+    {
+        return $this->placeNumberOut;
     }
 }

@@ -1,12 +1,12 @@
 SuperElf\Periods\TransferPeriod\Action:
   exclusion_policy: ALL
   exclude: false
-  access_type: public_property
   properties:
-  virtual_properties:
-    getLineNumber:
+    lineNumberOut:
+      type: int
+      access_type: public_method
+      accessor:
+        getter: getLineNumberOutNative
+        setter: setLineNumberOutNative
+    placeNumberOut:
       type: integer
-      serialized_name: lineNumber
-    getPlaceNumber:
-      type: integer
-      serialized_name: placeNumber
