@@ -4,7 +4,6 @@
       <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="transfers">
           <cascade>
               <cascade-persist/>
-              <cascade-remove/>
           </cascade>
           <join-columns>
               <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
@@ -13,7 +12,6 @@
       <one-to-one field="playerIn" target-entity="Sports\Team\Player">
           <cascade>
               <cascade-persist/>
-              <cascade-remove/>
           </cascade>
           <join-columns>
               <join-column name="playerIn" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

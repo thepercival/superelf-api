@@ -14,6 +14,7 @@ use Sports\Person\Repository as PersonRepository;
 use Sports\Team\Player\Repository as PlayerRepository;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\Formation\Repository as FormationRepository;
+use SuperElf\Transfer\Repository as TransferRepository;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Replacement\Repository as ReplacementRepository;
 use SuperElf\Formation\Validator as FormationValidator;
@@ -35,6 +36,7 @@ final class TransferPeriodActionsAction extends Action
         protected ReplacementRepository $replacementRepos,
         protected PersonRepository $personRepos,
         protected PlayerRepository $playerRepos,
+        protected TransferRepository $transferRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected S11PlayerSyncer $s11PlayerSyncer,
         protected Configuration $config,
@@ -110,6 +112,64 @@ final class TransferPeriodActionsAction extends Action
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function removeReplacement(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            if( !$poolUser->getPool()->getTransferPeriod()->contains() ) {
+                throw new \Exception("je kan alleen een vervanging doen tijdens de transferperiode");
+            }
+
+            $replacement = $this->replacementRepos->find($args["id"]);
+            if ($replacement === null) {
+                throw new \Exception("de vervanging is niet gevonden", E_ERROR);
+            }
+
+            $poolUser->getReplacements()->removeElement($replacement);
+            $this->replacementRepos->remove($replacement);
+            return $response->withStatus(200);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function removeTransfer(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var PoolUser $poolUser */
+            $poolUser = $request->getAttribute("poolUser");
+
+            if( !$poolUser->getPool()->getTransferPeriod()->contains() ) {
+                throw new \Exception("je kan alleen een transfer doen tijdens de transferperiode");
+            }
+
+            $transfer = $this->transferRepos->find($args["id"]);
+            if ($transfer === null) {
+                throw new \Exception("de transfer is niet gevonden", E_ERROR);
+            }
+
+            $poolUser->getTransfers()->removeElement($transfer);
+            $this->transferRepos->remove($transfer);
+            return $response->withStatus(200);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422);
         }
     }
 }

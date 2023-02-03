@@ -10,3 +10,5 @@ SuperElf\Periods\TransferPeriod\Action:
         setter: setLineNumberOutNative
     placeNumberOut:
       type: integer
+    createdDateTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>

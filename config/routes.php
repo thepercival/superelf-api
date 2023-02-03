@@ -241,6 +241,14 @@ return function (App $app): void {
                 function (Group $group): void {
                     $group->options('', TransferPeriodActionsAction::class . ':options');
                     $group->post('', TransferPeriodActionsAction::class . ':replace');
+
+                    $group->group(
+                        '/{id}',
+                        function (Group $group): void {
+                            $group->options('', TransferPeriodActionsAction::class . ':options');
+                            $group->delete('', TransferPeriodActionsAction::class . ':removeReplacement');
+                        }
+                    );
                 }
             )->add(PoolUserAuthMiddleware::class);
 
@@ -249,6 +257,14 @@ return function (App $app): void {
                 function (Group $group): void {
                     $group->options('', TransferPeriodActionsAction::class . ':options');
                     $group->post('', TransferPeriodActionsAction::class . ':transfer');
+
+                    $group->group(
+                        '/{id}',
+                        function (Group $group): void {
+                            $group->options('', TransferPeriodActionsAction::class . ':options');
+                            $group->delete('', TransferPeriodActionsAction::class . ':removeTransfer');
+                        }
+                    );
                 }
             )->add(PoolUserAuthMiddleware::class);
 

@@ -2,19 +2,11 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="SuperElf\Replacement" table="replacements" repository-class="SuperElf\Replacement\Repository">
       <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="replacements">
-          <cascade>
-              <cascade-persist/>
-              <cascade-remove/>
-          </cascade>
           <join-columns>
               <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
           </join-columns>
       </many-to-one>
       <one-to-one field="playerIn" target-entity="Sports\Team\Player">
-          <cascade>
-              <cascade-persist/>
-              <cascade-remove/>
-          </cascade>
           <join-columns>
               <join-column name="playerIn" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
           </join-columns>

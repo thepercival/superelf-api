@@ -12,7 +12,8 @@ use SuperElf\Pool\User as PoolUser;
 
 class Action extends Identifiable
 {
-    // protected bool $outHasTeam = true;
+    protected \DateTimeImmutable $createdDateTime;
+
 
     public function __construct(
         protected PoolUser $poolUser,
@@ -20,6 +21,7 @@ class Action extends Identifiable
         protected FootballLine $lineNumberOut,
         protected int $placeNumberOut,
     ) {
+        $this->createdDateTime = new \DateTimeImmutable();
     }
 
     public function getPoolUser(): Pooluser
@@ -50,5 +52,9 @@ class Action extends Identifiable
     public function getPlaceNumberOut(): int
     {
         return $this->placeNumberOut;
+    }
+
+    public function getCreatedDateTime(): \DateTimeImmutable {
+        return $this->createdDateTime;
     }
 }

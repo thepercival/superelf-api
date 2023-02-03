@@ -4,7 +4,6 @@
       <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="substitutions">
           <cascade>
               <cascade-persist/>
-              <cascade-remove/>
           </cascade>
           <join-columns>
               <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>

@@ -7,7 +7,6 @@ namespace SuperElf;
 use Sports\Person;
 use Sports\Sport\FootballLine;
 use Sports\Team\Player;
-use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Periods\TransferPeriod\Action;
 use SuperElf\Pool\User as PoolUser;
