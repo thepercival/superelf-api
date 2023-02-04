@@ -21,8 +21,8 @@ SuperElf\Pool\User:
       type: ArrayCollection<SuperElf\Transfer>
       groups: [ formations ]
       read_only: true
-    substitutes:
-      type: ArrayCollection<SuperElf\Substitute>
+    substitutions:
+      type: ArrayCollection<SuperElf\Substitution>
       groups: [ formations ]
       read_only: true
     transferFormation:

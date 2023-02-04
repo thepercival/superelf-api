@@ -11,5 +11,10 @@
               <join-column name="playerIn" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
           </join-columns>
       </one-to-one>
+      <one-to-one field="playerOut" target-entity="Sports\Team\Player">
+          <join-columns>
+              <join-column name="playerOut" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+          </join-columns>
+      </one-to-one>
   </entity>
 </doctrine-mapping>

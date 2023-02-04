@@ -95,7 +95,7 @@ return [
         $driver = new \Doctrine\ORM\Mapping\Driver\XmlDriver($entityPath);
         $docConfig->setMetadataDriverImpl($driver);
 
-        /** @var array<string, string|bool|null> $doctrineConnectionConfig */
+        /** @var array{driver: string, host: string, dbname: string, user: string, password: string, charset: string, driverOptions: array<int, string>} $doctrineConnectionConfig */
         $doctrineConnectionConfig = $doctrineAppConfig['connection'];
         $connection = DriverManager::getConnection($doctrineConnectionConfig, $docConfig, new EventManager());
         $em = new Doctrine\ORM\EntityManager($connection, $docConfig);

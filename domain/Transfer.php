@@ -18,7 +18,8 @@ class Transfer extends Action
         TransferPeriod $transferPeriod,
         protected FootballLine $lineNumberOut,
         protected int $placeNumberOut,
-        protected Player $playerIn
+        protected Player $playerIn,
+        protected Player $playerOut
     )
     {
         parent::__construct($poolUser, $transferPeriod, $lineNumberOut, $placeNumberOut);
@@ -34,5 +35,14 @@ class Transfer extends Action
 
     public function getPersonIn(): Person {
         return $this->getPlayerIn()->getPerson();
+    }
+
+    public function getPlayerOut(): Player
+    {
+        return $this->playerOut;
+    }
+
+    public function getPersonOut(): Person {
+        return $this->getPlayerOut()->getPerson();
     }
 }

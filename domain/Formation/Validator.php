@@ -18,6 +18,7 @@ use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Replacement;
+use SuperElf\Substitution;
 use SuperElf\Transfer;
 
 class Validator
@@ -90,19 +91,16 @@ class Validator
         $substitutions = $poolUser->getSubstitutions();
 
         $newFormation = $this->validateReplacements($poolUser);
-        if( $transfers->count() > 0 || $substitutions->count() > 0
-            && !$this->areAllPlacesWithoutTeamReplaced($poolUser) ) {
+        if( !$this->areAllPlacesWithoutTeamReplaced($poolUser)
+            && ($transfers->count() > 0 || $substitutions->count() > 0)) {
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');
         }
 
-        // GA HIER VERDER MET VALIDATE VAN TRANSFERS AND SUBS
+        $newFormation = $this->validateTransfers($poolUser, $newFormation);
 
-
-        // $this->validateReplacements($poolUser);
+        $this->validateSubstitutions($poolUser, $newFormation);
+        // return $newFormation;
     }
-
-
-
 
 //        try {
 //            if ($sportsFormation->getLines()->count() !== 4) {
@@ -162,7 +160,7 @@ class Validator
             throw new \Exception('de formatieplaats heeft al een team');
         }
 
-        // 2 check if replacer has a validat player
+        // 2 check if replacer has a valid player
         $oneTeamSimultaneous = new OneTeamSimultaneous();
         $playerIn = $oneTeamSimultaneous->getPlayer( $replacement->getPersonIn(), new \DateTimeImmutable() );
         if( $playerIn === null ) {
@@ -171,6 +169,70 @@ class Validator
 
         // 3 check als formationplace echt een speler heeft zonder team
         $this->validateSameTeam($replacement);
+    }
+
+    public function validateTransfers(PoolUser $poolUser, SportsFormation $sportsFormation): SportsFormation
+    {
+        foreach ($poolUser->getTransfers() as $transfer) {
+            foreach ($poolUser->getTransfers() as $transferCompare) {
+                if ($transferCompare !== $transfer
+                    && $transferCompare->getLineNumberOut() === $transfer->getLineNumberOut()
+                    && $transferCompare->getPlaceNumberOut() === $transfer->getPlaceNumberOut()) {
+                    throw new \Exception('2 transfers for same formationplace');
+                }
+            }
+            $this->validateTransfer($transfer);
+            $sportsFormation = $this->calculateNewFormation($sportsFormation, $transfer);
+        }
+        return $sportsFormation;
+    }
+
+    protected function validateTransfer(Transfer $transfer): void {
+        $transferPeriodStart = $transfer->getTransferPeriod()->getStartDateTime();
+        $assembleFormation = $transfer->getPoolUser()->getAssembleFormation();
+        if( $assembleFormation === null ) {
+            throw new \Exception('de formatie kan niet leeg zijn');
+        }
+        // check als formationplace echt een speler heeft zonder team
+        $formationPlace = $assembleFormation->getPlace($transfer->getLineNumberOut(), $transfer->getPlaceNumberOut());
+        if( $this->getTeam($formationPlace, $transferPeriodStart ) === null ){
+            throw new \Exception('de formatieplaats heeft nog geen team');
+        }
+
+        // 2 check if transfer has a valid player
+        $oneTeamSimultaneous = new OneTeamSimultaneous();
+        $playerIn = $oneTeamSimultaneous->getPlayer( $transfer->getPersonIn(), new \DateTimeImmutable() );
+        if( $playerIn === null ) {
+            throw new \Exception('de vervanger heeft geen geldige speler');
+        }
+
+        // 3 check als formationplace echt een speler heeft zonder team
+        $this->validateSameTeam($transfer);
+    }
+
+    public function validateSubstitutions(PoolUser $poolUser, SportsFormation $sportsFormation): void
+    {
+        foreach ($poolUser->getSubstitutions() as $substitution) {
+            foreach ($poolUser->getSubstitutions() as $substitutionCompare) {
+                if ($substitutionCompare !== $substitution
+                    && $substitutionCompare->getLineNumberOut() === $substitution->getLineNumberOut()) {
+                    throw new \Exception('2 wissels in dezelfde line');
+                }
+            }
+            $this->validateSubstitution($substitution);
+        }
+    }
+
+    protected function validateSubstitution(Substitution $substitution): void {
+        $assembleFormation = $substitution->getPoolUser()->getAssembleFormation();
+        if( $assembleFormation === null ) {
+            throw new \Exception('de formatie kan niet leeg zijn');
+        }
+        // check als formationplace echt een speler heeft zonder team
+        $formationPlace = $assembleFormation->getPlace($substitution->getLineNumberOut(), $substitution->getPlaceNumberOut());
+        if( $formationPlace->getNumber() === 0 ) {
+            throw new \Exception('deze plaats is al een wissel');
+        }
     }
 
     public function areAllPlacesWithoutTeamReplaced(PoolUser $poolUser): bool {
@@ -185,7 +247,7 @@ class Validator
         $placesWithoutTeam =  $this->getPlacesWithoutTeam($assembleFormation,$transferPeriodStart);
 
         if( count($replacements) > count($placesWithoutTeam) ) {
-            throw new \Exception('te veelv vervangingen voor de formatieplekken');
+            throw new \Exception('te veel vervangingen voor de formatieplekken');
         }
         return count($placesWithoutTeam) === count($replacements);
     }
@@ -216,16 +278,16 @@ class Validator
         return $player?->getTeam();
     }
 
-    public function validateSameTeam(Replacement $replacement): void
+    public function validateSameTeam(Replacement|Transfer $editAction): void
     {
-        $poolUser = $replacement->getPoolUser();
+        $poolUser = $editAction->getPoolUser();
         $transferPeriodStart = $poolUser->getPool()->getTransferPeriod()->getStartDateTime();
 
         $assembleFormation = $poolUser->getAssembleFormation();
         if( $assembleFormation === null ) {
             throw new \Exception('de formatie is leeg');
         }
-        $formationPlace = $assembleFormation->getPlace($replacement->getLineNumberOut(), $replacement->getPlaceNumberOut());
+        $formationPlace = $assembleFormation->getPlace($editAction->getLineNumberOut(), $editAction->getPlaceNumberOut());
 
         $oneTeamSim = new OneTeamSimultaneous();
         $s11PlayerOut = $formationPlace->getPlayer();
@@ -238,7 +300,7 @@ class Validator
             throw new \Exception('de formatieplaats heeft geen speler');
         }
 
-        $playerIn = $oneTeamSim->getPlayer($replacement->getPersonIn(), $transferPeriodStart );
+        $playerIn = $oneTeamSim->getPlayer($editAction->getPersonIn(), $transferPeriodStart );
         if( $playerIn === null ) {
             throw new \Exception('de vervanger heeft geen team');
         }

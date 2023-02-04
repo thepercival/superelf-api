@@ -1,4 +1,4 @@
-SuperElf\Replacement:
+SuperElf\Transfer:
   exclusion_policy: ALL
   exclude: false
   access_type: public_property
