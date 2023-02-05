@@ -15,15 +15,15 @@ SuperElf\Pool\User:
       read_only: true
     replacements:
       type: ArrayCollection<SuperElf\Replacement>
-      groups: [ formations ]
+      groups: [ transferactions ]
       read_only: true
     transfers:
       type: ArrayCollection<SuperElf\Transfer>
-      groups: [ formations ]
+      groups: [ transferactions ]
       read_only: true
     substitutions:
       type: ArrayCollection<SuperElf\Substitution>
-      groups: [ formations ]
+      groups: [ transferactions ]
       read_only: true
     transferFormation:
       type: SuperElf\Formation

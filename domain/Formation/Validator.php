@@ -9,7 +9,10 @@ use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as SportsFormationLine;
 use Sports\Sport\FootballLine;
 use Sports\Team;
+use Sports\Team\Player;
 use SuperElf\Formation;
+use SuperElf\Formation as S11Formation;
+use SuperElf\Formation\Calculator as S11FormationCalculator;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Formation\Place\Removal as FormationPlaceRemoval;
@@ -27,12 +30,14 @@ class Validator
      * @var list<SportsFormation>
      */
     protected array $availableFormations;
+    protected S11FormationCalculator $calculator;
 
     public function __construct(Configuration $config)
     {
         /** @var list<string> $formations */
         $formations = $config->getArray('availableFormations');
         $this->initAvailableFormations($formations);
+        $this->calculator = new S11FormationCalculator();
     }
 
     /**
@@ -87,53 +92,28 @@ class Validator
 
     public function validateTransferActions(PoolUser $poolUser): void
     {
-        $transfers = $poolUser->getTransfers();
-        $substitutions = $poolUser->getSubstitutions();
+        $transfers = array_values($poolUser->getTransfers()->toArray());
+        $substitutions = array_values($poolUser->getSubstitutions()->toArray());
 
         $newFormation = $this->validateReplacements($poolUser);
         if( !$this->areAllPlacesWithoutTeamReplaced($poolUser)
-            && ($transfers->count() > 0 || $substitutions->count() > 0)) {
+            && (count($transfers) > 0 || count($substitutions) > 0)) {
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');
         }
 
-        $newFormation = $this->validateTransfers($poolUser, $newFormation);
+        $newFormation = $this->validateTransfers($newFormation, $transfers );
 
-        $this->validateSubstitutions($poolUser, $newFormation);
-        // return $newFormation;
+        $newFormation = $this->validateSubstitutions($newFormation, $substitutions);
+        $this->validate($newFormation->convertToBase());
     }
 
-//        try {
-//            if ($sportsFormation->getLines()->count() !== 4) {
-//                throw new \Exception('het aantal linies moet 4 zijn', E_ERROR);
-//            }
-//            $nrOfPersons = 0;
-//            foreach ($sportsFormation->getLines() as $formationLine) {
-//                $line = FootballLine::tryFrom($formationLine->getNumber());
-//                if ($line === null) {
-//                    throw new \Exception(
-//                        'onbekende linie "' . $formationLine->getNumber() . '" is aangetroffen',
-//                        E_ERROR
-//                    );
-//                }
-//                $nrOfPersons += $formationLine->getNrOfPersons();
-//            }
-//            if ($nrOfPersons !== 11) {
-//                throw new \Exception('het aantal teamleden moet 11 zijn', E_ERROR);
-//            }
-//            if (!$this->isAvailable($sportsFormation)) {
-//                throw new \Exception('de formatie "' . $sportsFormation->getName() . '" is niet beschikbaar', E_ERROR);
-//            }
-//        } catch (\Exception $e) {
-//            throw new \Exception('de formatie is onjuist: ' . $e->getMessage(), E_ERROR);
-//        }
-//    }
 
-    public function validateReplacements(PoolUser $poolUser): SportsFormation {
+    public function validateReplacements(PoolUser $poolUser): S11Formation {
         $assembleFormation = $poolUser->getAssembleFormation();
         if( $assembleFormation === null ) {
             throw new \Exception('de formatie kan niet leeg zijn');
         }
-        $sportsFormation = $assembleFormation->convertToBase();
+        $newFormation = $assembleFormation;
         foreach($poolUser->getReplacements() as $replacement) {
             foreach($poolUser->getReplacements() as $replacementCompare) {
                 if($replacementCompare !== $replacement
@@ -142,13 +122,14 @@ class Validator
                     throw new \Exception('2 replacements for same formationplace');
                 }
             }
-            $this->validateReplacement($replacement);
-            $sportsFormation = $this->calculateNewFormation($sportsFormation, $replacement);
+
+            $newFormation = $this->validateReplacement($newFormation, $replacement);
+//            $sportsFormation = $this->calculateNewFormation($sportsFormation, $replacement);
         }
-        return $sportsFormation;
+        return $newFormation;
     }
 
-    protected function validateReplacement(Replacement $replacement): void {
+    protected function validateReplacement(S11Formation $newFormation, Replacement $replacement): S11Formation {
         $transferPeriodStart = $replacement->getTransferPeriod()->getStartDateTime();
         $assembleFormation = $replacement->getPoolUser()->getAssembleFormation();
         if( $assembleFormation === null ) {
@@ -169,33 +150,41 @@ class Validator
 
         // 3 check als formationplace echt een speler heeft zonder team
         $this->validateSameTeam($replacement);
+
+        return $this->calculator->processReplacement($newFormation, $replacement);
     }
 
-    public function validateTransfers(PoolUser $poolUser, SportsFormation $sportsFormation): SportsFormation
+    /**
+     * @param S11Formation $s11Formation
+     * @param list<Transfer> $transfers
+     * @return S11Formation
+     * @throws \Exception
+     */
+    public function validateTransfers(S11Formation $s11Formation, array $transfers): S11Formation
     {
-        foreach ($poolUser->getTransfers() as $transfer) {
-            foreach ($poolUser->getTransfers() as $transferCompare) {
+        foreach ($transfers as $transfer) {
+            foreach ($transfers as $transferCompare) {
                 if ($transferCompare !== $transfer
                     && $transferCompare->getLineNumberOut() === $transfer->getLineNumberOut()
                     && $transferCompare->getPlaceNumberOut() === $transfer->getPlaceNumberOut()) {
                     throw new \Exception('2 transfers for same formationplace');
                 }
             }
-            $this->validateTransfer($transfer);
-            $sportsFormation = $this->calculateNewFormation($sportsFormation, $transfer);
+            $s11Formation = $this->validateTransfer($s11Formation, $transfer);
         }
-        return $sportsFormation;
+        return $s11Formation;
     }
 
-    protected function validateTransfer(Transfer $transfer): void {
+    protected function validateTransfer(S11Formation $formation, Transfer $transfer): S11Formation {
         $transferPeriodStart = $transfer->getTransferPeriod()->getStartDateTime();
-        $assembleFormation = $transfer->getPoolUser()->getAssembleFormation();
-        if( $assembleFormation === null ) {
-            throw new \Exception('de formatie kan niet leeg zijn');
-        }
+//        $assembleFormation = $transfer->getPoolUser()->getAssembleFormation();
+//        if( $assembleFormation === null ) {
+//            throw new \Exception('de formatie kan niet leeg zijn');
+//        }
         // check als formationplace echt een speler heeft zonder team
-        $formationPlace = $assembleFormation->getPlace($transfer->getLineNumberOut(), $transfer->getPlaceNumberOut());
-        if( $this->getTeam($formationPlace, $transferPeriodStart ) === null ){
+        $formationPlace = $formation->getPlace($transfer->getLineNumberOut(), $transfer->getPlaceNumberOut());
+        $team = $this->getTeam($formationPlace, $transferPeriodStart );
+        if( $team === null ){
             throw new \Exception('de formatieplaats heeft nog geen team');
         }
 
@@ -206,24 +195,38 @@ class Validator
             throw new \Exception('de vervanger heeft geen geldige speler');
         }
 
-        // 3 check als formationplace echt een speler heeft zonder team
-        $this->validateSameTeam($transfer);
+        $playerIn = $transfer->getPlayerIn();
+        $existingPlayerWithSameTeam = $this->getOtherPlayerWithTeam($formation, $formationPlace, $playerIn->getTeam());
+        if( $existingPlayerWithSameTeam !== null ) {
+            $existingPlayerName = $existingPlayerWithSameTeam->getPerson()->getName();
+            $teamInName = $playerIn->getTeam()->getName();
+            $playerInName = $playerIn->getPerson()->getName();
+            throw new \Exception('speler "'. $existingPlayerName .'" speelt ook al voor team "' . $teamInName . '" net als je nieuwe speler "' . $playerInName . '"');
+        }
+        return $this->calculator->processTransfer($formation, $transfer);
     }
 
-    public function validateSubstitutions(PoolUser $poolUser, SportsFormation $sportsFormation): void
+    /**
+     * @param S11Formation $s11Formation
+     * @param list<Substitution> $substitutions
+     * @return S11Formation
+     * @throws \Exception
+     */
+    public function validateSubstitutions(S11Formation $s11Formation, array $substitutions): S11Formation
     {
-        foreach ($poolUser->getSubstitutions() as $substitution) {
-            foreach ($poolUser->getSubstitutions() as $substitutionCompare) {
+        foreach ($substitutions as $substitution) {
+            foreach ($substitutions as $substitutionCompare) {
                 if ($substitutionCompare !== $substitution
                     && $substitutionCompare->getLineNumberOut() === $substitution->getLineNumberOut()) {
                     throw new \Exception('2 wissels in dezelfde line');
                 }
             }
-            $this->validateSubstitution($substitution);
+            $s11Formation = $this->validateSubstitution($s11Formation, $substitution);
         }
+        return $s11Formation;
     }
 
-    protected function validateSubstitution(Substitution $substitution): void {
+    protected function validateSubstitution(S11Formation $s11Formation, Substitution $substitution): S11Formation {
         $assembleFormation = $substitution->getPoolUser()->getAssembleFormation();
         if( $assembleFormation === null ) {
             throw new \Exception('de formatie kan niet leeg zijn');
@@ -233,6 +236,7 @@ class Validator
         if( $formationPlace->getNumber() === 0 ) {
             throw new \Exception('deze plaats is al een wissel');
         }
+        return $this->calculator->processSubstitution($s11Formation, $substitution);
     }
 
     public function areAllPlacesWithoutTeamReplaced(PoolUser $poolUser): bool {
@@ -265,6 +269,15 @@ class Validator
                 return $this->getTeam($place, $dateTime ) === null;
             }
         ));
+    }
+
+    private function getOtherPlayerWithTeam(S11Formation $formation, FormationPlace $place, Team $team): Player|null {
+        $placesWithTeam = array_filter($formation->getPlaces(), function(FormationPlace $placeIt) use ($place, $team) : bool {
+            $teamIt = $placeIt->getPlayer()?->getMostRecentPlayer()?->getTeam();
+            return $teamIt === $team && $place !== $placeIt;
+        });
+        $placesWithTeam = array_shift($placesWithTeam);
+        return $placesWithTeam?->getPlayer()?->getMostRecentPlayer();
     }
 
     public function getTeam(FormationPlace $place, \DateTimeImmutable $dateTime): Team|null

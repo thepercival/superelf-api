@@ -11,6 +11,7 @@ use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation as FormationBase;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\Player as S11Player;
 use SuperElf\GameRound;
 use SuperElf\Points;
 use SuperElf\Substitute\Appearance;
@@ -154,5 +155,24 @@ class Line extends Identifiable
         return $points;
     }
 
+    /**
+     * @param bool $withSubstitute
+     * @return list<S11Player>
+     */
+    public function getPlayers(bool $withSubstitute): array {
 
+        $places = $this->getStartingPlaces();
+        if ($withSubstitute) {
+            $places[] = $this->getSubstitute();
+        }
+        $players = [];
+        foreach( $places as $place) {
+            $player = $place->getPlayer();
+            if ($player === null) {
+                continue;
+            }
+            $players[] = $player;
+        }
+        return $players;
+    }
 }

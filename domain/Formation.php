@@ -16,6 +16,7 @@ use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line;
 use SuperElf\Formation\Place;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
+use SuperElf\Player as S11Player;
 
 class Formation extends Identifiable
 {
@@ -140,6 +141,17 @@ class Formation extends Identifiable
         return true;
     }
 
+    /**
+     * @return list<S11Player>
+     */
+    public function getPlayers(): array {
+        $players = [];
+        foreach( $this->lines as $line) {
+            $players = array_merge( $players, $line->getPlayers(true));
+        }
+        return $players;
+    }
+
     public function getPoints(GameRound $gameRound, Points $s11Points): int
     {
         $points = 0;
@@ -147,5 +159,18 @@ class Formation extends Identifiable
             $points += $line->getPoints($gameRound, $s11Points);
         }
         return $points;
+    }
+
+    /**
+     * @return list<Player>
+     */
+    public function getTeamPlayers(): array {
+        $players = array_map(function(S11Player $s11Player): Player|null {
+            return $s11Player->getMostRecentPlayer();
+        }, $this->getPlayers());
+
+        return array_values(array_filter($players, function(Player|null $player): bool {
+            return $player !== null;
+        }));
     }
 }

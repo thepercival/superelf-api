@@ -112,4 +112,9 @@ class Player extends Identifiable
         });
         return array_values($players);
     }
+
+    public function getMostRecentPlayer(): TeamPlayer|null {
+        $players = $this->getPlayersDescendingStart();
+        return array_shift($players);
+    }
 }

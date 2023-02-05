@@ -51,10 +51,12 @@ final class UserAction extends Action
             || $pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())
             ) {
                 $withFormations = false;
+                $withTransferActions = false;
             } else {
                 $withFormations = true;
+                $withTransferActions = true;
             }
-            return $this->fetchOneHelper($response, $poolUser, false, $withFormations);
+            return $this->fetchOneHelper($response, $poolUser, false, $withFormations, $withTransferActions);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
@@ -79,17 +81,20 @@ final class UserAction extends Action
                 return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
             }
 
-            return $this->fetchOneHelper($response, $poolUser, true, true);
+            return $this->fetchOneHelper($response, $poolUser, true, true, true);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 
-    public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self, bool $withFormations): Response
+    public function fetchOneHelper(Response $response, PoolUser $poolUser, bool $self, bool $withFormations, bool $withTransferActions): Response
     {
         $serGroups = ['person'/* for transferActions */];
         if( $withFormations ) {
             $serGroups[] = 'formations';
+        }
+        if( $withTransferActions ) {
+            $serGroups[] = 'transferactions';
         }
         if ($self) {
             $serGroups[] = 'admin';
@@ -122,17 +127,23 @@ final class UserAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
-            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
-            }
-            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
-            }
+
+//            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+//                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
+//            }
+//            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+//                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
+//            }
+            $inEditPeriod = $pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())
+                || $pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable());
 
             $poolUser = $pool->getUser($user);
             $isAdmin = $poolUser !== null && $poolUser->getAdmin();
             $serGroups = $isAdmin ? ['admin'] : [];
             $serGroups[] = 'formations';
+            if( !$inEditPeriod ) {
+                $serGroups[] = 'transferactions';
+            }
 
             $json = $this->serializer->serialize(
                 $pool->getUsers(),
