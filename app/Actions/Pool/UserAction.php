@@ -134,14 +134,22 @@ final class UserAction extends Action
 //            if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
 //                throw new \Exception('je mag andere deelnemers niet bekijken in de transfer-periode', E_ERROR);
 //            }
-            $inEditPeriod = $pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())
-                || $pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable());
+            $withFormations = true;
+            $withTransferActions = true;
+            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                $withFormations = false;
+                $withTransferActions = false;
+            } else if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                $withTransferActions = false;
+            }
 
             $poolUser = $pool->getUser($user);
             $isAdmin = $poolUser !== null && $poolUser->getAdmin();
             $serGroups = $isAdmin ? ['admin'] : [];
-            $serGroups[] = 'formations';
-            if( !$inEditPeriod ) {
+            if( $withFormations ) {
+                $serGroups[] = 'formations';
+            }
+            if( $withTransferActions ) {
                 $serGroups[] = 'transferactions';
             }
 
