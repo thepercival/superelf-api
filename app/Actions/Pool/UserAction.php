@@ -47,15 +47,15 @@ final class UserAction extends Action
                 return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
             }
 
-            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())
-            || $pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())
-            ) {
+            $withFormations = true;
+            $withTransferActions = true;
+            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
                 $withFormations = false;
                 $withTransferActions = false;
-            } else {
-                $withFormations = true;
-                $withTransferActions = true;
+            } else if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                $withTransferActions = false;
             }
+
             return $this->fetchOneHelper($response, $poolUser, false, $withFormations, $withTransferActions);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
