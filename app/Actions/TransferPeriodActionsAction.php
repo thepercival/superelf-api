@@ -159,6 +159,9 @@ final class TransferPeriodActionsAction extends Action
             if ($serTransfer === null || $playerIn === null || $playerOut === null) {
                 throw new \Exception("de transfer is niet gevuld");
             }
+            if ($playerIn === $playerOut) {
+                throw new \Exception("je kan niet dezelfde speler kiezen");
+            }
 
             // 1 check transferactions
             if ($poolUser->getTransfers()->count() === $transferPeriod->getMaxNrOfTransfers() ) {
