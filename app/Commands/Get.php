@@ -264,8 +264,11 @@ class Get extends Command
         $table->display($competition, array_values($againstGames), $teamCompetitors);
     }
 
-    protected function showAgainstGame(League $league, Season $season, string|int $id): void
+    protected function showAgainstGame(League $league, Season $season, string|int|false $id): void
     {
+        if ($id === false) {
+            throw new \Exception("no id in input", E_ERROR);
+        }
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
             throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);

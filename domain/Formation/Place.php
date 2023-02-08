@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SuperElf\Formation;
 
-use DeprecationTests\Foo;
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
 use SuperElf\Formation\Line as FormationLine;

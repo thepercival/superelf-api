@@ -150,7 +150,7 @@ class InputHelper
         return $fallBackValue;
     }
 
-    public function getIdFromInput(InputInterface $input, int|string $fallBackValue = null): int|string
+    public function getIdFromInput(InputInterface $input, int|string|false $fallBackValue = null): int|string|false
     {
         $idOption = $input->getOption("id");
         if (is_int($idOption)) {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SuperElf\Formation;
 
+use Doctrine\Common\Collections\Collection;
+use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as SportsFormationLine;
@@ -13,12 +15,8 @@ use Sports\Team\Player;
 use SuperElf\Formation;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Calculator as S11FormationCalculator;
-use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Formation\Place\Removal as FormationPlaceRemoval;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
-use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Replacement;
 use SuperElf\Substitution;
@@ -90,12 +88,16 @@ class Validator
         }
     }
 
-    public function validateTransferActions(PoolUser $poolUser): void
+    public function validateTransferActions(PoolUser $poolUser): S11Formation
     {
         $transfers = array_values($poolUser->getTransfers()->toArray());
         $substitutions = array_values($poolUser->getSubstitutions()->toArray());
 
-        $newFormation = $this->validateReplacements($poolUser);
+        $assembleFormation = $poolUser->getAssembleFormation();
+        if( $assembleFormation === null ) {
+            throw new \Exception('de formatie kan niet leeg zijn');
+        }
+        $newFormation = $this->validateReplacements($assembleFormation, $poolUser->getReplacements());
         if( !$this->areAllPlacesWithoutTeamReplaced($poolUser)
             && (count($transfers) > 0 || count($substitutions) > 0)) {
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');
@@ -105,17 +107,21 @@ class Validator
 
         $newFormation = $this->validateSubstitutions($newFormation, $substitutions);
         $this->validate($newFormation->convertToBase());
+        return $newFormation;
     }
 
+    /**
+     * @param S11Formation $formation
+     * @param Collection<int|string, Replacement> $replacements
+     * @return S11Formation
+     * @throws \Exception
+     */
+    public function validateReplacements(S11Formation $formation, Collection $replacements): S11Formation {
 
-    public function validateReplacements(PoolUser $poolUser): S11Formation {
-        $assembleFormation = $poolUser->getAssembleFormation();
-        if( $assembleFormation === null ) {
-            throw new \Exception('de formatie kan niet leeg zijn');
-        }
-        $newFormation = $assembleFormation;
-        foreach($poolUser->getReplacements() as $replacement) {
-            foreach($poolUser->getReplacements() as $replacementCompare) {
+        $replacementsCompare = $replacements;
+        foreach($replacements as $replacement) {
+
+            foreach($replacementsCompare as $replacementCompare) {
                 if($replacementCompare !== $replacement
                     && $replacementCompare->getLineNumberOut() === $replacement->getLineNumberOut()
                     && $replacementCompare->getPlaceNumberOut() === $replacement->getPlaceNumberOut()) {
@@ -123,10 +129,10 @@ class Validator
                 }
             }
 
-            $newFormation = $this->validateReplacement($newFormation, $replacement);
+            $formation = $this->validateReplacement($formation, $replacement);
 //            $sportsFormation = $this->calculateNewFormation($sportsFormation, $replacement);
         }
-        return $newFormation;
+        return $formation;
     }
 
     protected function validateReplacement(S11Formation $newFormation, Replacement $replacement): S11Formation {
@@ -162,21 +168,51 @@ class Validator
      */
     public function validateTransfers(S11Formation $s11Formation, array $transfers): S11Formation
     {
+        $hasDoubleTransfer = $this->hasDoubleTransfer($transfers);
+        $isFirstOfDoubleTransfer = $hasDoubleTransfer;
         foreach ($transfers as $transfer) {
             foreach ($transfers as $transferCompare) {
                 if ($transferCompare !== $transfer
-                    && $transferCompare->getLineNumberOut() === $transfer->getLineNumberOut()
+                && $transferCompare->getLineNumberOut() === $transfer->getLineNumberOut()
                     && $transferCompare->getPlaceNumberOut() === $transfer->getPlaceNumberOut()) {
                     throw new \Exception('2 transfers for same formationplace');
                 }
             }
-            $s11Formation = $this->validateTransfer($s11Formation, $transfer);
+            if( $isFirstOfDoubleTransfer ) {
+                $s11Formation = $this->calculator->processTransfer($s11Formation, $transfer);
+            } else {
+                $s11Formation = $this->validateTransfer($s11Formation, $transfer);
+            }
+            $isFirstOfDoubleTransfer = false;
         }
         return $s11Formation;
     }
 
+    /**
+     * @param list<Transfer> $transfers
+     * @return bool
+     * @throws \Exception
+     */
+    public function hasDoubleTransfer(array $transfers): bool
+    {
+        foreach ($transfers as $transfer) {
+            foreach ($transfers as $transferCompare) {
+                if ($transferCompare !== $transfer &&
+                    $transferCompare->getCreatedDateTime()->getTimestamp() ===
+                    $transfer->getCreatedDateTime()->getTimestamp() ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     protected function validateTransfer(S11Formation $formation, Transfer $transfer): S11Formation {
         $transferPeriodStart = $transfer->getTransferPeriod()->getStartDateTime();
+
+        // CDK
+        //$s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $player->getPerson());
+
 //        $assembleFormation = $transfer->getPoolUser()->getAssembleFormation();
 //        if( $assembleFormation === null ) {
 //            throw new \Exception('de formatie kan niet leeg zijn');

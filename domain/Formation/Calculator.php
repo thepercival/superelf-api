@@ -18,29 +18,29 @@ use SuperElf\Transfer;
 
 class Calculator
 {
-    public function getCurrentFormation(PoolUser $poolUser): S11Formation|null {
-        $assembleFormation = $poolUser->getAssembleFormation();
-        if( $assembleFormation === null) {
-            return null;
-        }
-        $newFormation = $assembleFormation;
-//        $$this->toConsole('after assemble', newFormation);        
-        foreach( $poolUser->getReplacements() as $replacement) {
-            $newFormation = $this->processReplacement($newFormation, $replacement);
-        }
-//        $$this->toConsole('after replace', newFormation);        
-        
-        foreach( $poolUser->getTransfers() as $transfer) {
-            $newFormation = $this->processTransfer($newFormation, $transfer);
-        }
-//        $$this->toConsole('after transfer', newFormation);        
-        
-        foreach( $poolUser->getSubstitutions() as $substitution) {
-            $newFormation = $this->processSubstitution($newFormation, $substitution);
-        }
-//        $$this->toConsole('after substitute', newFormation);        
-        return $newFormation;
-    }    
+//    public function createTransferFormation(PoolUser $poolUser): S11Formation {
+//        $assembleFormation = $poolUser->getAssembleFormation();
+//        if( $assembleFormation === null) {
+//            throw new \Exception('poolUser has no assembleFormation');
+//        }
+//        $newFormation = $assembleFormation;
+////        $$this->toConsole('after assemble', newFormation);
+//        foreach( $poolUser->getReplacements() as $replacement) {
+//            $newFormation = $this->processReplacement($newFormation, $replacement);
+//        }
+////        $$this->toConsole('after replace', newFormation);
+//
+//        foreach( $poolUser->getTransfers() as $transfer) {
+//            $newFormation = $this->processTransfer($newFormation, $transfer);
+//        }
+////        $$this->toConsole('after transfer', newFormation);
+//
+//        foreach( $poolUser->getSubstitutions() as $substitution) {
+//            $newFormation = $this->processSubstitution($newFormation, $substitution);
+//        }
+////        $$this->toConsole('after substitute', newFormation);
+//        return $newFormation;
+//    }
 
     public function processReplacement(S11Formation $currentFormation, Replacement $replacement): S11Formation {
         if( $replacement->getLineNumberOut() === FootballLine::from($replacement->getPlayerIn()->getLine()) ) {
@@ -216,10 +216,10 @@ class Calculator
         return $s11Player?->getMostRecentPlayer()?->getTeam();
     }
 
-//    private function toConsole(header: string, currentFormation: S11Formation): void {
-//    $linesAsString = currentFormation->getLines()->map((formationLine: S11FormationLine): string => {
-//        return '' + formationLine->getStartingPlaces()->length;
-//    });
-//        console->log( header + ' : ' + linesAsString->join('-') );
-//    }
+    public function output(string $header, S11Formation $currentFormation): string {
+        $linesAsString = $currentFormation->getLines()->map(function (S11FormationLine $formationLine): string {
+            return '' . count($formationLine->getStartingPlaces());
+        });
+        return $header . ' : ' . join('-', $linesAsString->toArray());
+    }
 }

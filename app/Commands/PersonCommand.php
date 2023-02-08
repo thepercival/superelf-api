@@ -7,6 +7,7 @@ use App\Commands\Person\Action as PersonAction;
 use App\MailHandler;
 use DateTimeInterface;
 use League\Period\Period;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Person;
@@ -38,6 +39,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class PersonCommand extends Command
 {
+    private string $customName = 'person';
+
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected AgainstGameRepository $againstGameRepos;
     protected S11PlayerRepository $s11PlayerRepos;
@@ -92,7 +95,7 @@ class PersonCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('app:person')
+            ->setName('app:' . $this->customName)
             ->setDescription('admins the persons')
             ->setHelp('admins the persons');
 
@@ -115,7 +118,13 @@ class PersonCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLogger($input, 'command-s11player');
+        $loggerName = 'command-' . $this->customName;
+        $logger = $this->initLoggerNew(
+            $this->getLogLevel($input),
+            $this->getStreamDef($input, $loggerName),
+            $loggerName,
+        );
+        $this->s11PlayerSyncer->setLogger($logger);;
 
         try {
             $action = $this->getAction($input);
@@ -135,17 +144,9 @@ class PersonCommand extends Command
                     throw new \Exception('onbekende actie', E_ERROR);
             }
         } catch (\Exception $e) {
-            if ($this->logger !== null) {
-                $this->logger->error($e->getMessage());
-            }
+            $logger->error($e->getMessage());
         }
         return 0;
-    }
-
-    protected function initLogger(InputInterface $input, string $name, MailHandler|null $mailHandler = null): void
-    {
-        parent::initLogger($input, $name);
-        $this->s11PlayerSyncer->setLogger($this->getLogger());;
     }
 
     protected function getAction(InputInterface $input): PersonAction

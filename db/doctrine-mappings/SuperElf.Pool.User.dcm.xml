@@ -24,7 +24,6 @@
     <one-to-one field="transferFormation" target-entity="SuperElf\Formation">
       <cascade>
         <cascade-persist/>
-        <cascade-remove/>
       </cascade>
         <join-columns>
             <join-column name="transferFormationId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>

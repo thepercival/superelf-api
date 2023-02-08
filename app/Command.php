@@ -25,7 +25,7 @@ use Symfony\Component\Console\Input\InputOption;
 class Command extends SymCommand
 {
     protected LoggerInterface|null $logger = null;
-    protected Mailer $mailer;
+    protected Mailer|null $mailer = null;
 
     protected Configuration $config;
     protected SportRepository $sportRepos;
@@ -90,7 +90,7 @@ class Command extends SymCommand
         return $this->logger;
     }
 
-    protected function initLogger(InputInterface $input, string $name, MailHandler|null $mailHandler = null): void
+    protected function initLogger(InputInterface $input, string $name, MailHandler|null $mailHandler = null): Logger
     {
         $logLevel = $this->config->getInt('logger.level');
         /** @var string|null $logLevelParam */
@@ -120,8 +120,34 @@ class Command extends SymCommand
             }
             $mailHandler = $this->getMailHandler(null, $mailLogLevel);
         }
-        $mailHandler->setMailer($this->mailer);
+        if ($this->mailer !== null) {
+            $mailHandler->setMailer($this->mailer);
+        }
         $this->logger->pushHandler($mailHandler);
+        return $this->logger;
+    }
+
+    protected function initLoggerNew(
+        int $logLevel,
+        string $streamDef,
+        string $name,
+        MailHandler|null $mailHandler = null
+    ): Logger {
+        $this->logger = new Logger($name);
+        $processor = new UidProcessor();
+        $this->logger->pushProcessor($processor);
+
+        $handler = new StreamHandler($streamDef, $logLevel);
+        $this->logger->pushHandler($handler);
+
+        if ($mailHandler === null) {
+            $mailHandler = $this->getMailHandler();
+        }
+        if ($this->mailer !== null) {
+            $mailHandler->setMailer($this->mailer);
+        }
+        $this->logger->pushHandler($mailHandler);
+        return $this->logger;
     }
 
     protected function getMailHandler(
@@ -137,5 +163,35 @@ class Command extends SymCommand
         $toEmailAddress = $this->config->getString('email.admin');
         $fromEmailAddress = $this->config->getString('email.from');
         return new MailHandler($toEmailAddress, $subject, $fromEmailAddress, $mailLogLevel);
+    }
+
+    protected function getLogLevel(InputInterface $input, int|null $defaultLogLevel = null): int
+    {
+        if ($defaultLogLevel === null) {
+            $loggerSettings = $this->config->getArray('logger');
+            $defaultLogLevel = (int)$loggerSettings['level'];
+        }
+        /** @var string|int|null $logLevelParam */
+        $logLevelParam = $input->getOption('loglevel');
+        if (is_string($logLevelParam) && strlen($logLevelParam) > 0) {
+            $logLevelTmp = filter_var($logLevelParam, FILTER_VALIDATE_INT);
+            if ($logLevelTmp !== false) {
+                return $logLevelTmp;
+            }
+        }
+        return $defaultLogLevel;
+    }
+
+    protected function getStreamDef(InputInterface $input, string|null $fileName = null): string
+    {
+        /** @var bool|null $logToFile */
+        $logToFile = $input->getOption('logtofile');
+        $logToFile = is_bool($logToFile) ? $logToFile : false;
+        if ($logToFile === false) {
+            return 'php://stdout';
+        }
+        /** @var array<string,string> $loggerSettings */
+        $loggerSettings = $this->config->getArray('logger');
+        return ($loggerSettings['path'] . (string)$fileName . '.log');
     }
 }

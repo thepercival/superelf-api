@@ -11,7 +11,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Interop\Queue\Consumer;
 use Interop\Queue\Message;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Sports\Competition;
 use Sports\Game;
 use Sports\Game\Against as AgainstGame;
@@ -39,6 +41,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Sync extends Command
 {
+    private string $customName = 'sync';
+
     protected AgainstGameRepository $againstGameRepos;
     protected PersonRepository $personRepos;
     protected S11PlayerRepository $s11PlayerRepos;
@@ -104,7 +108,7 @@ class Sync extends Command
     {
         $this
             // the name of the command (the part after "bin/console")
-            ->setName('app:sync')
+            ->setName('app:' . $this->customName)
             // the short description shown while running "php bin/console list"
             ->setDescription('sync all superelf-data')
             // the full command description shown when running the command with
@@ -122,8 +126,8 @@ class Sync extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->initLogger($input, 'command-sync');
-        $this->getLogger()->info('starting command app:sync');
+        $logger = $this->customInitLogger($input);
+        $logger->info('starting command app:sync');
 
         try {
             if ($this->executeManual($input)) {
@@ -134,9 +138,7 @@ class Sync extends Command
 
             $queueService->receive($this->getReceiver(), $timeoutInSeconds, QueueService::GENERAL_QUEUE);
         } catch (\Exception $e) {
-            if ($this->logger !== null) {
-                $this->logger->error($e->getMessage());
-            }
+            $logger->error($e->getMessage());
         }
         return 0;
     }
@@ -175,15 +177,21 @@ class Sync extends Command
         return true;
     }
 
-    protected function initLogger(InputInterface $input, string $name, MailHandler|null $mailHandler = null): void
+    protected function customInitLogger(InputInterface $input): LoggerInterface
     {
-        parent::initLogger($input, $name);
-        $this->gameRoundSyncer->setLogger($this->getLogger());
-        $this->s11PlayerSyncer->setLogger($this->getLogger());
-        $this->statisticsSyncer->setLogger($this->getLogger());
-        $this->appearanceSyncer->setLogger($this->getLogger());
-        $this->totalsSyncer->setLogger($this->getLogger());
-        $this->poolGameSyncer->setLogger($this->getLogger());
+        $loggerName = 'command-' . $this->customName;
+        $logger = $this->initLoggerNew(
+            $this->getLogLevel($input),
+            $this->getStreamDef($input, $loggerName),
+            $loggerName,
+        );
+        $this->gameRoundSyncer->setLogger($logger);
+        $this->s11PlayerSyncer->setLogger($logger);
+        $this->statisticsSyncer->setLogger($logger);
+        $this->appearanceSyncer->setLogger($logger);
+        $this->totalsSyncer->setLogger($logger);
+        $this->poolGameSyncer->setLogger($logger);
+        return $logger;
     }
 
     protected function getReceiver(): callable
