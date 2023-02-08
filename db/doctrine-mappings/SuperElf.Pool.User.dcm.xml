@@ -38,6 +38,9 @@
           <cascade>
               <cascade-remove/>
           </cascade>
+          <order-by>
+              <order-by-field name="createdDateTime"/>
+          </order-by>
       </one-to-many>
       <one-to-many field="substitutions" target-entity="SuperElf\Substitution" mapped-by="poolUser">
           <cascade>
