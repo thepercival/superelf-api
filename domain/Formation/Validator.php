@@ -16,6 +16,7 @@ use SuperElf\Formation;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Calculator as S11FormationCalculator;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\LineupItem;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Replacement;
@@ -90,7 +91,13 @@ class Validator
 
     public function validateTransferActions(PoolUser $poolUser): S11Formation
     {
-        $transfers = array_values($poolUser->getTransfers()->toArray());
+        $transfers = $poolUser->getTransfers()->toArray();
+        uasort(
+            $transfers,
+            function (Transfer $transfer1, Transfer $transfer2): int {
+                return $transfer1->getCreatedDateTime()->getTimestamp() - $transfer2->getCreatedDateTime()->getTimestamp();
+            }
+        );
         $substitutions = array_values($poolUser->getSubstitutions()->toArray());
 
         $assembleFormation = $poolUser->getAssembleFormation();
@@ -103,7 +110,7 @@ class Validator
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');
         }
 
-        $newFormation = $this->validateTransfers($newFormation, $transfers );
+        $newFormation = $this->validateTransfers($newFormation, array_values($transfers) );
 
         $newFormation = $this->validateSubstitutions($newFormation, $substitutions);
         $this->validate($newFormation->convertToBase());
