@@ -29,7 +29,7 @@ class CreateFormationsCommand extends Command
     private string $customName = 'create-transfer-formations';
 
     private FormationValidator $formationValidator;
-
+    private bool $dryRun = false;
 
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected PoolRepository $poolRepos;
@@ -89,6 +89,10 @@ class CreateFormationsCommand extends Command
         );
 
         try {
+            /** @var bool|null $dryRun */
+            $dryRun = $input->getOption('dry-run');
+            $this->dryRun = is_bool($dryRun) ? $dryRun : false;
+
             $poolUserId = $this->inputHelper->getStringFromInput($input, 'poolUserId', '');
             $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
             $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
@@ -145,11 +149,16 @@ class CreateFormationsCommand extends Command
                 $prefix . '        ',
                 $logger);
 
-//            $this->poolUserRepos->flush();
-//            if( $oldTransferFormation !== null ) {
-//                $this->s11FormationRepos->remove($oldTransferFormation, true);
-//            }
-            $this->poolUserRepos->save($poolUser, true);
+            if( !$this->dryRun) {
+                //            $this->poolUserRepos->flush();
+                //            if( $oldTransferFormation !== null ) {
+                //                $this->s11FormationRepos->remove($oldTransferFormation, true);
+                //            }
+                $this->poolUserRepos->save($poolUser, true);
+            } else {
+                $logger->info('dryrun');
+            }
+
         } catch (\Exception $e) {
             $logger->error( '            ' . $e->getMessage());
         }
