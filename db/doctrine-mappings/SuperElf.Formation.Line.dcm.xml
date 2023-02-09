@@ -12,6 +12,9 @@
         <cascade-persist/>
         <cascade-remove/>
       </cascade>
+      <order-by>
+        <order-by-field name="number"/>
+      </order-by>
     </one-to-many>
     <one-to-many field="substituteAppearances" target-entity="SuperElf\Substitute\Appearance" mapped-by="formationLine">
       <cascade>

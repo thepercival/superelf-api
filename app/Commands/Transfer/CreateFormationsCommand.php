@@ -155,8 +155,6 @@ class CreateFormationsCommand extends Command
                 //                $this->s11FormationRepos->remove($oldTransferFormation, true);
                 //            }
                 $this->poolUserRepos->save($poolUser, true);
-            } else {
-                $logger->info('dryrun');
             }
 
         } catch (\Exception $e) {

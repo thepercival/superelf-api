@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as SportsFormationLine;
+use Sports\Person;
 use Sports\Sport\FootballLine;
 use Sports\Team;
 use Sports\Team\Player;
@@ -18,6 +19,7 @@ use SuperElf\Formation\Calculator as S11FormationCalculator;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\LineupItem;
 use SuperElf\OneTeamSimultaneous;
+use SuperElf\Periods\ViewPeriod;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Replacement;
 use SuperElf\Substitution;
@@ -110,7 +112,7 @@ class Validator
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');
         }
 
-        $newFormation = $this->validateTransfers($newFormation, array_values($transfers) );
+        $newFormation = $this->validateTransfers($newFormation, $assembleFormation->getViewPeriod(), array_values($transfers) );
 
         $newFormation = $this->validateSubstitutions($newFormation, $substitutions);
         $this->validate($newFormation->convertToBase());
@@ -169,11 +171,15 @@ class Validator
 
     /**
      * @param S11Formation $s11Formation
+     * @param ViewPeriod $assembleViewPeriod,
      * @param list<Transfer> $transfers
      * @return S11Formation
      * @throws \Exception
      */
-    public function validateTransfers(S11Formation $s11Formation, array $transfers): S11Formation
+    public function validateTransfers(
+        S11Formation $s11Formation,
+        ViewPeriod $assembleViewPeriod,
+        array $transfers): S11Formation
     {
         $hasDoubleTransfer = $this->hasDoubleTransfer($transfers);
         $isFirstOfDoubleTransfer = $hasDoubleTransfer;
@@ -188,7 +194,7 @@ class Validator
             if( $isFirstOfDoubleTransfer ) {
                 $s11Formation = $this->calculator->processTransfer($s11Formation, $transfer);
             } else {
-                $s11Formation = $this->validateTransfer($s11Formation, $transfer);
+                $s11Formation = $this->validateTransfer($s11Formation, $assembleViewPeriod, $transfer);
             }
             $isFirstOfDoubleTransfer = false;
         }
@@ -214,7 +220,10 @@ class Validator
         return false;
     }
 
-    protected function validateTransfer(S11Formation $formation, Transfer $transfer): S11Formation {
+    protected function validateTransfer(
+        S11Formation $formation,
+        ViewPeriod $assembleViewPeriod,
+        Transfer $transfer): S11Formation {
         $transferPeriodStart = $transfer->getTransferPeriod()->getStartDateTime();
 
         // CDK
@@ -240,7 +249,8 @@ class Validator
 
         $playerIn = $transfer->getPlayerIn();
         $existingPlayerWithSameTeam = $this->getOtherPlayerWithTeam($formation, $formationPlace, $playerIn->getTeam());
-        if( $existingPlayerWithSameTeam !== null ) {
+        if( $existingPlayerWithSameTeam !== null /*&& $this->hasSameTeamsInViewPeriod
+            ($existingPlayerWithSameTeam->getPerson(), $assembleViewPeriod )*/  ) {
             $existingPlayerName = $existingPlayerWithSameTeam->getPerson()->getName();
             $teamInName = $playerIn->getTeam()->getName();
             $playerInName = $playerIn->getPerson()->getName();
@@ -248,6 +258,15 @@ class Validator
         }
         return $this->calculator->processTransfer($formation, $transfer);
     }
+
+    // see gerrit kasinwiro en transfer ermee
+//    protected function hasSameTeamsInViewPeriod(Person $person, ViewPeriod $assembleViewPeriod): bool {
+//        $oneTeamSimultaneous = new OneTeamSimultaneous();
+//        $playerAtAssemble = $oneTeamSimultaneous->getPlayer($person, $assembleViewPeriod->getStartDateTime());
+//        $playerAtTransfer = $oneTeamSimultaneous->getPlayer($person, $assembleViewPeriod->getEndDateTime());
+//        return $playerAtAssemble !== null
+//            && $playerAtAssemble?->getTeam() === $playerAtTransfer?->getTeam();
+//    }
 
     /**
      * @param S11Formation $s11Formation

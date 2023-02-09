@@ -144,8 +144,11 @@ final class UserAction extends Action
             }
 
             $poolUser = $pool->getUser($user);
-            $isAdmin = $poolUser !== null && $poolUser->getAdmin();
-            $serGroups = $isAdmin ? ['admin'] : [];
+            $serGroups = ['person'/* for transferActions */];
+            if( $poolUser !== null && $poolUser->getAdmin() ) {
+                $serGroups[] = 'admin';
+            }
+
             if( $withFormations ) {
                 $serGroups[] = 'formations';
             }
