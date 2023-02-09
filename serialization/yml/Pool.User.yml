@@ -34,6 +34,10 @@ SuperElf\Pool\User:
       type: integer
       groups: [ admin ]
       serialized_name: nrOfAssembled
+    getNrOfTransfers:
+      type: integer
+      groups: [ admin ]
+      serialized_name: nrOfTransfers
 #    getNrOfTransferedWithTeam:
 #      type: integer
 #      groups: [admin]

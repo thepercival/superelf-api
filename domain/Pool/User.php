@@ -157,10 +157,10 @@ class User extends Identifiable
         return $formation !== null ? $formation->getNrOfPersons() : 0;
     }
 
-    /*public function getNrOfTransferedWithTeam(): int
+    public function getNrOfTransfers(): int
     {
-        return $this->getTransfers(true)->count();
-    }*/
+        return count($this->getTransfers());
+    }
 
 //    /**
 //     * @return ArrayCollection<int|string, GameRoundScore>|PersistentCollection<int|string, GameRoundScore>
