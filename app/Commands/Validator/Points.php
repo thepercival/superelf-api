@@ -4,9 +4,11 @@ namespace App\Commands\Validator;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use SuperElf\Pool\Repository as PoolRepository;
 use SportsImport\Getter as ImportGetter;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\Formation as S11Formation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,7 +18,7 @@ class Points extends Command
     private string $customName = 'validate-points';
     protected ImportGetter $getter;
     protected CompetitionConfigRepository $competitionConfigRepos;
-    protected AgainstGameRepository $againstGameRepos;
+    protected PoolRepository $poolRepos;
 
     //protected TeamPlayerRepository $teamPlayerRepos;
 
@@ -30,9 +32,9 @@ class Points extends Command
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
 
-        /** @var AgainstGameRepository $againstGameRepos */
-        $againstGameRepos = $container->get(AgainstGameRepository::class);
-        $this->againstGameRepos = $againstGameRepos;
+        /** @var PoolRepository $poolRepos */
+        $poolRepos = $container->get(PoolRepository::class);
+        $this->poolRepos = $poolRepos;
 
 //        /** @var TeamPlayerRepository $teamPlayerRepos */
 //        $teamPlayerRepos = $container->get(TeamPlayerRepository::class);
@@ -68,37 +70,65 @@ class Points extends Command
         );
 
         try {
-//            $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
-
-//            $competition = $competitionConfig->getSourceCompetition();
-//
-//            $seasonPeriod = $competition->getSeason()->getPeriod();
-
-
-//            foreach ($competitionConfig->getViewPeriods() as $periodA) {
-//                foreach ($competitionConfig->getViewPeriods() as $periodB) {
-//                    if ($periodA !== $periodB && $periodA->getPeriod()->overlaps($periodB->getPeriod())) {
-//                        throw new \Exception('the viewperiods overlap', E_ERROR);
-//                    }
-//                }
-//                if (!$seasonPeriod->contains($periodA->getPeriod())) {
-//                    throw new \Exception('the viewperiods needs to be within the seasons', E_ERROR);
-//                }
-//            }
-//            if ($competitionConfig->getCreateAndJoinPeriod()->getStartDateTime() >
-//                $competitionConfig->getAssemblePeriod()->getStartDateTime()) {
-//                throw new \Exception('the createandjoinstart should be before assemblestart', E_ERROR);
-//            }
-//            if ($competitionConfig->getAssemblePeriod()->getEndDateTime() >
-//                $competitionConfig->getTransferPeriod()->getStartDateTime()) {
-//                throw new \Exception('the assembleend should be before transferstart', E_ERROR);
-//            }
-            $logger->info('validation succeeded');
+            $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
+            $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
+            foreach( $pools as $pool) {
+                $logger->info($pool->getName() . ' ..');
+                $prefix = '    ';
+                foreach( $pool->getUsers() as $poolUser) {
+                    try {
+                        $logger->info($prefix . $poolUser->getUser()->getName() . ' ..');
+                        $this->validatePoints($poolUser);
+                        $logger->info($prefix . $poolUser->getUser()->getName() . ' success');
+                    }
+                    catch(\Exception $e) {
+                        $logger->info($prefix . $poolUser->getUser()->getName() . ' error => ' . $e->getMessage() );
+                        // $logger->error($e->getMessage());
+                    }
+                }
+            }
         } catch (\Exception $e) {
             if ($this->logger !== null) {
                 $this->logger->error($e->getMessage());
             }
         }
         return 0;
+    }
+
+    protected function validatePoints(PoolUser $poolUser): void {
+        $assembleFormation = $poolUser->getAssembleFormation();
+        if( $assembleFormation !== null) {
+            $this->validateFormationPoints($assembleFormation);
+        }
+        $transferFormation = $poolUser->getTransferFormation();
+        if( $transferFormation !== null) {
+            $this->validateFormationPoints($transferFormation);
+        }
+    }
+
+    protected function validateFormationPoints(S11Formation $formation): void {
+        $gameRounds = $formation->getViewPeriod()->getGameRounds();
+        foreach( $formation->getLines() as $formationLine) {
+            foreach( $gameRounds as $gameRound ) {
+                $substituteAppearance = $formationLine->getSubstituteAppareance($gameRound);
+                $descr = $formationLine->getLine()->value . ' - ' . $gameRound->getNumber();
+                $onlyAppearences = true;
+                foreach( $formationLine->getStartingPlaces() as $formationPlace) {
+                    $statistics = $formationPlace->getGameRoundStatistics($gameRound);
+                    if( $statistics === null ) {
+                        continue;
+                    }
+                    if( $substituteAppearance === null && !$statistics->hasAppeared() ) {
+                        throw new \Exception('no substitute while startingplace with no appearance : ' . $descr);
+                    }
+                    if( $onlyAppearences && !$statistics->hasAppeared() ) {
+                        $onlyAppearences = false;
+                    }
+                }
+                if( $substituteAppearance !== null && $onlyAppearences ) {
+                    throw new \Exception('has substitute while startingplaces all appeared : ' . $descr);
+                }
+            }
+        }
     }
 }
