@@ -106,7 +106,9 @@ class Validator
         if( $assembleFormation === null ) {
             throw new \Exception('de formatie kan niet leeg zijn');
         }
-        $newFormation = $this->validateReplacements($assembleFormation, $poolUser->getReplacements());
+        $transferViewPeriod = $poolUser->getPool()->getTransferPeriod()->getViewPeriod();
+        $transferFormation = $this->calculator->convertToTransferFormation($assembleFormation, $transferViewPeriod);
+        $newFormation = $this->validateReplacements($transferFormation, $poolUser->getReplacements());
         if( !$this->areAllPlacesWithoutTeamReplaced($poolUser)
             && (count($transfers) > 0 || count($substitutions) > 0)) {
             throw new \Exception('eerst moeten alle plekken met een speler zonder club worden vervangen');

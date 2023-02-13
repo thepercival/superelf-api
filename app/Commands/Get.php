@@ -30,6 +30,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * php bin/console.php app:get games-basics --sport=football --league=Eredivisie --season=2022/2023 --gameRoundRange=21-21
+ * php bin/console.php app:get game --sport=football --league=Eredivisie --season=2022/2023 --id=181
+ */
 class Get extends Command
 {
     use EntityTrait;

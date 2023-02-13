@@ -198,28 +198,29 @@ class PersonCommand extends Command
             $period = $competitionConfig->getSeason()->getPeriod();
         }
         $this->getLogger()->info($person->getName() . '(id:' . (string)$person->getId() . ')');
+        $this->getLogger()->info('    teamPlayers');
         foreach ($person->getPlayers(null, $period) as $player) {
             $line = FootballLine::getFirstChar(FootballLine::from($player->getLine()));
-            $periodDescription = "periode " . $player->getPeriod()->toIso80000('Y-m-d');
-            $msg = '    ' . $player->getTeam()->getName() . ' (' . $line . ') => ' . $periodDescription;
+            $periodDescription = '        ' . $player->getPeriod()->toIso80000('Y-m-d');
+            $msg = $periodDescription . ' => ' . $player->getTeam()->getName() . ' (' . $line . ')';
             $this->getLogger()->info($msg);
+        }
 
-            $viewPeriods = $competitionConfig->getViewPeriods($period);
-            foreach ($viewPeriods as $viewPeriod) {
-                $s11Player = $this->s11PlayerRepos->findOneBy(
-                    ["viewPeriod" => $viewPeriod, "person" => $person]
-                );
-                if ($s11Player === null) {
-                    continue;
-                }
-
-                $periodDescription = "periode " . $viewPeriod->getPeriod()->toIso80000('Y-m-d');
-                $msg = '        ' . $periodDescription;
-                $msg .= ', totalpoints: ' . $s11Player->getTotalPoints();
-                $msg .= ', nrOfWins: ' . $s11Player->getTotals()->getNrOfWins();
-                $msg .= ', nrOfDraws: ' . $s11Player->getTotals()->getNrOfDraws();
-                $this->getLogger()->info($msg);
+        $this->getLogger()->info('    viewPeriods');
+        $viewPeriods = $competitionConfig->getViewPeriods($period);
+        foreach ($viewPeriods as $viewPeriod) {
+            $s11Player = $this->s11PlayerRepos->findOneBy(
+                ["viewPeriod" => $viewPeriod, "person" => $person]
+            );
+            if ($s11Player === null) {
+                continue;
             }
+
+            $msg = '        ' . $viewPeriod->getPeriod()->toIso80000('Y-m-d');
+            $msg .= ' => totalpoints: ' . $s11Player->getTotalPoints();
+            $msg .= ', nrOfWins: ' . $s11Player->getTotals()->getNrOfWins();
+            $msg .= ', nrOfDraws: ' . $s11Player->getTotals()->getNrOfDraws();
+            $this->getLogger()->info($msg);
         }
     }
 

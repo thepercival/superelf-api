@@ -13,9 +13,11 @@ use App\Commands\Migration\Users as MigrateUsersCommand;
 use App\Commands\PersonCommand;
 use App\Commands\PlayerTotals as UpdatePlayerTotalsCommand;
 use App\Commands\PoolCompetitionsCommand;
+use App\Commands\PoolUserCommand;
 use App\Commands\Sync as SyncCommand;
 use App\Commands\Transfer\CreateFormationsCommand;
 use App\Commands\Validator\CompetitionConfig as ValidateCompetitionConfigCommand;
+use App\Commands\Validator\Points as ValidatePointsCommand;
 use App\Commands\Validator\GameParticipations as ValidateGameParticipationsCommand;
 use App\Commands\Validator\TeamPlayers as ValidateTeamPlayersCommand;
 use Psr\Container\ContainerInterface;
@@ -47,6 +49,11 @@ $commands = [
     ): ValidateTeamPlayersCommand {
         return new ValidateTeamPlayersCommand($container);
     },
+    "app:validate-points" => function (
+        ContainerInterface $container
+    ): ValidatePointsCommand {
+        return new ValidatePointsCommand($container);
+    },
     "app:validate-competitionconfig" => function (
         ContainerInterface $container
     ): ValidateCompetitionConfigCommand {
@@ -63,6 +70,9 @@ $commands = [
     },
     "app:create-transfer-formations" => function (ContainerInterface $container): CreateFormationsCommand {
         return new CreateFormationsCommand($container);
+    },
+    "app:pooluser" => function (ContainerInterface $container): PoolUserCommand {
+        return new PoolUserCommand($container);
     },
     "app:migrate-users" => function (ContainerInterface $container): MigrateUsersCommand {
         return new MigrateUsersCommand($container);

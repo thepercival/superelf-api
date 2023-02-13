@@ -39,6 +39,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * php bin/console.php app:sync --league=Eredivisie --season=2022/2023 --id=181
+ */
 class Sync extends Command
 {
     private string $customName = 'sync';
