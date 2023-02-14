@@ -19,6 +19,7 @@ use Sports\Team\Role\Editor as RoleEditor;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
+use SuperElf\GameRound;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
@@ -112,6 +113,7 @@ class PersonCommand extends Command
         $this->addOption('at', null, InputOption::VALUE_OPTIONAL, 'Y-m-d');
         $this->addOption('newTeamAbbr', null, InputOption::VALUE_OPTIONAL, 'EMM');
         $this->addOption('newLine', null, InputOption::VALUE_OPTIONAL, 'A||M||D||G');
+        $this->addOption('showPoints', null, InputOption::VALUE_NONE);
 
         parent::configure();
     }
@@ -163,6 +165,10 @@ class PersonCommand extends Command
         $firstName = $this->inputHelper->getStringFromInput($input, 'firstName', '');
         $lastName = $this->inputHelper->getStringFromInput($input, 'lastName', '');
 
+        /** @var bool|null $showPoints */
+        $showPoints = $input->getOption('showPoints');
+        $showPoints = is_bool($showPoints) ? $showPoints : false;
+
         // voor welke viewperiods moet ik de persoon toevoegen??
 //        --createAndJoin
 //        --assemble
@@ -182,7 +188,7 @@ class PersonCommand extends Command
         }
 
         foreach ($persons as $person) {
-            $this->logPerson($person, $competitionConfig);
+            $this->logPerson($person, $competitionConfig, $showPoints);
         }
         // $this->getLogger()->info('FirstName: "' . ->get() person and s11Players created and saved');
         // }
@@ -192,7 +198,11 @@ class PersonCommand extends Command
         return 0;
     }
 
-    private function logPerson(Person $person, CompetitionConfig $competitionConfig, Period|null $period = null): void
+    private function logPerson(
+        Person $person,
+        CompetitionConfig $competitionConfig,
+        bool $showPoints,
+        Period|null $period = null): void
     {
         if ($period === null) {
             $period = $competitionConfig->getSeason()->getPeriod();
@@ -207,7 +217,9 @@ class PersonCommand extends Command
         }
 
         $this->getLogger()->info('    viewPeriods');
+        $s11Points = $competitionConfig->getPoints();
         $viewPeriods = $competitionConfig->getViewPeriods($period);
+        $prefix = '        ';
         foreach ($viewPeriods as $viewPeriod) {
             $s11Player = $this->s11PlayerRepos->findOneBy(
                 ["viewPeriod" => $viewPeriod, "person" => $person]
@@ -216,11 +228,32 @@ class PersonCommand extends Command
                 continue;
             }
 
-            $msg = '        ' . $viewPeriod->getPeriod()->toIso80000('Y-m-d');
+            $msg = $prefix . $viewPeriod->getPeriod()->toIso80000('Y-m-d');
             $msg .= ' => totalpoints: ' . $s11Player->getTotalPoints();
-            $msg .= ', nrOfWins: ' . $s11Player->getTotals()->getNrOfWins();
-            $msg .= ', nrOfDraws: ' . $s11Player->getTotals()->getNrOfDraws();
             $this->getLogger()->info($msg);
+
+            if( !$showPoints ) {
+                continue;
+            }
+            $grNrs = array_map(function(GameRound $gameRound): string {
+                return $this->inputHelper->toLength( '' . $gameRound->getNumber(), 2, true );
+            }, $viewPeriod->getGameRounds()->toArray() );
+            $msg = join(' | ', $grNrs );
+            $this->getLogger()->info($prefix . '    gr: ' . $msg);
+
+            $grPoints = array_map(function(GameRound $gameRound) use ($s11Player, $s11Points): string {
+                $player = (new OneTeamSimultaneous())->getPlayer(
+                    $s11Player->getPerson(),
+                    $gameRound->getViewPeriod()->getStartDateTime());
+                if( $player === null) {
+                    return ' -';
+                }
+                $line = FootballLine::from($player->getLine());
+                $points = $s11Player->getPoints($gameRound, $s11Points, $line);
+                return $this->inputHelper->toLength( '' . $points, 2, true );
+            }, $viewPeriod->getGameRounds()->toArray() );
+            $msg = join(' | ', $grPoints );
+            $this->getLogger()->info($prefix . '    pt: ' . $msg);
         }
     }
 
@@ -290,7 +323,7 @@ class PersonCommand extends Command
         $this->syncS11PlayerTotals($person, $competitionConfig);
 
         $this->getLogger()->info('the person is now saved as:');
-        $this->logPerson($person, $competitionConfig);
+        $this->logPerson($person, $competitionConfig, false);
 
         // throw new \Exception('implement', E_ERROR);
         return 0;
@@ -336,7 +369,7 @@ class PersonCommand extends Command
         $this->syncS11PlayerTotals($person, $competitionConfig, $player->getPeriod());
 
         $this->getLogger()->info('the person is now saved as:');
-        $this->logPerson($person, $competitionConfig);
+        $this->logPerson($person, $competitionConfig, false);
 
         return 0;
     }
@@ -370,7 +403,7 @@ class PersonCommand extends Command
         $player = $oneTeamSimultaneous->getPlayer($person, $stopAt);
         if ($player === null) {
             $this->getLogger()->info('the player for the following person is not found');
-            $this->logPerson($person, $competitionConfig);
+            $this->logPerson($person, $competitionConfig, false);
             throw new \Exception('player not found', E_ERROR);
         }
 
@@ -382,7 +415,7 @@ class PersonCommand extends Command
 //        }
 
         $this->getLogger()->info('the person is now saved as:');
-        $this->logPerson($person, $competitionConfig);
+        $this->logPerson($person, $competitionConfig, false);
 
         // throw new \Exception('implement', E_ERROR);
         return 0;

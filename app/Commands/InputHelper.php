@@ -278,4 +278,16 @@ class InputHelper
         }
         return $season;
     }
+
+    public function toLength(string $value, int $length, bool $prepend = false): string {
+        $value = substr($value, 0, $length);
+        while( strlen($value) < $length) {
+            if( $prepend ) {
+                $value = ' ' . $value;
+            } else {
+                $value .= ' ';
+            }
+        }
+        return $value;
+    }
 }

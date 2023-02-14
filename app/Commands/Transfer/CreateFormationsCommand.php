@@ -176,7 +176,7 @@ class CreateFormationsCommand extends Command
                 if ( $s11Player !== null ) {
                     $outputPlayer = $this->outputS11Player($s11Player, $dateTime);
                 }
-                $outputPlaces [] = $outputPlace . $this->toLength( $outputPlayer, 15 );
+                $outputPlaces [] = $outputPlace . $this->inputHelper->toLength( $outputPlayer, 15 );
             }
 
             $logger->info( $prefix . $formationLine->getLine()->value . ' => ' . join(' | ', $outputPlaces) );
@@ -195,8 +195,8 @@ class CreateFormationsCommand extends Command
     private function outputReplacements(PoolUser $poolUser,string $prefix,LoggerInterface $logger): void {
         $logger->info( $prefix . 'replacements : ' );
         foreach( $poolUser->getReplacements() as $replacement ) {
-            $outputPlayerOut = $this->toLength( $this->outputTeamPlayer($replacement->getPlayerOut()), 15) ;
-            $outputPlayerIn = $this->toLength( $this->outputTeamPlayer($replacement->getPlayerIn()), 15) ;
+            $outputPlayerOut = $this->inputHelper->toLength( $this->outputTeamPlayer($replacement->getPlayerOut()), 15) ;
+            $outputPlayerIn = $this->inputHelper->toLength( $this->outputTeamPlayer($replacement->getPlayerIn()), 15) ;
             $logger->info( $prefix . '    out :    ' . $outputPlayerOut . ' => <= in : ' . $outputPlayerIn );
         }
     }
@@ -204,8 +204,8 @@ class CreateFormationsCommand extends Command
     private function outputTransfers(PoolUser $poolUser,string $prefix,LoggerInterface $logger): void {
         $logger->info( $prefix . 'transfers : ' );
         foreach( $poolUser->getTransfers() as $transfer ) {
-            $outputPlayerOut = $this->toLength( $this->outputTeamPlayer($transfer->getPlayerOut()), 15) ;
-            $outputPlayerIn = $this->toLength( $this->outputTeamPlayer($transfer->getPlayerIn()), 15) ;
+            $outputPlayerOut = $this->inputHelper->toLength( $this->outputTeamPlayer($transfer->getPlayerOut()), 15) ;
+            $outputPlayerIn = $this->inputHelper->toLength( $this->outputTeamPlayer($transfer->getPlayerIn()), 15) ;
             $logger->info( $prefix . '    out : ' . $transfer->getLineNumberOut()->value . ' - ' . $transfer->getPlaceNumberOut() . ' ' . $outputPlayerOut . ' => <= in : ' . $outputPlayerIn );
         }
     }
@@ -246,13 +246,5 @@ class CreateFormationsCommand extends Command
         $nameInsertion = strlen($nameInsertion) > 0 ? ' ' . $nameInsertion : '';
         $personName .= $nameInsertion  . ' ' . $person->getLastName();
         return ((string)$teamPlayer->getTeam()->getAbbreviation()) . ' - ' . $personName;
-    }
-
-    private function toLength(string $value, int $length): string {
-        $value = substr($value, 0, $length);
-        while( strlen($value) < $length) {
-            $value .= ' ';
-        }
-        return $value;
     }
 }

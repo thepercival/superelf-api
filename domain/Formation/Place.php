@@ -86,7 +86,7 @@ class Place extends Identifiable
         $this->totals = $totals;
     }
 
-    protected function getTotalPoints(): int
+    public function getTotalPoints(): int
     {
         return $this->totalPoints;
     }
@@ -160,10 +160,6 @@ class Place extends Identifiable
         if ($player === null) {
             return 0;
         }
-        $statistics = $player->getGameRoundStatistics($gameRound);
-        if ($statistics === null) {
-            return 0;
-        }
-        return (new Calculator())->getStatisticsPoints($this->getLine(), $statistics, $s11Points);
+        return $player->getPoints($gameRound, $s11Points, $this->getLine());
     }
 }

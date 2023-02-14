@@ -4,11 +4,13 @@ namespace App\Commands\Validator;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
+use SuperElf\Points as S11Points;
 use SuperElf\Pool\Repository as PoolRepository;
 use SportsImport\Getter as ImportGetter;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Formation as S11Formation;
+use SuperElf\Substitute\Appearance;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -78,7 +80,7 @@ class Points extends Command
                 foreach( $pool->getUsers() as $poolUser) {
                     try {
                         $logger->info($prefix . $poolUser->getUser()->getName() . ' ..');
-                        $this->validatePoints($poolUser);
+                        $this->validatePoints($poolUser, $competitionConfig->getPoints());
                         $logger->info($prefix . $poolUser->getUser()->getName() . ' success');
                     }
                     catch(\Exception $e) {
@@ -95,18 +97,20 @@ class Points extends Command
         return 0;
     }
 
-    protected function validatePoints(PoolUser $poolUser): void {
+    protected function validatePoints(PoolUser $poolUser, S11Points $s11Points): void {
         $assembleFormation = $poolUser->getAssembleFormation();
         if( $assembleFormation !== null) {
-            $this->validateFormationPoints($assembleFormation);
+            $this->validateFormationSubstituteAppearances($assembleFormation);
+            $this->validateFormationTotalPoints($assembleFormation, $s11Points);
         }
         $transferFormation = $poolUser->getTransferFormation();
         if( $transferFormation !== null) {
-            $this->validateFormationPoints($transferFormation);
+            $this->validateFormationSubstituteAppearances($transferFormation);
+            $this->validateFormationTotalPoints($transferFormation, $s11Points);
         }
     }
 
-    protected function validateFormationPoints(S11Formation $formation): void {
+    protected function validateFormationSubstituteAppearances(S11Formation $formation): void {
         $gameRounds = $formation->getViewPeriod()->getGameRounds();
         foreach( $formation->getLines() as $formationLine) {
             foreach( $gameRounds as $gameRound ) {
@@ -128,6 +132,40 @@ class Points extends Command
                 if( $substituteAppearance !== null && $onlyAppearences ) {
                     throw new \Exception('has substitute while startingplaces all appeared : ' . $descr);
                 }
+            }
+        }
+    }
+
+    protected function validateFormationTotalPoints(S11Formation $formation, S11Points $s11Points): void {
+        $gameRounds = $formation->getViewPeriod()->getGameRounds();
+        foreach( $formation->getLines() as $formationLine) {
+            // starting places
+            foreach( $formationLine->getStartingPlaces() as $formationPlace) {
+                $totalPoints = 0;
+                foreach( $gameRounds as $gameRound ) {
+                    $totalPoints += $formationPlace->getPoints($gameRound, $s11Points);
+                }
+                if( $totalPoints !== $formationPlace->getTotalPoints() ) {
+                    throw new \Exception('totalpoints starting place incorrect : ' . $totalPoints);
+                }
+            }
+            // substitute
+            $substitute = $formationLine->getSubstitute();
+            $totalPoints = 0;
+            foreach( $gameRounds as $gameRound ) {
+                $appearance = $formationLine->getSubstituteAppareance($gameRound);
+                if( $appearance === null ) {
+                    continue;
+                }
+                $totalPoints += $substitute->getPoints($gameRound, $s11Points);
+            }
+            if( $totalPoints !== $substitute->getTotalPoints() ) {
+                $person = $substitute->getPlayer()?->getPerson();
+                $name =  $person !== null ? $person->getName() : 'unknown';
+                $grNrs = join( ',', array_values( $formationLine->getSubstituteAppearances()->map(function(Appearance $appearance): string {
+                    return $appearance->getGameRoundNumber() . '';
+                })->toArray()) );
+                throw new \Exception('totalpoints substitute(' . $formationLine->getLine()->value . ' - "'.$name.'") incorrect : ' . $substitute->getTotalPoints() . ' should be ' . $totalPoints . ', appearances: ' . $grNrs );
             }
         }
     }

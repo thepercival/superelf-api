@@ -108,6 +108,9 @@ class Syncer
 
             $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
             foreach ($formationPlaces as $formationPlace) {
+                if( $formationPlace->getId() == '624') {
+                    $er = 'coens yilmaz';
+                }
                 $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
                 $this->totalsRepos->save($s11Player->getTotals(), true);
 
