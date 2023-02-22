@@ -146,7 +146,9 @@ class Points extends Command
                     $totalPoints += $formationPlace->getPoints($gameRound, $s11Points);
                 }
                 if( $totalPoints !== $formationPlace->getTotalPoints() ) {
-                    throw new \Exception('totalpoints starting place incorrect : ' . $totalPoints);
+                    $person = $formationPlace->getPlayer()?->getPerson();
+                    $name =  $person !== null ? $person->getName() : 'unknown';
+                    throw new \Exception('totalpoints starting place(' . $formationLine->getLine()->value . ' - "'.$name.'") incorrect : ' . $formationPlace->getTotalPoints() . ' should be ' . $totalPoints );
                 }
             }
             // substitute
