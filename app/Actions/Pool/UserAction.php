@@ -12,7 +12,9 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
+use Sports\Competitor\StartLocation;
 use SuperElf\Pool;
+use SuperElf\League as S11League;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\User;
@@ -36,27 +38,22 @@ final class UserAction extends Action
     public function fetchOne(Request $request, Response $response, array $args): Response
     {
         try {
-            /** @var Pool $pool */
-            $pool = $request->getAttribute("pool");
-
             $poolUser = $this->poolUserRepos->find((int)$args['poolUserId']);
             if ($poolUser === null) {
                 throw new \Exception('geen deelnemer met het opgegeven id gevonden', E_ERROR);
             }
-            if ($poolUser->getPool() !== $pool) {
-                return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
-            }
+            // return new ForbiddenResponse('de pool komt niet overeen met de pool van de deelnemer');
 
-            $withFormations = true;
+            // $withFormations = true;
             $withTransferActions = true;
-            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                $withFormations = false;
+            if ($poolUser->getPool()->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                // $withFormations = false;
                 $withTransferActions = false;
-            } else if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
-                $withTransferActions = false;
-            }
+            }//  else if ($poolUser->getPool()->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+                // $withTransferActions = false;
+            // }
 
-            return $this->fetchOneHelper($response, $poolUser, false, $withFormations, $withTransferActions);
+            return $this->fetchOneHelper($response, $poolUser, false, false, $withTransferActions);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
@@ -127,6 +124,28 @@ final class UserAction extends Action
             /** @var User $user */
             $user = $request->getAttribute("user");
 
+            $startLocationsIds = [];
+            $leagueName = null;
+            $queryParams = $request->getQueryParams();
+            if (array_key_exists('leagueName', $queryParams)) {
+                $leagueName = S11League::from( (string)$queryParams['leagueName'] );
+                $it = 0;
+                while (array_key_exists('startLocation' . $it, $queryParams)) {
+                    $startLocationString = (string)$queryParams['startLocation' . $it];
+                    $startLocationParts = explode('.', $startLocationString );
+                    if( count($startLocationParts) !== 3 ) {
+                        break;
+                    }
+                    $catNr = array_shift($startLocationParts);
+                    $pouleNr = array_shift($startLocationParts);
+                    $placeNr = array_shift($startLocationParts);
+//                    if( $catNr === null || $pouleNr === null || $placeNr === null ) {
+//                        break;
+//                    }
+                    $startLocationsIds[] = (new StartLocation((int)$catNr,(int)$pouleNr,(int)$placeNr))->getStartId();
+                    $it++;
+                }
+            }
 
 //            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
 //                throw new \Exception('je mag andere deelnemers niet bekijken in de samenstel-periode', E_ERROR);
@@ -155,13 +174,21 @@ final class UserAction extends Action
             if( $withTransferActions ) {
                 $serGroups[] = 'transferactions';
             }
-
-            $json = $this->serializer->serialize(
-                $pool->getUsers(),
-                'json',
-                $this->getSerializationContext($serGroups)
-            );
-
+            if( $leagueName === null ) {
+                $poolUsers = $pool->getUsers();
+            } else {
+                $poolUsers = [];
+                // only poolUsers with certain startLocation in certain leagea!
+                $competition = $pool->getCompetition($leagueName);
+                if( $competition !== null ) {
+                    foreach( $pool->getCompetitors($competition) as $competitor ) {
+                        if ( array_search($competitor->getStartId(), $startLocationsIds ) !== false ) {
+                            $poolUsers[] = $competitor->getPoolUser();
+                        }
+                    }
+                }
+            }
+            $json = $this->serializer->serialize($poolUsers,'json',$this->getSerializationContext($serGroups));
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);

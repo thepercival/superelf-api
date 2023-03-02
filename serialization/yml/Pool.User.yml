@@ -9,10 +9,6 @@ SuperElf\Pool\User:
       type: boolean
     competitors:
       type: ArrayCollection<SuperElf\Competitor>
-    assembleFormation:
-      type: SuperElf\Formation
-      groups: [formations]
-      read_only: true
     replacements:
       type: ArrayCollection<SuperElf\Replacement>
       groups: [ transferactions ]
@@ -24,10 +20,6 @@ SuperElf\Pool\User:
     substitutions:
       type: ArrayCollection<SuperElf\Substitution>
       groups: [ transferactions ]
-      read_only: true
-    transferFormation:
-      type: SuperElf\Formation
-      groups: [ formations ]
       read_only: true
   virtual_properties:
     getNrOfAssembled:

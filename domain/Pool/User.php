@@ -14,6 +14,7 @@ use SuperElf\Competitor;
 use SuperElf\Formation;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
+use SuperElf\Periods\ViewPeriod;
 use SuperElf\Pool;
 use SuperElf\Replacement;
 use SuperElf\Substitution;
@@ -186,12 +187,22 @@ class User extends Identifiable
         return $this->unreadChatMessages;
     }
 
-    public function getFormation(AssemblePeriod|TransferPeriod $editPeriod): Formation|null
+    public function getFormation(AssemblePeriod|TransferPeriod|ViewPeriod $editOrViewPeriod): Formation|null
     {
-        if ($editPeriod instanceof AssemblePeriod) {
+        if ($editOrViewPeriod instanceof AssemblePeriod) {
+            return $this->getAssembleFormation();
+        } else if ($editOrViewPeriod instanceof TransferPeriod) {
+            return $this->getTransferFormation();
+        }
+        $assembleViewPeriod = $this->getPool()->getAssemblePeriod()->getViewPeriod()->getPeriod();
+        if ($editOrViewPeriod->getPeriod()->equals($assembleViewPeriod)) {
             return $this->getAssembleFormation();
         }
-        return $this->getTransferFormation();
+        $transferViewPeriod = $this->getPool()->getTransferPeriod()->getViewPeriod()->getPeriod();
+        if ($editOrViewPeriod->getPeriod()->equals($transferViewPeriod)) {
+            return $this->getTransferFormation();
+        }
+        return null;
     }
 
     public function canCompete(): bool

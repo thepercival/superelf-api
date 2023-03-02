@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use App\Response\ForbiddenResponse;
+use DateTimeImmutable;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -19,9 +21,11 @@ use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
+use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 
@@ -33,6 +37,7 @@ final class FormationAction extends Action
         protected PoolUserRepository $poolUserRepos,
         protected FormationRepository $formationRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
+        protected ViewPeriodRepository $viewPeriodRepos,
         protected FormationEditor $formationEditor,
         protected PersonRepository $personRepos,
         protected S11PlayerRepository $s11PlayerRepos,
@@ -43,6 +48,88 @@ final class FormationAction extends Action
     ) {
         parent::__construct($logger, $serializer);
         $this->oneTeamSimultaneous = new OneTeamSimultaneous();
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchOne(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var Pool $pool */
+//            $pool = $request->getAttribute("pool");
+
+            $poolUser = $this->poolUserRepos->find((int)$args['poolUserId']);
+            if ($poolUser === null) {
+                throw new \Exception('geen deelnemer met het opgegeven id gevonden', E_ERROR);
+            }
+            $viewPeriod = $this->viewPeriodRepos->find((int)$args['viewPeriodId']);
+            if ($viewPeriod === null) {
+                throw new \Exception('geen viewperiod opgegeven', E_ERROR);
+            }
+
+//            $withTransferActions = true;
+//            if ($pool->getAssemblePeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+//                $withTransferActions = false;
+//            } else if ($pool->getTransferPeriod()->getPeriod()->contains(new DateTimeImmutable())) {
+//                $withTransferActions = false;
+//            }
+//
+//            $serGroups = ['person'/* for transferActions */];
+//            if( $withTransferActions ) {
+//                $serGroups[] = 'transferactions';
+//            }
+
+            $json = $this->serializer->serialize(
+                    $poolUser->getFormation($viewPeriod),
+                    'json'/*,
+                    $this->getSerializationContext($serGroups)*/
+                );
+
+                return $this->respondWithJson($response, $json);
+
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetch(Request $request, Response $response, array $args): Response
+    {
+        try {
+            /** @var Pool $pool */
+            $pool = $request->getAttribute("pool");
+
+            $viewPeriod = $this->viewPeriodRepos->find((int)$args['viewPeriodId']);
+            if ($viewPeriod === null) {
+                throw new \Exception('geen viewperiod opgegeven', E_ERROR);
+            }
+
+            $map = [];
+            foreach( $pool->getUsers() as $poolUser ) {
+                $map[(string)$poolUser->getId()] = $poolUser->getFormation($viewPeriod);
+            }
+
+
+            $json = $this->serializer->serialize(
+                $map,
+                'json'/*,
+                    $this->getSerializationContext($serGroups)*/
+            );
+
+            return $this->respondWithJson($response, $json);
+
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
+        }
     }
 
     /**

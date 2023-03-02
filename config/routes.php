@@ -214,6 +214,14 @@ return function (App $app): void {
                         'poules/{pouleId}/nrofunreadmessages',
                         ChatMessageAction::class . ':fetchNrOfUnreadMessages'
                     );
+
+                    $group->group(
+                        'viewperiods/{viewPeriodId}',
+                        function (Group $group): void {
+                           $group->options('', FormationAction::class . ':options');
+                           $group->get('', FormationAction::class . ':fetch');
+                        }
+                    );
                 },
             );
         }
@@ -225,6 +233,14 @@ return function (App $app): void {
             $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
             $group->options('/{poolUserId}', PoolUserAction::class . ':options');
             $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
+
+            $group->group(
+                '/{poolUserId}/viewperiods',
+                function (Group $group): void {
+                    $group->options('/{viewPeriodId}', FormationAction::class . ':options');
+                    $group->get('/{viewPeriodId}', FormationAction::class . ':fetchOne');
+                }
+            );
 
             $group->group(
                 '/{poolUserId}/formations',
@@ -316,7 +332,7 @@ return function (App $app): void {
         '/formations',
         function (Group $group): void {
             $group->group(
-                '/{formationId}/statistics/{gameRoundNumber}',
+                '/{formationId}/statistics/{gameRoundNr}',
                 function (Group $group): void {
                     $group->options('', StatisticsAction::class . ':options');
                     $group->get('', StatisticsAction::class . ':fetchFormationGameRound');

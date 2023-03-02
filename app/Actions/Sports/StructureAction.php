@@ -10,8 +10,10 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
+use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Structure\Repository as StructureRepository;
+use SuperElf\Sport\Administrator as SportAdministrator;
 
 final class StructureAction extends Action
 {
@@ -49,11 +51,24 @@ final class StructureAction extends Action
             $structure = $this->structureRepos->getStructure($competition);
             // var_dump($structure); die();
 
-            $serContext = $this->getSerializationContext(['structure', 'games']);
+            $serGroups = ['structure'];
+            if( $this->hasSuperElfSport($competition) ) {
+                $serGroups[] = 'games';
+            }
+            $serContext = $this->getSerializationContext($serGroups);
             $json = $this->serializer->serialize($structure, 'json', $serContext);
             return $this->respondWithJson($response, $json);
         } catch (\Exception $exception) {
             return new ErrorResponse($exception->getMessage(), 500, $this->logger);
         }
+    }
+
+    protected function hasSuperElfSport(Competition $competiton): bool {
+        foreach( $competiton->getBaseSports() as $sport) {
+            if( $sport->getName() === SportAdministrator::SportName) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -7,6 +7,7 @@ SuperElf\Statistics:
     gameRound:
       type: SuperElf\GameRound
       read_only: true
+      groups: [ byPlayer ]
     result:
       type: int
       access_type: public_method
@@ -35,3 +36,8 @@ SuperElf\Statistics:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
       serialized_name: gameStart
       read_only: true
+  virtual_properties:
+    getPerson:
+      type: Sports\Person
+      groups: [ byGameRound ]
+      serialized_name: person

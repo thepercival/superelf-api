@@ -7,6 +7,7 @@ namespace SuperElf\Statistics;
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Statistics;
+use SuperElf\Formation as S11Formation;
 
 /**
  * @template-extends EntityRepository<Statistics>
@@ -18,63 +19,28 @@ class Repository extends EntityRepository
      */
     use BaseRepository;
 
-//    public function findOneByCustom(Competition $competition, Person $person, int $gameRound): ?BaseGameRoundScore
-//    {
-//        $query = $this->createQueryBuilder('grs')
-//            ->join('grs.gameRound', 'gr')
-//            ->join('gr.viewPeriod', 'vp')
-//            ->join('grs.competitionPerson', 'cp')
-//            ->where('vp.sourceCompetition = :competition')
-//            ->andWhere('cp.person = :person')
-//            ->andWhere('cp.sourceCompetition = :competition')
-//            ->andWhere('gr.number = :gameRound')
-//        ;
-//        $query = $query->setParameter('competition', $competition );
-//        $query = $query->setParameter('person', $person );
-//        $query = $query->setParameter('gameRound', $gameRound );
-//
-//        $gameRoundScores = $query->getQuery()->getResult();
-//        if (count($gameRoundScores) === 0) {
-//            return null;
-//        }
-//        return reset($gameRoundScores);
-//    }
-//
-//    /**
-//     * @param Competition $competition
-//     * @param Team $team
-//     * @param int $gameRoundNumber
-//     * @param DateTimeImmutable $dateTime
-//     * @return array|BaseGameRoundScore[]
-//     */
-//    public function findByCustom(Competition $competition, Team $team, int $gameRoundNumber, DateTimeImmutable $dateTime)
-//    {
-//        // haal alle gameroundscores op voor alle spelers van team
-//        $exprExists = $this->getEM()->getExpressionBuilder();
-//
-//        $query = $this->createQueryBuilder('grs')
-//            ->join('grs.gameRound', 'gr')
-//            ->join('gr.viewPeriod', 'vp')
-//            ->join('grs.viewPeriodPerson', 'vpp')
-//            ->where('vp.sourceCompetition = :competition')
-//            ->andWhere('gr.number = :gameRoundNumber')
-//            ->andWhere(
-//                $exprExists->exists(
-//                    $this->getEM()->createQueryBuilder()
-//                        ->select('gr.id')
-//                        ->from('Sports\Team\Player', 'pl')
-//                        ->where('pl.team = :team')
-//                        ->andWhere('pl.startDateTime <= :dateTime')
-//                        ->andWhere('pl.endDateTime >= :dateTime')
-//                        ->getDQL()
-//                )
-//            )
-//        ;
-//        $query = $query->setParameter('competition', $competition );
-//        $query = $query->setParameter('gameRoundNumber', $gameRoundNumber );
-//        $query = $query->setParameter('team', $team );
-//        $query = $query->setParameter('dateTime', $dateTime );
-//
-//        return $query->getQuery()->getResult();
-//    }
+    /**
+     * @param S11Formation $formation
+     * @param int $gameRoundNr
+     * @return list<Statistics>
+     */
+    public function findByFormationGameRound(S11Formation $formation, int $gameRoundNr): array
+    {
+        $query = $this->createQueryBuilder('s')
+            ->distinct()
+            ->join('s.gameRound', 'gr')
+            ->join('s.player', 'p')
+            ->join('SuperElf\Formation\Place', 'fp', 'WITH', 'p = fp.player')
+            ->join('fp.formationLine', 'fl')
+            ->where('fl.formation = :formation')
+            ->andWhere('gr.number = :gameRoundNr')
+        ;
+
+        $query = $query->setParameter('formation', $formation );
+        $query = $query->setParameter('gameRoundNr', $gameRoundNr );
+
+        /** @var list<Statistics> $stats */
+        $stats = $query->getQuery()->getResult();
+        return $stats;
+    }
 }

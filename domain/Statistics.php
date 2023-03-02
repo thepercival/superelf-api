@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use Sports\Person;
 use SportsHelpers\Against\Result;
 use SportsHelpers\Identifiable;
 use SuperElf\Player as S11Player;
@@ -35,6 +36,12 @@ class Statistics extends Identifiable
     {
         return $this->gameRound;
     }
+
+    public function getPerson(): Person
+    {
+        return $this->player->getPerson();
+    }
+
 
     public function getResult(): Result
     {
