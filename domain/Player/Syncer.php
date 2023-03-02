@@ -35,7 +35,7 @@ class Syncer
     ) {
     }
 
-    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
+    public function syncS11Players(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
@@ -62,11 +62,11 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-            $this->syncS11Players($viewPeriod, $gamePlace);
+            $this->syncS11PlayersHelper($viewPeriod, $gamePlace);
         }
     }
 
-    protected function syncS11Players(ViewPeriod $viewPeriod, AgainstGamePlace $gamePlace): void
+    protected function syncS11PlayersHelper(ViewPeriod $viewPeriod, AgainstGamePlace $gamePlace): void
     {
         $this->logInfo('syncing s11Players ..');
         if ($gamePlace->getParticipations()->count() === 0) {

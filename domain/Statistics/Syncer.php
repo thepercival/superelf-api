@@ -47,7 +47,7 @@ class Syncer
     ) {
     }
 
-    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
+    public function syncStatistics(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
@@ -74,7 +74,7 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-            $this->syncStatistics(
+            $this->syncTeamStatistics(
                 $viewPeriod,
                 $gamePlace,
                 $teamCompetitor->getTeam()
@@ -85,7 +85,7 @@ class Syncer
 //        $this->statisticsRepos->flush();
     }
 
-    protected function syncStatistics(
+    protected function syncTeamStatistics(
         ViewPeriod $viewPeriod,
         AgainstGamePlace $gamePlace,
         Team $team

@@ -26,7 +26,7 @@ class Syncer
     ) {
     }
 
-    public function sync(CompetitionConfig $competitionConfig, AgainstGame $game): void
+    public function syncSubstituteAppearances(CompetitionConfig $competitionConfig, AgainstGame $game): void
     {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
@@ -37,7 +37,7 @@ class Syncer
         if ($viewPeriod === null) {
             throw new Exception(
                 'the viewperiod should be found for date: ' . $game->getStartDateTime()->format(
-                    DateTimeInterface::ISO8601
+                    DateTimeInterface::ATOM
                 ),
                 E_ERROR
             );
@@ -47,11 +47,11 @@ class Syncer
         if ($gameRound === null) {
             throw new Exception('gameround "' . $game->getGameRoundNumber() . '"  for viewperiod "' .
                     $viewPeriod . '" could not be found for gameStartDate "' .
-                    $game->getStartDateTime()->format(DateTimeInterface::ISO8601), E_ERROR);
+                    $game->getStartDateTime()->format(DateTimeInterface::ATOM), E_ERROR);
         }
-        $this->logInfo('updating substituteAppereances .. ');
+        $this->logInfo('updating substituteAppereances and clearing Entity Manager .. ');
         $this->appearanceRepos->update($gameRound);
-        $this->logInfo('updated substituteAppereances');
+        $this->logInfo('updated substituteAppereances and cleared Entity Manager');
     }
 
     public function setLogger(LoggerInterface $logger): void

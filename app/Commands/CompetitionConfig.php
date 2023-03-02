@@ -217,7 +217,7 @@ class CompetitionConfig extends Command
     }
 
     private function syncGameRoundNumbers(Competition $competition, CompetitionConfigBase $competitionConfig): void {
-        $changedGameRoundNumbers = $this->gameRoundSyncer->sync($competitionConfig);
+        $changedGameRoundNumbers = $this->gameRoundSyncer->syncViewPeriodGameRounds($competitionConfig);
         $this->getLogger()->info(count($changedGameRoundNumbers) . ' gameRoundNumbers synced');
 
         foreach ($changedGameRoundNumbers as $changedGameRoundNumber) {
@@ -228,10 +228,10 @@ class CompetitionConfig extends Command
                 $changedGameRoundNumber,
             );
             foreach ($games as $game) {
-                $this->s11PlayerSyncer->sync($competitionConfig, $game);
-                $this->statisticsSyncer->sync($competitionConfig, $game);
-                $this->appearanceSyncer->sync($competitionConfig, $game);
-                $this->totalsSyncer->sync($competitionConfig, $game);
+                $this->s11PlayerSyncer->syncS11Players($competitionConfig, $game);
+                $this->statisticsSyncer->syncStatistics($competitionConfig, $game);
+                $this->appearanceSyncer->syncSubstituteAppearances($competitionConfig, $game);
+                $this->totalsSyncer->syncTotals($competitionConfig, $game);
             }
         }
     }

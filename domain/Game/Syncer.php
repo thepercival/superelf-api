@@ -64,7 +64,7 @@ class Syncer
     // voor alle poolusers
     // houdt state in progress and finished bij
     // kijk als gameroundnumber is afgelopen
-    public function sync(CompetitionConfig $competitionConfig, int $gameRoundNumber): void
+    public function syncPoolCompetitions(CompetitionConfig $competitionConfig, int $gameRoundNumber): void
     {
         $editPeriods = $this->getValidEditPeriods($competitionConfig, $gameRoundNumber);
 

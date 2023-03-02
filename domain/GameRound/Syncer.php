@@ -37,7 +37,7 @@ class Syncer
      * @return list<int>
      * @throws Exception
      */
-    public function sync(
+    public function syncViewPeriodGameRounds(
         CompetitionConfig $competitionConfig,
         array|null $datesToSync = null
     ): array {

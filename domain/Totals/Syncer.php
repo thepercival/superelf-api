@@ -34,7 +34,7 @@ class Syncer
     ) {
     }
 
-    public function sync(
+    public function syncTotals(
         CompetitionConfig $competitionConfig,
         AgainstGame $game,
         bool $alwaysUpdateTotals = false
@@ -66,7 +66,7 @@ class Syncer
             if (!($teamCompetitor instanceof TeamCompetitor)) {
                 continue;
             }
-            $this->syncStatistics(
+            $this->syncTeamTotals(
                 $viewPeriod,
                 $totalsCalculator,
                 $gamePlace,
@@ -79,7 +79,7 @@ class Syncer
 //        $this->statisticsRepos->flush();
     }
 
-    protected function syncStatistics(
+    protected function syncTeamTotals(
         ViewPeriod $viewPeriod,
         TotalsCalculator $totalsCalculator,
         AgainstGamePlace $gamePlace,
