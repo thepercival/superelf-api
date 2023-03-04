@@ -23,7 +23,7 @@ class Repository extends EntityRepository
     {
         $this->remove($gameRound);
         $this->add($gameRound);
-        $this->getEntityManager()->clear();
+//        $this->getEntityManager()->clear();
     }
 
     protected function remove(GameRound $gameRound): void
