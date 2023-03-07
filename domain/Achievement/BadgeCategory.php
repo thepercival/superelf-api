@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Trophy;
+namespace SuperElf\Achievement;
 
 enum BadgeCategory: string
 {

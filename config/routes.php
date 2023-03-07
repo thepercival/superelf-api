@@ -11,6 +11,7 @@ use App\Actions\PlayerAction;
 use App\Actions\Pool\ShellAction;
 use App\Actions\Pool\UserAction as PoolUserAction;
 use App\Actions\PoolAction;
+use App\Actions\AchievementAction;
 use App\Actions\ScoutedPlayerAction;
 use App\Actions\SeasonAction;
 use App\Actions\Sports\AgainstGameAction;
@@ -162,6 +163,20 @@ return function (App $app): void {
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
     $app->group(
+        '/poolcollections',
+        function (Group $group): void {
+
+            $group->group(
+                '/{poolCollectionId}/',
+                function (Group $group): void {
+                    $group->options('achievements', AchievementAction::class . ':options');
+                    $group->get('achievements', AchievementAction::class . ':fetchPoolCollection');
+                },
+            );
+        }
+    )->add(VersionMiddleware::class);
+
+    $app->group(
         '/pools',
         function (Group $group): void {
             $group->options('', PoolAction::class . ':options');
@@ -233,6 +248,7 @@ return function (App $app): void {
             $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
             $group->options('/{poolUserId}', PoolUserAction::class . ':options');
             $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
+            $group->put('/{poolUserId}', PoolUserAction::class . ':edit')->add(PoolAdminAuthMiddleware::class);
 
             $group->group(
                 '/{poolUserId}/viewperiods',
@@ -305,6 +321,14 @@ return function (App $app): void {
                             $group->delete('', TransferPeriodActionsAction::class . ':removeSubstitution');
                         }
                     );
+                }
+            )->add(PoolUserAuthMiddleware::class);
+
+            $group->group(
+                '/{poolUserId}/achievements',
+                function (Group $group): void {
+                    $group->options('/unviewed', AchievementAction::class . ':options');
+                    $group->get('/unviewed', AchievementAction::class . ':fetchUnviewed');
                 }
             )->add(PoolUserAuthMiddleware::class);
         }

@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-namespace SuperElf\Trophy;
+namespace SuperElf\Achievement;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use SportsHelpers\EnumDbType;

@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use DateTimeImmutable;
 use SportsHelpers\Identifiable;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Competition;
 
-class Trophy extends Identifiable
+class Achievement extends Identifiable
 {
     public function __construct(
         protected Competition|null  $competition,
         protected int $rank,
-        protected PoolUser $poolUser
+        protected PoolUser $poolUser,
+        protected \DateTimeImmutable $createDateTime
     ) {
+
     }
 
     public function getCompetiton(): Competition|null {
@@ -27,5 +30,10 @@ class Trophy extends Identifiable
 
     public function getPoolUser(): PoolUser {
         return $this->poolUser;
+    }
+
+    public function getCreateDateTime(): DateTimeImmutable
+    {
+        return $this->createDateTime;
     }
 }

@@ -122,7 +122,7 @@ return [
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_PlanningTimeoutState');
         Type::addType('enum_GameState', Sports\Game\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
-        Type::addType('enum_BadgeCategory', SuperElf\Trophy\BadgeCategoryType::class);
+        Type::addType('enum_BadgeCategory', SuperElf\Achievement\BadgeCategoryType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
         Type::addType('enum_FootballLine', Sports\Sport\FootballLineType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_FootballLine');

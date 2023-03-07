@@ -57,6 +57,10 @@ use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SuperElf\Season\Repository as S11SeasonRepository;
+use SuperElf\Achievement\Badge;
+use SuperElf\Achievement\Badge\Repository as BadgeRepository;
+use SuperElf\Achievement\Trophy;
+use SuperElf\Achievement\Trophy\Repository as TrophyRepository;
 use SuperElf\ChatMessage;
 use SuperElf\ChatMessage\Repository as ChatMessageRepository;
 use SuperElf\ChatMessage\Unread as UnreadChatMessage;
@@ -412,5 +416,17 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(Season::class);
         return new S11SeasonRepository($entityManager, $metaData);
+    },
+    TrophyRepository::class => function (ContainerInterface $container): TrophyRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Trophy::class);
+        return new TrophyRepository($entityManager, $metaData);
+    },
+    BadgeRepository::class => function (ContainerInterface $container): BadgeRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(Badge::class);
+        return new BadgeRepository($entityManager, $metaData);
     }
 ];

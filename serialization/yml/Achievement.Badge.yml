@@ -1,0 +1,8 @@
+SuperElf\Achievement\Badge:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+
+    category:
+      type: SuperElf\Achievement\BadgeCategory
