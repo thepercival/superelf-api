@@ -1,0 +1,7 @@
+SuperElf\Achievement\Trophy:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    competition:
+      type: Sports\Competition

@@ -3,6 +3,7 @@ SuperElf\Achievement\Badge:
   exclude: false
   access_type: public_property
   properties:
-
+    competition:
+      type: Sports\Competition
     category:
       type: SuperElf\Achievement\BadgeCategory

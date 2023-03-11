@@ -12,16 +12,11 @@ use Sports\Competition;
 class Achievement extends Identifiable
 {
     public function __construct(
-        protected Competition|null  $competition,
         protected int $rank,
         protected PoolUser $poolUser,
         protected \DateTimeImmutable $createDateTime
     ) {
 
-    }
-
-    public function getCompetiton(): Competition|null {
-        return $this->competition;
     }
 
     public function getRank(): int {

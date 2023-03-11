@@ -3,9 +3,6 @@ SuperElf\Achievement:
   exclude: false
   access_type: public_property
   properties:
-
-    competition:
-      type: Sports\Competition
     poolUser:
       type: SuperElf\Pool\User
     rank:

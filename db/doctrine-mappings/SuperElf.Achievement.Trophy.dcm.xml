@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="SuperElf\Achievement\Trophy" table="trophies" repository-class="SuperElf\Achievement\Trophy\Repository">
+        <many-to-one field="competition" target-entity="Sports\Competition">
+            <join-columns>
+                <join-column name="competitionId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+            </join-columns>
+        </many-to-one>
         <unique-constraints>
             <unique-constraint columns="competitionId,rank,poolUserId" name="main_u_idx"/>
         </unique-constraints>

@@ -26,7 +26,6 @@ class User extends Identifiable
     protected bool $admin;
     protected Formation|null $assembleFormation = null;
     protected Formation|null $transferFormation = null;
-    protected \DateTimeImmutable|null $latestAchievementViewDateTime = null;
     /**
      * @var Collection<int|string, Replacement>
      */
@@ -186,16 +185,6 @@ class User extends Identifiable
     public function getUnreadChatMessages(): Collection
     {
         return $this->unreadChatMessages;
-    }
-
-    public function getLatestAchievementViewDateTime(): \DateTimeImmutable|null
-    {
-        return $this->latestAchievementViewDateTime;
-    }
-
-    public function setLatestAchievementViewDateTime(\DateTimeImmutable $dateTime): void
-    {
-        $this->latestAchievementViewDateTime = $dateTime;
     }
 
     public function getFormation(AssemblePeriod|TransferPeriod|ViewPeriod $editOrViewPeriod): Formation|null

@@ -16,12 +16,12 @@ use SuperElf\PoolCollection;
 class Repository extends EntityRepository
 {
     /**
-     * @param PoolUser $poolUser
      * @use BaseRepository<Trophy>
      */
     use BaseRepository;
 
     /**
+     * @param PoolUser $poolUser
      * @return list<Trophy>
      */
     public function findUnviewed(PoolUser $poolUser): array
@@ -38,7 +38,7 @@ class Repository extends EntityRepository
     }
 
     /**
-     * @param PoolUser $poolUser
+     * @param PoolCollection $poolCollection
      * @return list<Trophy>
      */
     public function findByPoolCollection(PoolCollection $poolCollection): array

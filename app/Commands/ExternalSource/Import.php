@@ -343,7 +343,7 @@ class Import extends ExternalSourceCommand
 
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
             $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after ' . $startDateTime->format(
-                    \DateTimeInterface::ISO8601
+                    DATE_ATOM
                 ) . ' there were ' . count($games) . ' games found';
             $this->getLogger()->info($msg);
             foreach ($games as $game) {

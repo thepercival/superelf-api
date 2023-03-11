@@ -118,7 +118,7 @@ class Syncer
         return $editPeriods;
     }
 
-    public function updatePoolCompetitionGames(
+    private function updatePoolCompetitionGames(
         CompetitionConfig $competitionConfig,
         AssemblePeriod|TransferPeriod $editPeriod,
         Pool $pool,
@@ -284,7 +284,7 @@ class Syncer
 
 
     /** @psalm-suppress UnusedVariable */
-    public function updatePoolCupGames(
+    protected function updatePoolCupGames(
         CompetitionConfig $competitionConfig,
         AssemblePeriod|TransferPeriod $editPeriod,
         Pool $pool,

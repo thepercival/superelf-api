@@ -195,40 +195,40 @@ final class UserAction extends Action
         }
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @param array<string, int|string> $args
-     * @return Response
-     */
-    public function edit(Request $request, Response $response, array $args): Response
-    {
-        try {
-            /** @var Pool $pool */
-            $pool = $request->getAttribute("pool");
-            /** @var User $user */
-            $user = $request->getAttribute("user");
-
-            $poolUser = $pool->getUser($user);
-            if ($poolUser === null) {
-                return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
-            }
-
-            $poolUser->setLatestAchievementViewDateTime(new DateTimeImmutable());
-
-            $this->poolUserRepos->save($poolUser);
-            return $this->respondWithJson(
-                $response,
-                $this->serializer->serialize(
-                    $poolUser,
-                    'json',
-                    $this->getSerializationContext(['admin'])
-                )
-            );
-        } catch (\Exception $e) {
-            return new ErrorResponse($e->getMessage(), 422, $this->logger);
-        }
-    }
+//    /**
+//     * @param Request $request
+//     * @param Response $response
+//     * @param array<string, int|string> $args
+//     * @return Response
+//     */
+//    public function edit(Request $request, Response $response, array $args): Response
+//    {
+//        try {
+//            /** @var Pool $pool */
+//            $pool = $request->getAttribute("pool");
+//            /** @var User $user */
+//            $user = $request->getAttribute("user");
+//
+//            $poolUser = $pool->getUser($user);
+//            if ($poolUser === null) {
+//                return new ForbiddenResponse("de deelnemer kan niet gevonden worden");
+//            }
+//
+//            $poolUser->setLatestAchievementViewDateTime(new DateTimeImmutable());
+//
+//            $this->poolUserRepos->save($poolUser);
+//            return $this->respondWithJson(
+//                $response,
+//                $this->serializer->serialize(
+//                    $poolUser,
+//                    'json',
+//                    $this->getSerializationContext(['admin'])
+//                )
+//            );
+//        } catch (\Exception $e) {
+//            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+//        }
+//    }
 
 
     /**

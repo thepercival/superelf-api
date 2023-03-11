@@ -248,7 +248,7 @@ return function (App $app): void {
             $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne')->add(PoolAdminAuthMiddleware::class);
             $group->options('/{poolUserId}', PoolUserAction::class . ':options');
             $group->delete('/{poolUserId}', PoolUserAction::class . ':remove')->add(PoolAdminAuthMiddleware::class);
-            $group->put('/{poolUserId}', PoolUserAction::class . ':edit')->add(PoolAdminAuthMiddleware::class);
+            // $group->put('/{poolUserId}', PoolUserAction::class . ':edit')->add(PoolAdminAuthMiddleware::class);
 
             $group->group(
                 '/{poolUserId}/viewperiods',
@@ -329,6 +329,9 @@ return function (App $app): void {
                 function (Group $group): void {
                     $group->options('/unviewed', AchievementAction::class . ':options');
                     $group->get('/unviewed', AchievementAction::class . ':fetchUnviewed');
+                    $group->options('/viewed', AchievementAction::class . ':options');
+                    $group->delete('/viewed', AchievementAction::class . ':viewAchievements');
+
                 }
             )->add(PoolUserAuthMiddleware::class);
         }

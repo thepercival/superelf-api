@@ -18,10 +18,10 @@ use Sports\League;
 use Sports\League\Repository as LeagueRepository;
 use Sports\Person;
 use Sports\Person\Repository as PersonRepository;
-use Sports\Poule;
-use Sports\Poule\Repository as PouleRepository;
 use Sports\Place;
 use Sports\Place\Repository as PlaceRepository;
+use Sports\Poule;
+use Sports\Poule\Repository as PouleRepository;
 use Sports\Score\Against as AgainstScore;
 use Sports\Score\Against\Repository as AgainstScoreRepository;
 use Sports\Score\Together as TogetherScore;
@@ -56,11 +56,14 @@ use SportsImport\CacheItemDb;
 use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
-use SuperElf\Season\Repository as S11SeasonRepository;
 use SuperElf\Achievement\Badge;
 use SuperElf\Achievement\Badge\Repository as BadgeRepository;
 use SuperElf\Achievement\Trophy;
 use SuperElf\Achievement\Trophy\Repository as TrophyRepository;
+use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
+use SuperElf\Achievement\Unviewed\Badge\Repository as UnviewedBadgeRepository;
+use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
+use SuperElf\Achievement\Unviewed\Trophy\Repository as UnviewedTrophyRepository;
 use SuperElf\ChatMessage;
 use SuperElf\ChatMessage\Repository as ChatMessageRepository;
 use SuperElf\ChatMessage\Unread as UnreadChatMessage;
@@ -93,8 +96,11 @@ use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\PoolCollection;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
+use SuperElf\Replacement;
+use SuperElf\Replacement\Repository as ReplacementRepository;
 use SuperElf\ScoutedPlayer;
 use SuperElf\ScoutedPlayer\Repository as ScoutedPlayerRepository;
+use SuperElf\Season\Repository as S11SeasonRepository;
 use SuperElf\Statistics;
 use SuperElf\Statistics\Repository as StatisticsRepository;
 use SuperElf\Substitute\Appearance as SubstituteAppearance;
@@ -103,8 +109,6 @@ use SuperElf\Substitution;
 use SuperElf\Substitution\Repository as SubstitutionRepository;
 use SuperElf\Totals as S11Totals;
 use SuperElf\Totals\Repository as S11TotalsRepository;
-use SuperElf\Replacement;
-use SuperElf\Replacement\Repository as ReplacementRepository;
 use SuperElf\Transfer;
 use SuperElf\Transfer\Repository as TransferRepository;
 use SuperElf\User;
@@ -423,10 +427,22 @@ return [
         $metaData = $entityManager->getClassMetadata(Trophy::class);
         return new TrophyRepository($entityManager, $metaData);
     },
+    UnviewedTrophyRepository::class => function (ContainerInterface $container): UnviewedTrophyRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(UnviewedTrophy::class);
+        return new UnviewedTrophyRepository($entityManager, $metaData);
+    },
     BadgeRepository::class => function (ContainerInterface $container): BadgeRepository {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(Badge::class);
         return new BadgeRepository($entityManager, $metaData);
-    }
+    },
+    UnviewedBadgeRepository::class => function (ContainerInterface $container): UnviewedBadgeRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(UnviewedBadge::class);
+        return new UnviewedBadgeRepository($entityManager, $metaData);
+    },
 ];
