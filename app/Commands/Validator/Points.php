@@ -4,6 +4,8 @@ namespace App\Commands\Validator;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
+use Sports\Competition;
+use Sports\Game\State;
 use SuperElf\Points as S11Points;
 use SuperElf\Pool\Repository as PoolRepository;
 use SportsImport\Getter as ImportGetter;
@@ -11,6 +13,7 @@ use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Substitute\Appearance;
+use Sports\Game\Against\Repository as AgainstGameRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -20,6 +23,7 @@ class Points extends Command
     private string $customName = 'validate-points';
     protected ImportGetter $getter;
     protected CompetitionConfigRepository $competitionConfigRepos;
+    protected AgainstGameRepository $againstGameRepository;
     protected PoolRepository $poolRepos;
 
     //protected TeamPlayerRepository $teamPlayerRepos;
@@ -33,6 +37,10 @@ class Points extends Command
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
+
+        /** @var AgainstGameRepository $againstGameRepository */
+        $againstGameRepository = $container->get(AgainstGameRepository::class);
+        $this->againstGameRepository = $againstGameRepository;
 
         /** @var PoolRepository $poolRepos */
         $poolRepos = $container->get(PoolRepository::class);
@@ -99,21 +107,25 @@ class Points extends Command
 
     protected function validatePoints(PoolUser $poolUser, S11Points $s11Points): void {
         $assembleFormation = $poolUser->getAssembleFormation();
+        $sourceCompetition = $poolUser->getPool()->getCompetitionConfig()->getSourceCompetition();
         if( $assembleFormation !== null) {
-            $this->validateFormationSubstituteAppearances($assembleFormation);
+            $this->validateFormationSubstituteAppearances($sourceCompetition, $assembleFormation);
             $this->validateFormationTotalPoints($assembleFormation, $s11Points);
         }
         $transferFormation = $poolUser->getTransferFormation();
         if( $transferFormation !== null) {
-            $this->validateFormationSubstituteAppearances($transferFormation);
+            $this->validateFormationSubstituteAppearances($sourceCompetition, $transferFormation);
             $this->validateFormationTotalPoints($transferFormation, $s11Points);
         }
     }
 
-    protected function validateFormationSubstituteAppearances(S11Formation $formation): void {
+    protected function validateFormationSubstituteAppearances(Competition $sourceCompetition, S11Formation $formation): void {
         $gameRounds = $formation->getViewPeriod()->getGameRounds();
         foreach( $formation->getLines() as $formationLine) {
             foreach( $gameRounds as $gameRound ) {
+
+                $gameRoundState = $this->againstGameRepository->getGameRoundState($sourceCompetition, $gameRound->getNumber());
+
                 $substituteAppearance = $formationLine->getSubstituteAppareance($gameRound);
                 $descr = $formationLine->getLine()->value . ' - ' . $gameRound->getNumber();
                 $onlyAppearences = true;
@@ -122,7 +134,7 @@ class Points extends Command
                     if( $statistics === null ) {
                         continue;
                     }
-                    if( $substituteAppearance === null && !$statistics->hasAppeared() ) {
+                    if( $gameRoundState === State::Finished && $substituteAppearance === null && !$statistics->hasAppeared() ) {
                         throw new \Exception('no substitute while startingplace with no appearance : ' . $descr);
                     }
                     if( $onlyAppearences && !$statistics->hasAppeared() ) {

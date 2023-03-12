@@ -66,11 +66,12 @@ class Syncer
     // kijk als gameroundnumber is afgelopen
     public function syncPoolCompetitions(CompetitionConfig $competitionConfig, int $gameRoundNumber): void
     {
+        $this->logger->info('updating poolGames ..');
         $editPeriods = $this->getValidEditPeriods($competitionConfig, $gameRoundNumber);
 
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach ($pools as $pool) {
-            $this->logger->info('updating poolGames for "' . $pool->getName() . '" .. ');
+            $this->logger->info('   pool "' . $pool->getName() . '"');
             foreach ($pool->getCompetitions() as $poolCompetition) {
                 $sportVariant = $poolCompetition->getSingleSport()->createVariant();
                 foreach ($editPeriods as $editPeriod) {
@@ -155,7 +156,7 @@ class Syncer
             }
 
             // als source finished dan game ook finished
-            $sourceGameRoundState = $this->getSourceGameRoundState($competition, $gameRoundNumber);
+            $sourceGameRoundState = $this->againstGameRepos->getGameRoundState($competition, $gameRoundNumber);
             if ($sourceGameRoundState !== $togetherGame->getState()) {
                 $togetherGame->setState($sourceGameRoundState);
                 $this->togetherGameRepos->save($togetherGame, true);
@@ -207,81 +208,6 @@ class Syncer
         $this->togetherScoreRepos->save($score, true);
     }
 
-    protected function getSourceGameRoundState(Competition $competition, int $gameRoundNumber): State
-    {
-        // $validStates = [State::Created, State::InProgress, State::Finished];
-        $againstGames = $this->againstGameRepos->getCompetitionGames($competition, null, $gameRoundNumber);
-        if (count($againstGames) === 0) {
-            return State::Created;
-        }
-        $created = array_filter($againstGames, function (AgainstGame $againstGame): bool {
-            return $againstGame->getState() === State::Created;
-        });
-        $finished = array_filter($againstGames, function (AgainstGame $againstGame): bool {
-            return $againstGame->getState() === State::Finished;
-        });
-        if (count($created) > 0 && count($finished) > 0) {
-            return State::InProgress;
-        }
-        if (count($created) === 0 && count($finished) > 0) {
-            $canceled = array_filter($againstGames, function (AgainstGame $againstGame): bool {
-                return $againstGame->getState() === State::Canceled;
-            });
-            if( !$this->allCanceledInFinished(array_values($canceled),array_values($finished)) ) {
-                return State::InProgress;
-            }
-            return State::Finished;
-        }
-        return State::Created;
-    }
-
-    /**
-     * @param list<AgainstGame> $canceled
-     * @param list<AgainstGame> $finished
-     * @return bool
-     */
-    protected function allCanceledInFinished(array $canceled, array $finished): bool {
-        foreach( $canceled as $canceledGame) {
-            if( !$this->canceledGameInFinished($canceledGame, $finished) ) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * @param AgainstGame $canceledGame
-     * @param list<AgainstGame> $finished
-     * @return bool
-     */
-    protected function canceledGameInFinished(AgainstGame $canceledGame, array $finished): bool {
-        $canceledHomeGamePlaces = $canceledGame->getSidePlaces(Side::Home);
-        $canceledHomeGamePlace = array_shift($canceledHomeGamePlaces);
-        $canceledAwayGamePlaces = $canceledGame->getSidePlaces(Side::Away);
-        $canceledAwayGamePlace = array_shift($canceledAwayGamePlaces);
-        if ($canceledHomeGamePlace === null || $canceledAwayGamePlace === null) {
-            return false;
-        }
-        $canceledHomePlace = $canceledHomeGamePlace->getPlace();
-        $canceledAwayPlace = $canceledAwayGamePlace->getPlace();
-
-        foreach( $finished as $finishedGame) {
-            $finishedHomeGamePlaces = $finishedGame->getSidePlaces(Side::Home);
-            $finishedHomeGamePlace = array_shift($finishedHomeGamePlaces);
-            $finishedAwayGamePlaces = $finishedGame->getSidePlaces(Side::Away);
-            $finishedAwayGamePlace = array_shift($finishedAwayGamePlaces);
-            if ($finishedHomeGamePlace === null || $finishedAwayGamePlace === null) {
-                return false;
-            }
-            $finishedHomePlace = $finishedHomeGamePlace->getPlace();
-            $finishedAwayPlace = $finishedAwayGamePlace->getPlace();
-            if( $finishedHomePlace === $canceledHomePlace && $finishedAwayPlace === $canceledAwayPlace ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     /** @psalm-suppress UnusedVariable */
     protected function updatePoolCupGames(
@@ -311,7 +237,7 @@ class Syncer
             );
 
             // als source finished dan game ook finished
-            $sourceGameRoundState = $this->getSourceGameRoundState($competition, $gameRoundNumber);
+            $sourceGameRoundState = $this->againstGameRepos->getGameRoundState($competition, $gameRoundNumber);
             if ($sourceGameRoundState === State::Finished) {
                 $againstGame->setState(State::Finished);
                 $this->againstGameRepos->save($againstGame, true);

@@ -19,14 +19,14 @@ class Repository extends EntityRepository
      */
     use BaseRepository;
 
-    public function update(GameRound $gameRound): void
+    /*public function update(GameRound $gameRound): void
     {
         $this->remove($gameRound);
         $this->add($gameRound);
 //        $this->getEntityManager()->clear();
     }
 
-    protected function remove(GameRound $gameRound): void
+   protected function remove(GameRound $gameRound): void
     {
         $gameRoundId = (string)$gameRound->getId();
         $sql = 'delete from substituteAppearances where gameRoundId = ' . $gameRoundId;
@@ -53,5 +53,5 @@ class Repository extends EntityRepository
                         )
                 )";
         $this->getEntityManager()->getConnection()->executeQuery($sql);
-    }
+    }*/
 }

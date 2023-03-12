@@ -128,7 +128,6 @@ class Syncer
             );
             $this->statisticsRepos->save($statistics, true);
         }
-        $this->logInfo('calculated statistics');
     }
 
 //
@@ -176,14 +175,14 @@ class Syncer
     protected function logNoS11Player(Person $person, Team $team, \DateTimeImmutable $dateTime): void
     {
         $this->logInfo(
-            '  voor "' . $person->getName() . '" en team "' . $team->getName() . '" op "' . $dateTime->format(
+            '   voor "' . $person->getName() . '" en team "' . $team->getName() . '" op "' . $dateTime->format(
                 'Y-m-d'
             ) . '" is geen spelersperiode gevonden, kan zijn dat de speler is getransfereerd'
         );
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod()->toIso80000('Y-m-d');
             $this->logInfo(
-                "      playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine(
+                "       playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine(
                 ) . ") => periode " . $basePeriod
             );
         }

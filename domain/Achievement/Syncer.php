@@ -20,6 +20,7 @@ use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
+use SuperElf\League as S11League;
 use SuperElf\Pool\Repository as PoolRepository;
 
 class Syncer
@@ -37,15 +38,13 @@ class Syncer
     ) {
     }
 
-    // voor alle poolusers
-    // houdt state in progress and finished bij
-    // kijk als gameroundnumber is afgelopen
     public function syncPoolAchievements(CompetitionConfig $competitionConfig): void
     {
+        $this->logger->info('updating pool-achievements .. ');
         $allPoolsFinished = true;
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach ($pools as $pool) {
-            $this->logger->info('updating poolGames for "' . $pool->getName() . '" .. ');
+            $this->logger->info('   pool "' . $pool->getName() . '" .. ');
             foreach ($pool->getCompetitions() as $poolCompetition) {
                 $poolFinished = $this->updatePoolAchievements($pool, $poolCompetition);
                 if( !$poolFinished ) {
@@ -74,7 +73,11 @@ class Syncer
 
         $trophyCalculator = new TrophyCalculator();
         $createDateTime = null;
-        foreach([1,2] as $rank) {
+        $ranksForTrophy = [1];
+        if( $poolCompetition->getLeague()->getName() !== S11League::SuperCup->name ) {
+            $ranksForTrophy[] = 2;
+        }
+        foreach($ranksForTrophy as $rank) {
             $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
             if( $createDateTime === null ) {
                 $createDateTime = $this->getCreateDateTime($trophies);

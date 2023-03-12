@@ -15,6 +15,7 @@ use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
+use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
@@ -107,18 +108,24 @@ class Syncer
             $this->s11PlayerRepos->save($s11Player, true);
 
             $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
-            foreach ($formationPlaces as $formationPlace) {
-//                if( $formationPlace->getId() == '624') {
-//                    $er = 'coens yilmaz';
-//                }
-                $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
-                $this->totalsRepos->save($s11Player->getTotals(), true);
-
-                $totalsCalculator->updateTotalPoints($formationPlace);
-                $this->formationPlaceRepos->save($formationPlace, true);
-            }
+            $this->updateFormationPlacesTotals($totalsCalculator, $formationPlaces);
         }
         $this->logInfo('calculated totals and totalpoints');
+    }
+
+    /**
+     * @param TotalsCalculator $totalsCalculator
+     * @param list<FormationPlace> $formationPlaces
+     * @return void
+     * @throws Exception
+     */
+    public function updateFormationPlacesTotals(TotalsCalculator $totalsCalculator, array $formationPlaces): void {
+        foreach ($formationPlaces as $formationPlace) {
+            $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
+            $this->totalsRepos->save($formationPlace->getTotals(), true);
+            $totalsCalculator->updateTotalPoints($formationPlace);
+            $this->formationPlaceRepos->save($formationPlace, true);
+        }
     }
 
     protected function logInfo(string $info): void

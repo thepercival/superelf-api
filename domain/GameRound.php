@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+use Sports\Competition;
+use Sports\Game\Against as AgainstGame;
+use Sports\Game\State;
 use SportsHelpers\Identifiable;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 

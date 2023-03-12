@@ -8,11 +8,23 @@ use DateTimeInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
+use Sports\Person;
+use Sports\Team;
+use Sports\Team\Calculator as TeamCalculator;
+use SportsHelpers\Against\Side;
 use SuperElf\CompetitionConfig;
+use SuperElf\Formation;
+use SuperElf\Formation\Line as FormationLine;
+use SuperElf\GameRound;
 use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as PlayerRepository;
+use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Totals\Syncer as TotalsSyncer;
+use SuperElf\Substitute\Appearance;
 use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
+use SuperElf\Totals\Calculator as TotalsCalculator;
 
 class Syncer
 {
@@ -21,8 +33,10 @@ class Syncer
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
         protected PlayerRepository $playerRepos,
+        protected PoolRepository $poolRepos,
         protected AppearanceRepository $appearanceRepos,
-        protected ViewPeriodRepository $viewPeriodRepos
+        protected ViewPeriodRepository $viewPeriodRepos,
+        protected TotalsSyncer $totalsSyncer
     ) {
     }
 
@@ -49,9 +63,83 @@ class Syncer
                     $viewPeriod . '" could not be found for gameStartDate "' .
                     $game->getStartDateTime()->format(DateTimeInterface::ATOM), E_ERROR);
         }
-        $this->logInfo('updating substituteAppereances and clearing Entity Manager .. ');
-        $this->appearanceRepos->update($gameRound);
-        $this->logInfo('updated substituteAppereances and cleared Entity Manager');
+        $this->logInfo('updating substituteAppereances ..');
+
+        $teamCalculator = new TeamCalculator($competition);
+        $totalsCalculator = new TotalsCalculator($competitionConfig);
+
+        $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
+        foreach( $pools as $pool ) {
+            $this->logInfo('    pool "' . $pool->getName() . '" ..');
+            foreach( $pool->getUsers() as $poolUser ) {
+                $formation = $poolUser->getFormation($viewPeriod);
+                if( $formation === null ) {
+                    continue;
+                }
+                foreach ([Side::Home, Side::Away] as $side) {
+                    $team = $teamCalculator->getSingleTeam($game, $side);
+                    $formationLines = $this->getFormationLinesForTeam($team, $game, $formation);
+                    foreach( $formationLines as $formationLine ) {
+                        $appearance = $formationLine->getSubstituteAppareance($gameRound);
+                        $needsSubstituteAppearance = $this->needsSubstituteAppearance($formationLine, $gameRound);
+                        if( $needsSubstituteAppearance ) {
+                            if ( $appearance === null ) {
+                                $newAppearance = new Appearance($formationLine, $gameRound);
+                                $formationLine->getSubstituteAppearances()->add($newAppearance);
+                                $this->appearanceRepos->save($newAppearance, true);
+                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, [$formationLine->getSubstitute()]);
+                            }
+                        } else { // do not needsSubstituteAppearance
+                            if ( $appearance !== null ) {
+                                $formationLine->getSubstituteAppearances()->removeElement($appearance);
+                                $this->appearanceRepos->remove($appearance, true);
+                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, [$formationLine->getSubstitute()]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Team $team
+     * @param AgainstGame $game
+     * @param Formation $formation
+     * @return list<FormationLine>
+     */
+    public function getFormationLinesForTeam(Team $team, AgainstGame $game, Formation $formation): array
+    {
+        $dateTime = $game->getStartDateTime();
+        $oneTeamSim = new OneTeamSimultaneous();
+        $formationLines = $formation->getLines()->filter(
+            function (FormationLine $formationLine) use($oneTeamSim,$team, $dateTime) : bool {
+                foreach ($formationLine->getStartingPlaces() as $formationPlace) {
+                    $s11Player = $formationPlace->getPlayer();
+                    if( $s11Player === null) {
+                        continue;
+                    }
+                    $player = $oneTeamSim->getPlayer($s11Player->getPerson(), $dateTime);
+                    if ($player !== null && $player->getTeam() === $team) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        return array_values($formationLines->toArray());
+    }
+
+    public function needsSubstituteAppearance(FormationLine $formationLine, GameRound $gameRound): bool {
+        foreach ($formationLine->getStartingPlaces() as $formationPlace) {
+            $statistics = $formationPlace->getGameRoundStatistics( $gameRound);
+            if( $statistics === null ) {
+                continue;
+            }
+            if( !$statistics->hasAppeared() ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function setLogger(LoggerInterface $logger): void
