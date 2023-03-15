@@ -67,7 +67,7 @@ class Syncer
 
         $teamCalculator = new TeamCalculator($competition);
         $totalsCalculator = new TotalsCalculator($competitionConfig);
-
+        $points = $competitionConfig->getPoints();
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach( $pools as $pool ) {
             $this->logInfo('    pool "' . $pool->getName() . '" ..');
@@ -87,13 +87,13 @@ class Syncer
                                 $newAppearance = new Appearance($formationLine, $gameRound);
                                 $formationLine->getSubstituteAppearances()->add($newAppearance);
                                 $this->appearanceRepos->save($newAppearance, true);
-                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, [$formationLine->getSubstitute()]);
+                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, $points, [$formationLine->getSubstitute()]);
                             }
                         } else { // do not needsSubstituteAppearance
                             if ( $appearance !== null ) {
                                 $formationLine->getSubstituteAppearances()->removeElement($appearance);
                                 $this->appearanceRepos->remove($appearance, true);
-                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, [$formationLine->getSubstitute()]);
+                                $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, $points, [$formationLine->getSubstitute()]);
                             }
                         }
                     }

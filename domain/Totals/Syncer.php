@@ -19,6 +19,7 @@ use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Points;
 use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Totals\Repository as TotalsRepository;
 
@@ -45,7 +46,7 @@ class Syncer
             throw new Exception('the game is from another competitonconfig', E_ERROR);
         }
 
-        // $points = $competitionConfig->getPoints();
+        $points = $competitionConfig->getPoints();
         $totalsCalculator = new TotalsCalculator($competitionConfig);
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
@@ -72,6 +73,7 @@ class Syncer
                 $totalsCalculator,
                 $gamePlace,
                 $teamCompetitor->getTeam(),
+                $points,
                 $alwaysUpdateTotals
             );
         }
@@ -85,6 +87,7 @@ class Syncer
         TotalsCalculator $totalsCalculator,
         AgainstGamePlace $gamePlace,
         Team $team,
+        Points $points,
         bool $alwaysUpdateTotals = false
     ): void {
         $this->logInfo('calculating statistics ' . $team->getName() . ' ..');
@@ -104,26 +107,30 @@ class Syncer
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
             $this->totalsRepos->save($s11Player->getTotals(), true);
 
-            $totalsCalculator->updateTotalPoints($s11Player);
+            $totalsCalculator->updateTotalPoints($s11Player, $points);
             $this->s11PlayerRepos->save($s11Player, true);
 
             $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
-            $this->updateFormationPlacesTotals($totalsCalculator, $formationPlaces);
+            $this->updateFormationPlacesTotals($totalsCalculator, $points, $formationPlaces);
         }
         $this->logInfo('calculated totals and totalpoints');
     }
 
     /**
      * @param TotalsCalculator $totalsCalculator
+     * @param Points $points
      * @param list<FormationPlace> $formationPlaces
      * @return void
      * @throws Exception
      */
-    public function updateFormationPlacesTotals(TotalsCalculator $totalsCalculator, array $formationPlaces): void {
+    public function updateFormationPlacesTotals(
+        TotalsCalculator $totalsCalculator,
+        Points $points,
+        array $formationPlaces): void {
         foreach ($formationPlaces as $formationPlace) {
             $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
             $this->totalsRepos->save($formationPlace->getTotals(), true);
-            $totalsCalculator->updateTotalPoints($formationPlace);
+            $totalsCalculator->updateTotalPoints($formationPlace, $points);
             $this->formationPlaceRepos->save($formationPlace, true);
         }
     }

@@ -4,8 +4,10 @@ namespace SuperElf\Totals;
 
 use SportsHelpers\Against\Result;
 use SuperElf\CompetitionConfig;
+use SuperElf\Formation;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Player as S11Player;
+use SuperElf\Points;
 use SuperElf\Statistics;
 use SuperElf\Totals;
 
@@ -14,6 +16,18 @@ class Calculator
     public function __construct(protected CompetitionConfig $competitionConfig)
     {
     }
+
+    public function getTotals(Formation $formation): Totals {
+        $totals = new Totals();
+        foreach( $formation->getLines() as $formationLine ) {
+            foreach( $formationLine->getPlaces() as $formationPlace) {
+                $totals = $totals->add($formationPlace->getTotals());
+            }
+        }
+        return $totals;
+    }
+
+
 
     /**
      * @param Totals $totals
@@ -60,10 +74,10 @@ class Calculator
         $totals->setUpdatedAt(new \DateTimeImmutable());
     }
 
-    public function updateTotalPoints(FormationPlace|S11Player $totalsCarier): void
+    public function updateTotalPoints(FormationPlace|S11Player $totalsCarier, Points $points): void
     {
         $totalsCarier->setTotalPoints(
-            $totalsCarier->getTotals()->getPoints($totalsCarier->getLine(), $this->competitionConfig)
+            $totalsCarier->getTotals()->getPoints($totalsCarier->getLine(), $points, null)
         );
     }
 }

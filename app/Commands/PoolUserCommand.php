@@ -5,10 +5,13 @@ namespace App\Commands;
 use App\Command;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use SuperElf\Achievement\BadgeCategory;
+use SuperElf\Points;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\User\Repository as UserRepository;
 use SuperElf\Formation as S11Formation;
+use SuperElf\Formation\Output as FormationOutput;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -73,6 +76,7 @@ class PoolUserCommand extends Command
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('pool', null, InputOption::VALUE_REQUIRED, 'kamp duim');
         $this->addOption('user', null, InputOption::VALUE_REQUIRED, 'coen');
+        $this->addOption('badge', null, InputOption::VALUE_OPTIONAL, 'Card');
         // $this->addOption('dry-run', null, InputOption::VALUE_NONE);
 
 
@@ -92,6 +96,8 @@ class PoolUserCommand extends Command
             $seasonName = $this->inputHelper->getStringFromInput($input, 'season');
             $poolName = $this->inputHelper->getStringFromInput($input, 'pool');
             $userName = $this->inputHelper->getStringFromInput($input, 'user');
+            $badgeCategory = $this->inputHelper->getStringFromInput($input, 'badge', '');
+            $badgeCategory = BadgeCategory::tryFrom($badgeCategory);
 
             $season = $this->seasonRepos->findOneBy(['name' => $seasonName]);
             $association = $this->associationRepos->findOneBy(['name' => $poolName]);
@@ -117,22 +123,38 @@ class PoolUserCommand extends Command
             if( $poolUser === null ) {
                 throw new \Exception('poolUser not found');
             }
-            $this->logFormation('    ', 'assemble', $poolUser->getAssembleFormation(), $logger );
+            $s11Points = $pool->getCompetitionConfig()->getPoints();
+            $totalPoints = $poolUser->getTotalPoints($s11Points, $badgeCategory);
+            $this->logFormation('    ', 'assemble (tot: ' . $totalPoints . ')',
+                $pool->getCompetitionConfig()->getPoints(),
+                $poolUser->getAssembleFormation(),
+                $badgeCategory,
+                $logger );
+            $this->logFormation('    ', 'transfer',
+                $pool->getCompetitionConfig()->getPoints(),
+                $poolUser->getTransferFormation(),
+                $badgeCategory,
+                $logger );
         } catch (\Exception $e) {
             $logger->error($e->getMessage());
         }
         return 0;
     }
 
-    private function logFormation(string $prefix, string $header, S11Formation|null $formation, LoggerInterface $logger ): void {
+    private function logFormation(
+        string $prefix,
+        string $header,
+        Points $points,
+        S11Formation|null $formation,
+        BadgeCategory|null $badgeCategory,
+        LoggerInterface $logger ): void {
         $logger->info($prefix . $header);
         $prefix .= '    ';
+        $formationOutput = new FormationOutput($logger);
         if( $formation === null) {
             $logger->info($prefix . 'no formation');
             return;
         }
-
+        $formationOutput->output($points, $formation, $badgeCategory);
     }
-
-
 }

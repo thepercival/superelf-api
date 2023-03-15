@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Sports\Competition;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\ChatMessage;
 use SuperElf\ChatMessage\Unread as UnreadChatMessage;
 use SuperElf\Competitor;
@@ -15,9 +16,12 @@ use SuperElf\Formation;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
 use SuperElf\Periods\ViewPeriod;
+use SuperElf\Points;
 use SuperElf\Pool;
 use SuperElf\Replacement;
 use SuperElf\Substitution;
+use SuperElf\Totals;
+use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
 
@@ -203,6 +207,21 @@ class User extends Identifiable
             return $this->getTransferFormation();
         }
         return null;
+    }
+
+    public function getTotalPoints(Points $s11Points, BadgeCategory|null $badgeCategory): int
+    {
+        $points = 0;
+        $assembleFormation = $this->getAssembleFormation();
+        if( $assembleFormation !== null) {
+            $points += $assembleFormation->getTotalPoints($s11Points, $badgeCategory);
+        }
+
+        $transferFormation = $this->getTransferFormation();
+        if( $transferFormation !== null) {
+            $points += $transferFormation->getTotalPoints($s11Points, $badgeCategory);
+        }
+        return $points;
     }
 
     public function canCompete(): bool

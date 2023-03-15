@@ -23,7 +23,6 @@ use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Statistics\Repository as StatisticsRepository;
 use SuperElf\Totals\Repository as TotalsRepository;
@@ -42,8 +41,7 @@ class Syncer
         protected FormationPlaceRepository $formationPlaceRepos,
         protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
-        protected Converter $converter,
-        protected PointsCalculator $pointsCalculator
+        protected Converter $converter
     ) {
     }
 

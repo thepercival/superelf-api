@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Sport\FootballLine;
+use SportsHelpers\Against\Result;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 
 class Totals extends Identifiable
 {
@@ -193,18 +195,47 @@ class Totals extends Identifiable
         $this->updatedAt = $updatedAt;
     }
 
-    public function getPoints(FootballLine $line, CompetitionConfig $competitionConfig): int
+    public function getPoints(FootballLine $line, Points $points, BadgeCategory|null $badgeCategory): int
     {
-        $points = $competitionConfig->getPoints();
-        return $this->getNrOfWins() * $points->getScorePointsAsValue(FootballScore::WinResult)
-            + $this->getNrOfDraws() * $points->getScorePointsAsValue(FootballScore::DrawResult)
-            + $this->getNrOfFieldGoals() * $points->getLineScorePointsAsValue($line, FootballScore::Goal)
-            + $this->getNrOfAssists() * $points->getLineScorePointsAsValue($line, FootballScore::Assist)
+        $result = $this->getNrOfWins() * $points->getScorePointsAsValue(FootballScore::WinResult)
+            + $this->getNrOfDraws() * $points->getScorePointsAsValue(FootballScore::DrawResult);
+        $goals = $this->getNrOfFieldGoals() * $points->getLineScorePointsAsValue($line, FootballScore::Goal)
             + $this->getNrOfPenalties() * $points->getScorePointsAsValue(FootballScore::PenaltyGoal)
-            + $this->getNrOfOwnGoals() * $points->getScorePointsAsValue(FootballScore::OwnGoal)
-            + $this->getNrOfCleanSheets() * $points->getLineScorePointsAsValue($line, FootballScore::CleanSheet)
-            + $this->getNrOfSpottySheets() * $points->getLineScorePointsAsValue($line, FootballScore::SpottySheet)
-            + $this->getNrOfYellowCards() * $points->getScorePointsAsValue(FootballScore::YellowCard)
+            + $this->getNrOfOwnGoals() * $points->getScorePointsAsValue(FootballScore::OwnGoal);
+        $assists = $this->getNrOfAssists() * $points->getLineScorePointsAsValue($line, FootballScore::Assist);
+        $sheet = $this->getNrOfCleanSheets() * $points->getLineScorePointsAsValue($line, FootballScore::CleanSheet)
+            + $this->getNrOfSpottySheets() * $points->getLineScorePointsAsValue($line, FootballScore::SpottySheet);
+        $cards = $this->getNrOfYellowCards() * $points->getScorePointsAsValue(FootballScore::YellowCard)
             + $this->getNrOfRedCards() * $points->getScorePointsAsValue(FootballScore::RedCard);
+
+        switch ($badgeCategory) {
+            case BadgeCategory::Result:
+                return $result;
+            case BadgeCategory::Goal:
+                return $goals;
+            case BadgeCategory::Assist:
+                return $assists;
+            case BadgeCategory::Sheet:
+                return $sheet;
+            case BadgeCategory::Card:
+                return $cards;
+        }
+        return $result + $goals + $assists + $sheet + $cards;
+    }
+
+    public function add(Totals $totals): Totals
+    {
+        return new Totals(
+            $this->getNrOfWins() + $totals->getNrOfWins(),
+            + $this->getNrOfDraws() + $totals->getNrOfDraws(),
+            + $this->getNrOfFieldGoals() + $totals->getNrOfFieldGoals(),
+            + $this->getNrOfAssists() + $totals->getNrOfAssists(),
+            + $this->getNrOfPenalties() + $totals->getNrOfPenalties(),
+            + $this->getNrOfOwnGoals() + $totals->getNrOfOwnGoals(),
+            + $this->getNrOfCleanSheets() + $totals->getNrOfCleanSheets(),
+            + $this->getNrOfSpottySheets()  + $totals->getNrOfSpottySheets(),
+            + $this->getNrOfYellowCards()  + $totals->getNrOfYellowCards(),
+            + $this->getNrOfRedCards()  + $totals->getNrOfRedCards()
+        );
     }
 }

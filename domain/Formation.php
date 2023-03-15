@@ -13,6 +13,7 @@ use Sports\Team\Player;
 use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as SportsFormationLine;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation\Line;
 use SuperElf\Formation\Place;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
@@ -152,11 +153,20 @@ class Formation extends Identifiable
         return $players;
     }
 
-    public function getPoints(GameRound $gameRound, Points $s11Points): int
+    public function getPoints(GameRound $gameRound, Points $s11Points, BadgeCategory|null $badgeCategory): int
     {
         $points = 0;
         foreach ($this->getLines() as $line) {
-            $points += $line->getPoints($gameRound, $s11Points);
+            $points += $line->getPoints($gameRound, $s11Points, $badgeCategory);
+        }
+        return $points;
+    }
+
+    public function getTotalPoints(Points $s11Points, BadgeCategory|null $badgeCategory): int
+    {
+        $points = 0;
+        foreach( $this->getLines() as $formationLine) {
+            $points += $formationLine->getTotalPoints($s11Points, $badgeCategory);
         }
         return $points;
     }

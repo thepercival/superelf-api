@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Person;
+use Sports\Sport\FootballLine;
 use SportsHelpers\Against\Result;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Player as S11Player;
 
 class Statistics extends Identifiable
@@ -155,5 +157,32 @@ class Statistics extends Identifiable
     public function getResultNative(): int
     {
         return $this->result->value;
+    }
+
+    public function getPoints(FootballLine $line, Points $points, BadgeCategory|null $badgeCategory): int
+    {
+        $result = $this->result === Result::Win ? $points->getResultWin() : ($this->result === Result::Draw ? $points->getResultDraw() : 0);
+        $goals = $this->getNrOfFieldGoals() * $points->getLineScorePointsAsValue($line, FootballScore::Goal)
+            + $this->getNrOfPenalties() * $points->getScorePointsAsValue(FootballScore::PenaltyGoal)
+            + $this->getNrOfOwnGoals() * $points->getScorePointsAsValue(FootballScore::OwnGoal);
+        $assists = $this->getNrOfAssists() * $points->getLineScorePointsAsValue($line, FootballScore::Assist);
+        $sheet = ($this->hasCleanSheet() ? $points->getLineScorePointsAsValue($line, FootballScore::CleanSheet) : 0)
+            + ($this->hasSpottySheet() ? $points->getLineScorePointsAsValue($line, FootballScore::SpottySheet) : 0);
+        $cards = (int)((($this->directRedCard ? 1 : 0) * $points->getCardRed())
+                + ($this->getNrOfYellowCards()  * $points->getCardYellow()));
+
+        switch ($badgeCategory) {
+            case BadgeCategory::Result:
+                return $result;
+            case BadgeCategory::Goal:
+                return $goals;
+            case BadgeCategory::Assist:
+                return $assists;
+            case BadgeCategory::Sheet:
+                return $sheet;
+            case BadgeCategory::Card:
+                return $cards;
+        }
+        return $result + $goals + $assists + $sheet + $cards;
     }
 }

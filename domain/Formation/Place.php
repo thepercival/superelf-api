@@ -6,6 +6,7 @@ namespace SuperElf\Formation;
 
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
 use SuperElf\Player as S11Player;
@@ -154,12 +155,12 @@ class Place extends Identifiable
         return null;
     }
 
-    public function getPoints(GameRound $gameRound, Points $s11Points): int
+    public function getPoints(GameRound $gameRound, Points $s11Points, BadgeCategory|null $badgeCategory): int
     {
         $player = $this->getPlayer();
         if ($player === null) {
             return 0;
         }
-        return $player->getPoints($gameRound, $s11Points, $this->getLine());
+        return $player->getPoints($gameRound, $s11Points, $this->getLine(), $badgeCategory);
     }
 }

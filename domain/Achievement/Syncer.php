@@ -14,10 +14,12 @@ use SuperElf\Achievement\Badge\Repository as BadgeRepository;
 use SuperElf\Achievement\Trophy\Calculator as TrophyCalculator;
 use SuperElf\Achievement\Trophy\Repository as TrophyRepository;
 use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
+use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
 use SuperElf\Achievement\Unviewed\Trophy\Repository as UnviewedTrophyRepository;
+use SuperElf\Achievement\Unviewed\Badge\Repository as UnviewedBadgeRepository;
 use SuperElf\CompetitionConfig;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Points\Calculator as PointsCalculator;
+use SuperElf\Achievement\Badge\Calculator as BadgeCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
 use SuperElf\League as S11League;
@@ -30,10 +32,10 @@ class Syncer
         protected StructureRepository $structureRepos,
         protected TrophyRepository $trophyRepos,
         protected BadgeRepository $badgeRepos,
+        protected UnviewedBadgeRepository $unviewedBadgeRepos,
         protected UnviewedTrophyRepository $unviewedTrophyRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
-        protected PointsCalculator $pointsCalculator,
         protected LoggerInterface $logger
     ) {
     }
@@ -53,7 +55,7 @@ class Syncer
             }
         }
         if( count($pools) > 0 && $allPoolsFinished ) {
-            // update badges for $competitionConfig
+            $this->updateSeasonBadges($competitionConfig);
         }
     }
 
@@ -64,8 +66,7 @@ class Syncer
         }
         $this->logger->info('updating achievements for : "' . $pool->getName() . '" and league "'. $poolCompetition->getLeague()->getName() .'"');
         $this->updatePoolTrophies($pool, $poolCompetition, $structure);
-        // $this->updatePoolBadges($poolCompetition);
-
+        $this->updatePoolBadges($pool, $poolCompetition);
         return true;
     }
 
@@ -96,6 +97,39 @@ class Syncer
                 }
             }
         }
+    }
+
+    public function updatePoolBadges(Pool $pool, Competition $poolCompetition): void {
+
+        $badgeCalculator = new BadgeCalculator();
+        $createDateTime = null;
+        foreach( BadgeCategory::cases() as $badgeCategory)
+        {
+            $ranksForBadge = [1];
+            foreach($ranksForBadge as $rank) {
+                $badges = $this->badgeRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
+                if( $createDateTime === null ) {
+                    $createDateTime = $this->getCreateDateTime($badges);
+                }
+                foreach( $badges as $badge) {
+                    $this->logger->info('   badge remove : ' . $badge);
+                    $this->badgeRepos->remove($badge, true);
+                }
+                $bestPoolUsers = $badgeCalculator->getBestPoolUsers($pool, $badgeCategory);
+                foreach( $bestPoolUsers as $aBestPoolUser) {
+                    $badge = new Badge($badgeCategory, $poolCompetition, $rank, $aBestPoolUser, $createDateTime);
+                    $this->logger->info('   badge add : ' . $badge);
+                    $this->badgeRepos->save($badge, true);
+                    foreach( $pool->getUsers() as $poolUser) {
+                        $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
+                    }
+                }
+            }
+        }
+    }
+
+    public function updateSeasonBadges(CompetitionConfig $competitionConfig): void {
+
     }
 
     /**

@@ -155,7 +155,7 @@ class Points extends Command
             foreach( $formationLine->getStartingPlaces() as $formationPlace) {
                 $totalPoints = 0;
                 foreach( $gameRounds as $gameRound ) {
-                    $totalPoints += $formationPlace->getPoints($gameRound, $s11Points);
+                    $totalPoints += $formationPlace->getPoints($gameRound, $s11Points, null);
                 }
                 if( $totalPoints !== $formationPlace->getTotalPoints() ) {
                     $person = $formationPlace->getPlayer()?->getPerson();
@@ -171,7 +171,7 @@ class Points extends Command
                 if( $appearance === null ) {
                     continue;
                 }
-                $totalPoints += $substitute->getPoints($gameRound, $s11Points);
+                $totalPoints += $substitute->getPoints($gameRound, $s11Points, null);
             }
             if( $totalPoints !== $substitute->getTotalPoints() ) {
                 $person = $substitute->getPlayer()?->getPerson();

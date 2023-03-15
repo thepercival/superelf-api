@@ -11,6 +11,7 @@ use Sports\Sport\FootballLine;
 use Sports\Team;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use League\Period\Period;
 use SuperElf\Points\Calculator;
@@ -92,13 +93,13 @@ class Player extends Identifiable
         $this->totalPoints = $totalPoints;
     }
 
-    public function getPoints(GameRound $gameRound, Points $s11Points, FootballLine $line): int
+    public function getPoints(GameRound $gameRound, Points $s11Points, FootballLine $line, BadgeCategory|null $badgeCategory): int
     {
         $statistics = $this->getGameRoundStatistics($gameRound);
         if ($statistics === null) {
             return 0;
         }
-        return (new Calculator())->getStatisticsPoints($line, $statistics, $s11Points);
+        return $statistics->getPoints($line, $s11Points, $badgeCategory);
     }
 
     /**

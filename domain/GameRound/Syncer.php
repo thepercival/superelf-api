@@ -14,7 +14,6 @@ use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 
 class Syncer
@@ -26,8 +25,7 @@ class Syncer
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected PointsCreator $pointsCreator,
-        protected PointsCalculator $pointsCalculator
+        protected PointsCreator $pointsCreator
     ) {
     }
 

@@ -9,12 +9,14 @@ use Doctrine\Common\Collections\Collection;
 use Sports\Person;
 use Sports\Sport\FootballLine;
 use SportsHelpers\Identifiable;
+use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation as FormationBase;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Player as S11Player;
 use SuperElf\GameRound;
 use SuperElf\Points;
 use SuperElf\Substitute\Appearance;
+use SuperElf\Totals;
 
 class Line extends Identifiable
 {
@@ -142,17 +144,31 @@ class Line extends Identifiable
     }
 
 
-    public function getPoints(GameRound $gameRound, Points $s11Points): int
+    public function getPoints(GameRound $gameRound, Points $s11Points, BadgeCategory|null $badgeCategory): int
     {
         $points = 0;
         foreach ($this->getStartingPlaces() as $place) {
-            $points += $place->getPoints($gameRound, $s11Points);
+            $points += $place->getPoints($gameRound, $s11Points, $badgeCategory);
         }
         $appaerance = $this->getSubstituteAppareance($gameRound);
         if ($appaerance !== null) {
-            $points += $this->getSubstitute()->getPoints($gameRound, $s11Points);
+            $points += $this->getSubstitute()->getPoints($gameRound, $s11Points, $badgeCategory);
         }
         return $points;
+    }
+
+    public function getTotals(): Totals
+    {
+        $totals = new Totals();
+        foreach ($this->getPlaces() as $place) {
+            $totals = $totals->add($place->getTotals());
+        }
+        return $totals;
+    }
+
+    public function getTotalPoints(Points $points, BadgeCategory|null $badgeCategory): int
+    {
+        return $this->getTotals()->getPoints($this->getLine(), $points, $badgeCategory);
     }
 
     /**

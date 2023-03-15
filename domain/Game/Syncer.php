@@ -37,7 +37,6 @@ use SuperElf\Periods\TransferPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points;
-use SuperElf\Points\Calculator as PointsCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
@@ -56,7 +55,6 @@ class Syncer
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
-        protected PointsCalculator $pointsCalculator,
         protected LoggerInterface $logger
     ) {
     }
@@ -199,7 +197,7 @@ class Syncer
         if ($gameRound === null) {
             return;
         }
-        $points = $formation->getPoints($gameRound, $s11Points);
+        $points = $formation->getPoints($gameRound, $s11Points, null);
         $score = new TogetherScore(
             $gamePlace,
             $points,
@@ -292,8 +290,8 @@ class Syncer
 
         $score = new AgainstScore(
             $game,
-            $homeFormation->getPoints($gameRound, $s11Points),
-            $awayFormation->getPoints($gameRound, $s11Points),
+            $homeFormation->getPoints($gameRound, $s11Points, null),
+            $awayFormation->getPoints($gameRound, $s11Points, null),
             GamePhase::RegularTime
         );
         $this->againstScoreRepos->save($score, true);

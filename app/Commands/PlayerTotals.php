@@ -78,6 +78,7 @@ class PlayerTotals extends Command
 
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
+            $points = $compConfig->getPoints();
             $totalsCalculator = new TotalsCalculator($compConfig);
 
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
@@ -89,7 +90,7 @@ class PlayerTotals extends Command
                     $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
                     $this->totalsRepos->save($s11Player->getTotals(), true);
 
-                    $totalsCalculator->updateTotalPoints($s11Player);
+                    $totalsCalculator->updateTotalPoints($s11Player, $points);
                     $this->s11PlayerRepos->save($s11Player, true);
 
                     $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
@@ -97,7 +98,7 @@ class PlayerTotals extends Command
                         $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
                         $this->totalsRepos->save($s11Player->getTotals(), true);
 
-                        $totalsCalculator->updateTotalPoints($formationPlace);
+                        $totalsCalculator->updateTotalPoints($formationPlace, $points);
                         $this->formationPlaceRepos->save($formationPlace, true);
                     }
 

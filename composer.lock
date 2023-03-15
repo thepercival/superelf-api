@@ -5681,16 +5681,16 @@
         },
         {
             "name": "thepercival/php-sports",
-            "version": "v1.0.134",
+            "version": "v1.0.136",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports.git",
-                "reference": "70deb09a2ad0a0005ce6ac18b37ad85b91e24dc9"
+                "reference": "ee4e6169996ece0160e77298291959449d33409f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports/zipball/70deb09a2ad0a0005ce6ac18b37ad85b91e24dc9",
-                "reference": "70deb09a2ad0a0005ce6ac18b37ad85b91e24dc9",
+                "url": "https://api.github.com/repos/thepercival/php-sports/zipball/ee4e6169996ece0160e77298291959449d33409f",
+                "reference": "ee4e6169996ece0160e77298291959449d33409f",
                 "shasum": ""
             },
             "require": {
@@ -5753,9 +5753,9 @@
             "support": {
                 "email": "coendunnink@gmail.com",
                 "issues": "https://github.com/thepercival/php-sports/issues",
-                "source": "https://github.com/thepercival/php-sports/tree/v1.0.134"
+                "source": "https://github.com/thepercival/php-sports/tree/v1.0.136"
             },
-            "time": "2023-03-12T16:36:46+00:00"
+            "time": "2023-03-14T15:13:56+00:00"
         },
         {
             "name": "thepercival/php-sports-helpers",
@@ -7798,16 +7798,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.14.4",
+            "version": "v3.15.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer.git",
-                "reference": "1b3d9dba63d93b8a202c31e824748218781eae6b"
+                "reference": "d48755372a113bddb99f749e34805d83f3acfe04"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/1b3d9dba63d93b8a202c31e824748218781eae6b",
-                "reference": "1b3d9dba63d93b8a202c31e824748218781eae6b",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/d48755372a113bddb99f749e34805d83f3acfe04",
+                "reference": "d48755372a113bddb99f749e34805d83f3acfe04",
                 "shasum": ""
             },
             "require": {
@@ -7874,9 +7874,15 @@
                 }
             ],
             "description": "A tool to automatically fix PHP code style",
+            "keywords": [
+                "Static code analysis",
+                "fixer",
+                "standards",
+                "static analysis"
+            ],
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/issues",
-                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.14.4"
+                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.15.1"
             },
             "funding": [
                 {
@@ -7884,7 +7890,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-02-09T21:49:13+00:00"
+            "time": "2023-03-13T23:26:30+00:00"
         },
         {
             "name": "justinrainbow/json-schema",

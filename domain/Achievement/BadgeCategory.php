@@ -7,7 +7,7 @@ namespace SuperElf\Achievement;
 enum BadgeCategory: string
 {
     case Result = 'Result';
-    case Goal = 'Goal';
+    case Goal = 'FieldGoal';
     case Assist = 'Assist';
     case Sheet = 'Sheet';
     case Card = 'Card';
