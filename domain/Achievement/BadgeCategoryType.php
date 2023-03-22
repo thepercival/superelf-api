@@ -15,6 +15,17 @@ class BadgeCategoryType extends EnumDbType
         return 'enum_BadgeCategory';
     }
 
+    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    {
+        if( $value === null ) {
+            return null;
+        }
+        if( $value instanceof BadgeCategory ) {
+            return $value->value;
+        }
+        return $value;
+    }
+
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
         if ($value === BadgeCategory::Result->value) {

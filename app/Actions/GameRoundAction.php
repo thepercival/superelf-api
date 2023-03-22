@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use SuperElf\CacheService;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -13,17 +14,18 @@ use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
+use Selective\Config\Configuration;
 
 final class GameRoundAction extends Action
 {
+
     public function __construct(
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected AgainstGameRepository $againstGameRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected GameRoundRepository $gameRoundRepos,
+        protected Configuration $config,
         LoggerInterface $logger,
         SerializerInterface $serializer
     ) {
@@ -111,6 +113,8 @@ final class GameRoundAction extends Action
 //        }
         return array_shift($gameRoundNumbersWithFinishedGames);
     }
+
+
 
 //    protected function getSerializationContext(): SerializationContext
 //    {

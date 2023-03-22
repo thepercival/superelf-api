@@ -50,6 +50,11 @@ class Statistics extends Identifiable
         return $this->result;
     }
 
+    public function isResult(Result $result): bool
+    {
+        return $this->result === $result;
+    }
+
     public function getBeginMinute(): int
     {
         return $this->beginMinute;
@@ -74,22 +79,22 @@ class Statistics extends Identifiable
         $this->endMinute = $minute;
     }
 
-    public function isStarting(): bool
+    public function hasStarted(): bool
     {
         return $this->beginMinute === 0;
     }
 
-    public function isSubstitute(): bool
+    public function hasBeenSubstitute(): bool
     {
         return $this->beginMinute > 0;
     }
 
     public function hasAppeared(): bool
     {
-        return $this->isStarting() || $this->isSubstitute();
+        return $this->hasStarted() || $this->hasBeenSubstitute();
     }
 
-    public function isSubstituted(): bool
+    public function hasBeenSubstituted(): bool
     {
         return $this->endMinute > 0;
     }

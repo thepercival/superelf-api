@@ -1,0 +1,40 @@
+SuperElf\Totals:
+  exclusion_policy: ALL
+  access_type: public_method
+  properties:
+    nrOfWins:
+      type: int
+      read_only: true
+    nrOfDraws:
+      type: int
+      read_only: true
+    nrOfTimesStarted:
+      type: int
+      read_only: true
+    nrOfTimesSubstituted:
+      type: int
+      read_only: true
+    nrOfTimesSubstitute:
+      type: int
+      read_only: true
+    nrOfTimesNotAppeared:
+      type: int
+      read_only: true
+    nrOfFieldGoals:
+      type: int
+      read_only: true
+    nrOfOwnGoals:
+      type: int
+      read_only: true
+    nrOfPenalties:
+      type: int
+      read_only: true
+    nrOfAssists:
+      type: int
+      read_only: true
+    nrOfYellowCards:
+      type: int
+      read_only: true
+    nrOfRedCards:
+      type: int
+      read_only: true

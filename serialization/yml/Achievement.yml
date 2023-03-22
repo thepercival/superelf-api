@@ -5,8 +5,6 @@ SuperElf\Achievement:
   properties:
     poolUser:
       type: SuperElf\Pool\User
-    rank:
-      type: integer
     createDateTime:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
       serialized_name: created

@@ -18,6 +18,7 @@ use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
 use SuperElf\Achievement\Unviewed\Trophy\Repository as UnviewedTrophyRepository;
 use SuperElf\Achievement\Unviewed\Badge\Repository as UnviewedBadgeRepository;
 use SuperElf\CompetitionConfig;
+use SuperElf\League;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Achievement\Badge\Calculator as BadgeCalculator;
 use SuperElf\Points\Creator as PointsCreator;
@@ -61,12 +62,16 @@ class Syncer
 
     public function updatePoolAchievements(Pool $pool, Competition $poolCompetition): bool {
         $structure = $this->structureRepos->getStructure($poolCompetition);
-        if( $structure->getSingleCategory()->getLastStructureCell()->getGamesState() !== State::Finished ) {
+        if( $pool->getName() === 'kamp duim' && $poolCompetition->getLeague()->getName() === League::Competition->name ) {
+            $cdk = 12;
+        } else if( $structure->getSingleCategory()->getLastStructureCell()->getGamesState() !== State::Finished ) {
             return false;
         }
         $this->logger->info('updating achievements for : "' . $pool->getName() . '" and league "'. $poolCompetition->getLeague()->getName() .'"');
         $this->updatePoolTrophies($pool, $poolCompetition, $structure);
-        $this->updatePoolBadges($pool, $poolCompetition);
+        if( $poolCompetition->getLeague()->getName() === League::Competition->name) {
+            $this->updatePoolBadges($pool);
+        }
         return true;
     }
 
@@ -99,30 +104,34 @@ class Syncer
         }
     }
 
-    public function updatePoolBadges(Pool $pool, Competition $poolCompetition): void {
+    public function updatePoolBadges(Pool $pool): void {
 
         $badgeCalculator = new BadgeCalculator();
         $createDateTime = null;
+        if( count($pool->getUsers()) < 2 ) {
+            $this->logger->info('   not enough users ('.count($pool->getUsers()).' < '.BadgeCalculator::MIN_NR_OF_POOLUSERS.')');
+            return;
+        }
+
+        $competitionConfig = $pool->getCompetitionConfig();
+
         foreach( BadgeCategory::cases() as $badgeCategory)
         {
-            $ranksForBadge = [1];
-            foreach($ranksForBadge as $rank) {
-                $badges = $this->badgeRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
-                if( $createDateTime === null ) {
-                    $createDateTime = $this->getCreateDateTime($badges);
-                }
-                foreach( $badges as $badge) {
-                    $this->logger->info('   badge remove : ' . $badge);
-                    $this->badgeRepos->remove($badge, true);
-                }
-                $bestPoolUsers = $badgeCalculator->getBestPoolUsers($pool, $badgeCategory);
-                foreach( $bestPoolUsers as $aBestPoolUser) {
-                    $badge = new Badge($badgeCategory, $poolCompetition, $rank, $aBestPoolUser, $createDateTime);
-                    $this->logger->info('   badge add : ' . $badge);
-                    $this->badgeRepos->save($badge, true);
-                    foreach( $pool->getUsers() as $poolUser) {
-                        $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
-                    }
+            $badges = $this->badgeRepos->findBy(['competitionConfig' => $competitionConfig, 'pool' => $pool, 'category' => $badgeCategory]);
+            if( $createDateTime === null ) {
+                $createDateTime = $this->getCreateDateTime($badges);
+            }
+            foreach( $badges as $badge) {
+                $this->logger->info('   badge remove : ' . $badge);
+                $this->badgeRepos->remove($badge, true);
+            }
+            $bestPoolUsers = $badgeCalculator->getBestPoolUsers($pool, $badgeCategory);
+            foreach( $bestPoolUsers as $aBestPoolUser) {
+                $badge = new Badge($badgeCategory, $pool, $competitionConfig, $aBestPoolUser, $createDateTime);
+                $this->logger->info('   badge add : ' . $badge);
+                $this->badgeRepos->save($badge, true);
+                foreach( $pool->getUsers() as $poolUser) {
+                    $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
                 }
             }
         }

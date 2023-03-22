@@ -3,7 +3,16 @@ SuperElf\Achievement\Badge:
   exclude: false
   access_type: public_property
   properties:
-    competition:
-      type: Sports\Competition
     category:
-      type: SuperElf\Achievement\BadgeCategory
+      type: string
+      access_type: public_method
+      accessor:
+        getter: getCategoryNative
+      read_only: true
+  virtual_properties:
+    getScopeDescription:
+      type: string
+      serialized_name: scopeDescription
+    getPoolId:
+      type: int
+      serialized_name: poolId

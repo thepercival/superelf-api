@@ -2,20 +2,18 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="SuperElf\Achievement\Badge" table="badges" repository-class="SuperElf\Achievement\Badge\Repository">
         <field name="category" column="category" type="enum_BadgeCategory" nullable="false" unique="false"/>
-        <many-to-one field="competition" target-entity="Sports\Competition">
+        <many-to-one field="pool" target-entity="SuperElf\Pool">
             <join-columns>
-                <join-column name="competitionId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+                <join-column name="poolId" referenced-column-name="id" nullable="true" on-delete="CASCADE"/>
+            </join-columns>
+        </many-to-one>
+        <many-to-one field="competitionConfig" target-entity="SuperElf\CompetitionConfig">
+            <join-columns>
+                <join-column name="competitionConfigId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
             </join-columns>
         </many-to-one>
         <unique-constraints>
-            <unique-constraint columns="category,competitionId,rank,poolUserId" name="main_u_idx"/>
+            <unique-constraint columns="category,poolId,competitionConfigId,poolUserId" name="main_u_idx"/>
         </unique-constraints>
     </entity>
 </doctrine-mapping>
-
-<!-- badges
-Nr 1, 2 meeste punten goals
-Nr 1, 2 meeste punten assists
-Nr 1, 2 meeste punten de nul
-Nr 1, 2 minste punten kaarten
--->

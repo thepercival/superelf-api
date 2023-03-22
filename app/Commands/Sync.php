@@ -184,7 +184,7 @@ class Sync extends Command
             $this->statisticsSyncer->syncStatistics($competitionConfig, $game);
             $this->appearanceSyncer->syncSubstituteAppearances($competitionConfig, $game);
             $this->totalsSyncer->syncTotals($competitionConfig, $game);
-            $this->poolGameSyncer->syncPoolCompetitions($competitionConfig, $game->getGameRoundNumber());
+            // $this->poolGameSyncer->syncPoolCompetitions($competitionConfig, $game->getGameRoundNumber());
             if( $withAchievements ) {
                 $this->achievementsSyncer->syncPoolAchievements($competitionConfig);
             }

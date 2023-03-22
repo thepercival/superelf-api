@@ -6,6 +6,7 @@ use SportsHelpers\Against\Result;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\GameRound\TotalsCalculator;
 use SuperElf\Player as S11Player;
 use SuperElf\Points;
 use SuperElf\Statistics;
@@ -44,13 +45,13 @@ class Calculator
             if ($statistics->getResult() === Result::Draw) {
                 $totals->incrementNrOfDraws();
             }
-            if ($statistics->isStarting()) {
+            if ($statistics->hasStarted()) {
                 $totals->incrementNrOfTimesStarted();
             }
-            if ($statistics->isSubstitute()) {
+            if ($statistics->hasBeenSubstitute()) {
                 $totals->incrementNrOfTimesSubstitute();
             }
-            if ($statistics->isSubstituted()) {
+            if ($statistics->hasBeenSubstituted()) {
                 $totals->incrementNrOfTimesSubstituted();
             }
             if (!$statistics->hasAppeared()) {

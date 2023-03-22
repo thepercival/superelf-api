@@ -17,6 +17,7 @@ use App\Actions\SeasonAction;
 use App\Actions\Sports\AgainstGameAction;
 use App\Actions\Sports\CompetitionAction;
 use App\Actions\Sports\StructureAction;
+use App\Actions\PoolTotalsAction;
 use App\Actions\StatisticsAction;
 use App\Actions\UserAction;
 use App\Actions\TransferPeriodActionsAction;
@@ -127,7 +128,6 @@ return function (App $app): void {
                     $group->group(
                         '/{poolId}/',
                         function (Group $group): void {
-
                             $group->group(
                                 'users',
                                 function (Group $group): void {
@@ -135,6 +135,17 @@ return function (App $app): void {
                                     $group->get('/{poolUserId}', PoolUserAction::class . ':fetchOne');
                                 }
                             );
+                            $group->group(
+                                'viewperiods/{viewPeriodId}/',
+                                function (Group $group): void {
+                                    $group->options('totals', PoolTotalsAction::class . ':options');
+                                    $group->get('totals', PoolTotalsAction::class . ':fetchViewPeriod');
+
+                                    $group->options('gamerounds/{gameRoundNr}/totals', PoolTotalsAction::class . ':options');
+                                    $group->get('gamerounds/{gameRoundNr}/totals', PoolTotalsAction::class . ':fetchGameRound');
+                                }
+                            );
+
                         },
                     );
                 }

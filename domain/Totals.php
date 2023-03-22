@@ -223,19 +223,51 @@ class Totals extends Identifiable
         return $result + $goals + $assists + $sheet + $cards;
     }
 
-    public function add(Totals $totals): Totals
+    public function add(self|Statistics $totalsOrStatistics): self
     {
-        return new Totals(
+        if( $totalsOrStatistics instanceof self ) {
+            return $this->addTotals($totalsOrStatistics);
+        }
+        return $this->addStatistics($totalsOrStatistics);
+    }
+
+    protected function addTotals(self $totals): self
+    {
+        return new self(
             $this->getNrOfWins() + $totals->getNrOfWins(),
-            + $this->getNrOfDraws() + $totals->getNrOfDraws(),
-            + $this->getNrOfFieldGoals() + $totals->getNrOfFieldGoals(),
-            + $this->getNrOfAssists() + $totals->getNrOfAssists(),
-            + $this->getNrOfPenalties() + $totals->getNrOfPenalties(),
-            + $this->getNrOfOwnGoals() + $totals->getNrOfOwnGoals(),
-            + $this->getNrOfCleanSheets() + $totals->getNrOfCleanSheets(),
-            + $this->getNrOfSpottySheets()  + $totals->getNrOfSpottySheets(),
-            + $this->getNrOfYellowCards()  + $totals->getNrOfYellowCards(),
-            + $this->getNrOfRedCards()  + $totals->getNrOfRedCards()
+            $this->getNrOfDraws() + $totals->getNrOfDraws(),
+            $this->getNrOfTimesStarted() + $totals->getNrOfTimesStarted(),
+            $this->getNrOfTimesSubstituted() + $totals->getNrOfTimesSubstituted(),
+            $this->getNrOfTimesSubstitute() + $totals->getNrOfTimesSubstitute(),
+            $this->getNrOfTimesNotAppeared() + $totals->getNrOfTimesNotAppeared(),
+            $this->getNrOfFieldGoals() + $totals->getNrOfFieldGoals(),
+            $this->getNrOfAssists() + $totals->getNrOfAssists(),
+            $this->getNrOfPenalties() + $totals->getNrOfPenalties(),
+            $this->getNrOfOwnGoals() + $totals->getNrOfOwnGoals(),
+            $this->getNrOfCleanSheets() + $totals->getNrOfCleanSheets(),
+            $this->getNrOfSpottySheets()  + $totals->getNrOfSpottySheets(),
+            $this->getNrOfYellowCards()  + $totals->getNrOfYellowCards(),
+            $this->getNrOfRedCards()  + $totals->getNrOfRedCards()
+        );
+    }
+
+    protected function addStatistics(Statistics $stats): self
+    {
+        return new self(
+            $this->getNrOfWins() + ($stats->isResult(Result::Win) ? 1 : 0),
+            $this->getNrOfDraws() + ($stats->isResult(Result::Draw) ? 1 : 0),
+            $this->getNrOfTimesStarted() + ($stats->hasStarted() ? 1 : 0),
+            $this->getNrOfTimesSubstituted() + ($stats->hasBeenSubstituted() ? 1 : 0),
+            $this->getNrOfTimesSubstitute() + ($stats->hasBeenSubstitute() ? 1 : 0),
+            $this->getNrOfTimesNotAppeared() + (!$stats->hasAppeared() ? 1 : 0),
+            $this->getNrOfFieldGoals() + $stats->getNrOfFieldGoals(),
+            $this->getNrOfAssists() + $stats->getNrOfAssists(),
+            $this->getNrOfPenalties() + $stats->getNrOfPenalties(),
+            $this->getNrOfOwnGoals() + $stats->getNrOfOwnGoals(),
+            $this->getNrOfCleanSheets() + ($stats->hasCleanSheet() ? 1 : 0),
+            $this->getNrOfSpottySheets() + ($stats->hasSpottySheet() ? 1 : 0),
+            $this->getNrOfYellowCards()  + $stats->getNrOfYellowCards(),
+            $this->getNrOfRedCards()  + ($stats->directRedCard() ? 1 : 0),
         );
     }
 }

@@ -1,0 +1,10 @@
+SuperElf\Totals\PoolUser:
+  exclusion_policy: ALL
+  access_type: public_method
+  properties:
+    poolUserId:
+      type: int
+      read_only: true
+    formationLineTotals:
+      type: list<SuperElf\Totals\FormationLine>
+      read_only: true

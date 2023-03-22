@@ -1,0 +1,13 @@
+SuperElf\Totals\FormationLine:
+  exclusion_policy: ALL
+  access_type: public_method
+  properties:
+    line:
+      type: int
+      access_type: public_method
+      accessor:
+        getter: getLineNative
+      read_only: true
+    totals:
+      type: SuperElf\Totals
+      read_only: true

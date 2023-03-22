@@ -4,7 +4,6 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <mapped-superclass name="SuperElf\Achievement">
         <field name="createDateTime" column="createDateTime" type="datetime_immutable" nullable="false"/>
-        <field name="rank" column="rank" type="smallint" nullable="false" unique="false"/>
         <many-to-one field="poolUser" target-entity="SuperElf\Pool\User">
             <join-columns>
                 <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

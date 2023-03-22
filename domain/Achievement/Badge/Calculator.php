@@ -8,6 +8,8 @@ use SuperElf\Pool\User as PoolUser;
 
 class Calculator
 {
+    public const MIN_NR_OF_POOLUSERS = 5;
+
     public function __construct()
     {
     }
@@ -23,13 +25,13 @@ class Calculator
         $bestPoolUsers = [];
         {
             $points = $pool->getCompetitionConfig()->getPoints();
-            $highestPoints = 0;
+            $highestPoints = null;
             foreach( $pool->getUsers() as $poolUser) {
                 $currentPoints = $poolUser->getTotalPoints($points, $badgeCategory);
-                if( $currentPoints > $highestPoints ) {
+                if( $highestPoints === null || $currentPoints > $highestPoints ) {
                     $bestPoolUsers = [$poolUser];
                     $highestPoints = $currentPoints;
-                } else if( $currentPoints === $highestPoints and $highestPoints > 0 ) {
+                } else if( $currentPoints === $highestPoints ) {
                     $bestPoolUsers[] = $poolUser;
                 }
             }
