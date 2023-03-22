@@ -112,13 +112,10 @@ return function (App $app): void {
                             );
                         },
                     );
-                    $group->group(
-                        '/structure',
-                        function (Group $group): void {
-                            $group->options('', StructureAction::class . ':options');
-                            $group->get('', StructureAction::class . ':fetchOne');
-                        },
-                    );
+                    $group->options('/structure', StructureAction::class . ':options');
+                    $group->get('/structure', StructureAction::class . ':fetchOne');
+                    $group->options('/firstpouleid', StructureAction::class . ':options');
+                    $group->get('/firstpouleid', StructureAction::class . ':fetchFirstPouleId');
                 },
             )->add(VersionMiddleware::class);
 

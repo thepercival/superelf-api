@@ -63,6 +63,29 @@ final class StructureAction extends Action
         }
     }
 
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchFirstPouleId(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+
+            $structure = $this->structureRepos->getStructure($competition);
+            $firstPouleId = $structure->getSingleCategory()->getRootRound()->getFirstPoule()->getId();
+            $json = $this->serializer->serialize(['firstPouleId' => $firstPouleId], 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $exception) {
+            return new ErrorResponse($exception->getMessage(), 500, $this->logger);
+        }
+    }
+
     protected function hasSuperElfSport(Competition $competiton): bool {
         foreach( $competiton->getBaseSports() as $sport) {
             if( $sport->getName() === SportAdministrator::SportName) {
