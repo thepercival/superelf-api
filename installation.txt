@@ -50,7 +50,7 @@ $ sql: update users set salt = 'f?????';
 # php bin/console.php app:get competitions
 
 -- STEP 5 => IMPORT COMPETITION-STRUCTURE
-# php bin/console.php app:get structure --league=eredivisie --season=2022/2023
+# php bin/console.php app:get structure --league=eredivisie --season=2014/2015
 # php bin/console.php app:get-external sofascore structure --league=eredivisie --season=2022/2023 --sport=football
 # php bin/console.php app:import sofascore structure --league=eredivisie --season=2014/2015 --sport=football
 # php bin/console.php app:get structure --league=eredivisie --season=2022/2023
@@ -65,7 +65,7 @@ $ sql: update users set salt = 'f?????';
 # php bin/console.php app:get teamcompetitors --league=eredivisie --season=2022/2023
 # php bin/console.php app:get-external sofascore teamcompetitors --league=eredivisie --season=2022/2023 --sport=football
 # php bin/console.php app:import sofascore teamcompetitors --league=eredivisie --season=2014/2015 --sport=football
-# php bin/console.php app:get teamcompetitors --league=eredivisie --season=2022/2023
+# php bin/console.php app:get teamcompetitors --league=eredivisie --season=2014/2015
 
 -- STEP 6 => IMPORT GAMES-BASICS
 # php bin/console.php app:get games-basics --league=Eredivisie --season=2022/2023 --sport=football --gameRoundRange=1-34

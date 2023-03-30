@@ -6,7 +6,10 @@ namespace SuperElf\Totals;
 
 use DateTime;
 use Exception;
+use JMS\Serializer\SerializerInterface;
+use Memcached;
 use Psr\Log\LoggerInterface;
+use Selective\Config\Configuration;
 use Sports\Competitor\StartLocationMap;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
@@ -29,6 +32,7 @@ class Syncer
 {
     // protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;
+    protected CacheService $cacheService;
 
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
@@ -36,8 +40,11 @@ class Syncer
         protected PoolRepository $poolRepos,
         protected TotalsRepository $totalsRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
-        protected CacheService $cacheService
+        Configuration $config,
+        Memcached $memcached,
+        SerializerInterface $serializer
     ) {
+        $this->cacheService = new CacheService($serializer, $memcached, $config->getString('namespace'));
     }
 
     public function syncTotals(
