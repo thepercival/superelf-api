@@ -24,6 +24,7 @@ use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\User;
 use SuperElf\User\Repository as UserRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -169,11 +170,11 @@ class Pools extends Command
     protected function createUsers(Pool $pool, int $oldPoolId): void
     {
         // -------- CREATE ----------- //
-        $sql = 'SELECT u.LoginName as userName, pu.Id as oldPoolUserId ';
+        $sql = 'SELECT u.LoginName as userName, pu.Id as oldPoolUserId, pu.Admin as isAdmin ';
         $sql .= 'FROM UsersPerPool pu ';
         $sql .= 'join UsersExt u on u.Id = pu.UserId ';
         $sql .= "where pu.PoolId = " . $oldPoolId . ' ';
-        $sql .= 'and pu.Admin = 0 ';
+//        $sql .= 'and pu.Admin = 0 ';
         $sql .= 'order by u.LoginName';
 
         $stmt = $this->migrationConn->executeQuery($sql);
@@ -184,9 +185,15 @@ class Pools extends Command
                 throw new \Exception('pooluser for user "' . $row['userName'] . '" could not be found', E_ERROR);
             }
 
-            $newPoolUser = $this->poolAdministrator->addUser($pool, $user, false);
-            $this->poolUserRepos->save($newPoolUser);
-            $this->getLogger()->info('  pooluser "' . $newPoolUser->getUser()->getName() . '" created');
+
+            if( $row['isAdmin'] == 1) {
+                $this->getLogger()->info('  pooluser "' . $user->getName() . '" already created');
+                $newPoolUser = $pool->getUser($user);
+            } else {
+                $newPoolUser = $this->poolAdministrator->addUser($pool, $user, false);
+                $this->poolUserRepos->save($newPoolUser);
+                $this->getLogger()->info('  pooluser "' . $newPoolUser->getUser()->getName() . '" created');
+            }
 
             $this->createAssembleFormation($newPoolUser, $row['oldPoolUserId']);
 
