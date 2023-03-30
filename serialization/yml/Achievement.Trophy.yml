@@ -5,5 +5,3 @@ SuperElf\Achievement\Trophy:
   properties:
     competition:
       type: Sports\Competition
-    rank:
-      type: integer

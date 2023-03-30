@@ -245,6 +245,9 @@ return function (App $app): void {
                            $group->get('', FormationAction::class . ':fetch');
                         }
                     );
+
+                    $group->options('achievements/unviewed', AchievementAction::class . ':options');
+                    $group->get('achievements/unviewed', AchievementAction::class . ':fetchUnviewed');
                 },
             );
         }
@@ -335,8 +338,6 @@ return function (App $app): void {
             $group->group(
                 '/{poolUserId}/achievements',
                 function (Group $group): void {
-                    $group->options('/unviewed', AchievementAction::class . ':options');
-                    $group->get('/unviewed', AchievementAction::class . ':fetchUnviewed');
                     $group->options('/viewed', AchievementAction::class . ':options');
                     $group->delete('/viewed', AchievementAction::class . ':viewAchievements');
 

@@ -23,7 +23,7 @@ use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Achievement\Badge\Calculator as BadgeCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
-use SuperElf\League as S11League;
+use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\Repository as PoolRepository;
 
 class Syncer
@@ -62,9 +62,9 @@ class Syncer
 
     public function updatePoolAchievements(Pool $pool, Competition $poolCompetition): bool {
         $structure = $this->structureRepos->getStructure($poolCompetition);
-        if( $pool->getName() === 'kamp duim' && $poolCompetition->getLeague()->getName() === League::Competition->name ) {
+        /*if( $pool->getName() === 'kamp duim' && $poolCompetition->getLeague()->getName() === League::Competition->name ) {
             $cdk = 12;
-        } else if( $structure->getSingleCategory()->getLastStructureCell()->getGamesState() !== State::Finished ) {
+        } else*/ if( $structure->getSingleCategory()->getLastStructureCell()->getGamesState() !== State::Finished ) {
             return false;
         }
         $this->logger->info('updating achievements for : "' . $pool->getName() . '" and league "'. $poolCompetition->getLeague()->getName() .'"');
@@ -78,28 +78,20 @@ class Syncer
     public function updatePoolTrophies(Pool $pool, Competition $poolCompetition, Structure $structure): void {
 
         $trophyCalculator = new TrophyCalculator();
-        $createDateTime = null;
-        $ranksForTrophy = [1];
-        if( $poolCompetition->getLeague()->getName() !== S11League::SuperCup->name ) {
-            $ranksForTrophy[] = 2;
+        $rank = 1;
+        $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
+        $createDateTime = $this->getCreateDateTime($trophies);
+        foreach( $trophies as $trophy) {
+            $this->logger->info('   trophy remove : ' . $trophy);
+            $this->trophyRepos->remove($trophy, true);
         }
-        foreach($ranksForTrophy as $rank) {
-            $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
-            if( $createDateTime === null ) {
-                $createDateTime = $this->getCreateDateTime($trophies);
-            }
-            foreach( $trophies as $trophy) {
-                $this->logger->info('   trophy remove : ' . $trophy);
-                $this->trophyRepos->remove($trophy, true);
-            }
-            $poolUsers = $trophyCalculator->getPoolUsersByRank($pool, $poolCompetition, $rank, $structure);
-            foreach( $poolUsers as $poolUser) {
-                $trophy = new Trophy($poolCompetition, $rank, $poolUser, $createDateTime);
-                $this->logger->info('   trophy add : ' . $trophy);
-                $this->trophyRepos->save($trophy, true);
-                foreach( $pool->getUsers() as $poolUser) {
-                    $this->unviewedTrophyRepos->save(new UnviewedTrophy($poolUser, $trophy), true);
-                }
+        $poolUsers = $trophyCalculator->getPoolUsersByRank($pool, $poolCompetition, $rank, $structure);
+        foreach( $poolUsers as $poolUser) {
+            $trophy = new Trophy($poolCompetition, $poolUser, $createDateTime);
+            $this->logger->info('   trophy add : ' . $trophy);
+            $this->trophyRepos->save($trophy, true);
+            foreach( $pool->getUsers() as $poolUser) {
+                $this->unviewedTrophyRepos->save(new UnviewedTrophy($poolUser, $trophy), true);
             }
         }
     }
@@ -114,6 +106,7 @@ class Syncer
         }
 
         $competitionConfig = $pool->getCompetitionConfig();
+        $points = $competitionConfig->getPoints();
 
         foreach( BadgeCategory::cases() as $badgeCategory)
         {
@@ -125,7 +118,8 @@ class Syncer
                 $this->logger->info('   badge remove : ' . $badge);
                 $this->badgeRepos->remove($badge, true);
             }
-            $bestPoolUsers = $badgeCalculator->getBestPoolUsers($pool, $badgeCategory);
+            $poolUsers = array_values( $pool->getUsers()->toArray() );
+            $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
             foreach( $bestPoolUsers as $aBestPoolUser) {
                 $badge = new Badge($badgeCategory, $pool, $competitionConfig, $aBestPoolUser, $createDateTime);
                 $this->logger->info('   badge add : ' . $badge);
@@ -138,7 +132,45 @@ class Syncer
     }
 
     public function updateSeasonBadges(CompetitionConfig $competitionConfig): void {
+        $badgeCalculator = new BadgeCalculator();
+        $createDateTime = null;
+        $points = $competitionConfig->getPoints();
+        $poolUsers = $this->getPoolUsers($competitionConfig);
 
+        foreach( BadgeCategory::cases() as $badgeCategory)
+        {
+            $badges = $this->badgeRepos->findBy(['competitionConfig' => $competitionConfig, 'pool' => null, 'category' => $badgeCategory]);
+            if( $createDateTime === null ) {
+                $createDateTime = $this->getCreateDateTime($badges);
+            }
+            foreach( $badges as $badge) {
+                $this->logger->info('   badge remove : ' . $badge);
+                $this->badgeRepos->remove($badge, true);
+            }
+            $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
+            foreach( $bestPoolUsers as $aBestPoolUser) {
+                $badge = new Badge($badgeCategory, null, $competitionConfig, $aBestPoolUser, $createDateTime);
+                $this->logger->info('   badge add : ' . $badge);
+                $this->badgeRepos->save($badge, true);
+                // season badges have no unviewed
+//                foreach( $pool->getUsers() as $poolUser) {
+//                    $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
+//                }
+            }
+        }
+    }
+
+    /**
+     * @param CompetitionConfig $competitionConfig
+     * @return list<PoolUser>
+     */
+    private function getPoolUsers(CompetitionConfig $competitionConfig): array {
+        $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
+        $poolUsers = [];
+        foreach( $pools as $pool) {
+            $poolUsers = array_merge($poolUsers, $pool->getUsers()->toArray());
+        }
+        return array_values($poolUsers);
     }
 
     /**

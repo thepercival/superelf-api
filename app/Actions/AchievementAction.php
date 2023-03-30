@@ -14,12 +14,14 @@ use SuperElf\Achievement\Badge;
 use SuperElf\Achievement\Trophy;
 use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
 use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
+use SuperElf\Pool;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\Achievement\Trophy\Repository as TrophyRepository;
 use SuperElf\Achievement\Badge\Repository as BadgeRepository;
 use SuperElf\Achievement\Unviewed\Trophy\Repository as UnviewedTrophyRepository;
 use SuperElf\Achievement\Unviewed\Badge\Repository as UnviewedBadgeRepository;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\User;
 
 final class AchievementAction extends Action
 {
@@ -77,24 +79,28 @@ final class AchievementAction extends Action
     public function fetchUnviewed(Request $request, Response $response, array $args): Response
     {
         try {
-            /** @var PoolUser $poolUser */
-            $poolUser = $request->getAttribute("poolUser");
+            /** @var Pool $pool */
+            $pool = $request->getAttribute("pool");
+            /** @var User $user */
+            $user = $request->getAttribute("user");
+            $poolUser = $pool->getUser($user);
 
             $achievements = [];
-
-            $unviewedTrophies = $this->unviewedTrophyRepos->findBy(['poolUser' => $poolUser]);
-            if (count($unviewedTrophies) > 0) {
-                $trophies = array_map(function(UnviewedTrophy $unviewedTrophy): Trophy {
-                    return $unviewedTrophy->getTrophy();
-                }, $unviewedTrophies );
-                $achievements = array_merge($achievements, $trophies );
-            }
-            $unviewedBadges = $this->unviewedBadgeRepos->findBy(['poolUser' => $poolUser]);
-            if (count($unviewedBadges) > 0) {
-                $badges = array_map(function(UnviewedBadge $unviewedBadge): Badge {
-                    return $unviewedBadge->getBadge();
-                }, $unviewedBadges );
-                $achievements = array_merge($achievements, $badges );
+            if( $poolUser !== null ) {
+                $unviewedTrophies = $this->unviewedTrophyRepos->findByPoolUser($poolUser);
+                if (count($unviewedTrophies) > 0) {
+                    $trophies = array_map(function(UnviewedTrophy $unviewedTrophy): Trophy {
+                        return $unviewedTrophy->getTrophy();
+                    }, $unviewedTrophies );
+                    $achievements = array_merge($achievements, $trophies );
+                }
+                $unviewedBadges = $this->unviewedBadgeRepos->findByPoolUser($poolUser);
+                if (count($unviewedBadges) > 0) {
+                    $badges = array_map(function(UnviewedBadge $unviewedBadge): Badge {
+                        return $unviewedBadge->getBadge();
+                    }, $unviewedBadges );
+                    $achievements = array_merge($achievements, $badges );
+                }
             }
 
             $context = $this->getSerializationContext(['noReference']);
@@ -117,20 +123,20 @@ final class AchievementAction extends Action
             /** @var PoolUser $poolUser */
             $poolUser = $request->getAttribute("poolUser");
 
-            $unviewTrophies = $this->unviewedTrophyRepos->findBy(['poolUser' => $poolUser]);
-            foreach( $unviewTrophies as $unviewTrophy ) {
-                if( $unviewTrophy->getPoolUser()->getPool() !== $poolUser->getPool() ) {
-                    continue;
-                }
-                $this->unviewedTrophyRepos->remove($unviewTrophy, true);
+            $unviewedTrophies = $this->unviewedTrophyRepos->findByPoolUser($poolUser);
+            foreach( $unviewedTrophies as $unviewedTrophy ) {
+//                if( $unviewedTrophy->getPoolUser()->getPool() !== $poolUser->getPool() ) {
+//                    continue;
+//                }
+                $this->unviewedTrophyRepos->remove($unviewedTrophy, true);
             }
 
-            $unviewBadges = $this->unviewedBadgeRepos->findBy(['poolUser' => $poolUser]);
-            foreach( $unviewBadges as $unviewBadge ) {
-                if( $unviewBadge->getPoolUser()->getPool() !== $poolUser->getPool() ) {
-                    continue;
-                }
-                $this->unviewedBadgeRepos->remove($unviewBadge, true);
+            $unviewedBadges = $this->unviewedBadgeRepos->findByPoolUser($poolUser);
+            foreach( $unviewedBadges as $unviewedBadge ) {
+//                if( $unviewBadge->getPoolUser()->getPool() !== $poolUser->getPool() ) {
+//                    continue;
+//                }
+                $this->unviewedBadgeRepos->remove($unviewedBadge, true);
             }
 
             return $response->withStatus(200);

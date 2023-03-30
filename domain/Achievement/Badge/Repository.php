@@ -24,26 +24,6 @@ class Repository extends EntityRepository
      * @param PoolUser $poolUser
      * @return list<Badge>
      */
-    public function findUnviewed(PoolUser $poolUser): array
-    {
-        
-        $queryBuilder = $this->createQueryBuilder('b')
-            ->join("b.poolUser", "pu")
-            ->join("b.competition", "c")
-            // badges competition is null and this season only from pools where poolUser is in!
-            ->where('pu.pool = :pool')
-            ->andWhere('pu.latestAchievementViewDateTime is null or pu.latestAchievementViewDateTime < b.createDateTime')
-        ->setParameter('pool', $poolUser);
-
-        /** @var list<Badge> $badges */
-        $badges = $queryBuilder->getQuery()->getResult();
-        return $badges;
-    }
-
-    /**
-     * @param PoolUser $poolUser
-     * @return list<Badge>
-     */
     public function findByPoolCollection(PoolCollection $poolCollection): array
     {
         $queryBuilder = $this->createQueryBuilder('b')

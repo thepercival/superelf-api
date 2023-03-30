@@ -21,23 +21,6 @@ class Repository extends EntityRepository
     use BaseRepository;
 
     /**
-     * @param PoolUser $poolUser
-     * @return list<Trophy>
-     */
-    public function findUnviewed(PoolUser $poolUser): array
-    {
-        $queryBuilder = $this->createQueryBuilder('t')
-            ->join("t.poolUser", "pu")
-            ->where('t.poolUser = :poolUser')
-            ->andWhere('pu.latestAchievementViewDateTime is null or pu.latestAchievementViewDateTime < t.createDateTime')
-            ->setParameter('poolUser', $poolUser);
-
-        /** @var list<Trophy> $trophies */
-        $trophies = $queryBuilder->getQuery()->getResult();
-        return $trophies;
-    }
-
-    /**
      * @param PoolCollection $poolCollection
      * @return list<Trophy>
      */

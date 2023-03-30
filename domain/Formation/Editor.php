@@ -19,7 +19,8 @@ class Editor
 {
     protected Validator $validator;
 
-    public function __construct(Configuration $config)
+
+    public function __construct(Configuration $config, protected bool $nrOfPersonsCanBeZero)
     {
         $this->validator = new Validator($config);
     }
@@ -164,7 +165,7 @@ class Editor
                 }
                 $nrOfPersons += $formationLine->getNrOfPersons();
             }
-            if ($nrOfPersons !== 11) {
+            if ($this->nrOfPersonsCanBeZero === false && $nrOfPersons !== 11) {
                 throw new \Exception('het aantal teamleden moet 11 zijn', E_ERROR);
             }
             if (!$this->validator->isAvailable($sportsFormation)) {

@@ -215,11 +215,16 @@ class Pools extends Command
         $betRows = $stmt->fetchAllAssociative();
 
         $sportsFormation = $this->createSportsFormation($betRows);
-        $formation = (new FormationEditor($this->config))->createAssemble($poolUser, $sportsFormation);
+
+        $new = $assembleStart->getTimestamp() > (new \DateTimeImmutable('2015-01-01'))->getTimestamp();
+
+        $formation = (new FormationEditor($this->config, !$new))->createAssemble($poolUser, $sportsFormation);
         $poolUser->setAssembleFormation($formation);
         $this->poolUserRepos->save($poolUser);
         $this->getLogger()->info('      assembleformation "' . $sportsFormation->getName() . '" created');
-        $this->setFormationPlaces($formation, $betRows);
+        if( $new ) {
+            $this->setFormationPlaces($formation, $betRows);
+        }
     }
 
     protected function createSportsFormation(array $betRows): SportsFormation
@@ -331,18 +336,22 @@ class Pools extends Command
         $sql .= 'join UsersPerPool pu on b.UsersPerPoolId = pu.Id ';
         $sql .= 'join Persons p on b.PersonId = p.Id ';
         $sql .= 'where pu.Id = ' . $oldPoolUserId . ' ';
-        $sql .= 'and b.EndDateTime > "' . $transferEnd->format('Y-m-d H:i:s') . '" ';
+        $sql .= 'and b.EndDateTime > "' . $transferEnd->modify('+2 hours')->format('Y-m-d H:i:s') . '" ';
         $sql .= 'order by b.Line, b.Number ';
 
         $stmt = $this->migrationConn->executeQuery($sql);
         $betRows = $stmt->fetchAllAssociative();
 
+        $new = $transferStart->getTimestamp() > (new \DateTimeImmutable('2015-06-01'))->getTimestamp();
+
         $sportsFormation = $this->createSportsFormation($betRows);
-        $formation = (new FormationEditor($this->config))->createTransfer($poolUser, $sportsFormation);
+        $formation = (new FormationEditor($this->config, !$new))->createTransfer($poolUser, $sportsFormation);
         $poolUser->setTransferFormation($formation);
         $this->poolUserRepos->save($poolUser);
         $this->getLogger()->info('      transferformation "' . $sportsFormation->getName() . '" created');
-        $this->setFormationPlaces($formation, $betRows);
+        if( $new ) {
+            $this->setFormationPlaces($formation, $betRows);
+        }
     }
 
 

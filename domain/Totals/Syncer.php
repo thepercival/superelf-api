@@ -13,12 +13,14 @@ use Sports\Game\Against as AgainstGame;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
+use SuperElf\CacheService;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Points;
 use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Totals\Repository as TotalsRepository;
@@ -31,8 +33,10 @@ class Syncer
     public function __construct(
         protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
+        protected PoolRepository $poolRepos,
         protected TotalsRepository $totalsRepos,
-        protected FormationPlaceRepository $formationPlaceRepos
+        protected FormationPlaceRepository $formationPlaceRepos,
+        protected CacheService $cacheService
     ) {
     }
 
@@ -77,9 +81,15 @@ class Syncer
                 $alwaysUpdateTotals
             );
         }
-        // }
-//        $this->s11PlayerRepos->flush();
-//        $this->statisticsRepos->flush();
+
+        $gameRound = $viewPeriod->getGameRound($game->getGameRoundNumber());
+        if ($gameRound === null) {
+            return;
+        }
+        $pools = $this->poolRepos->findBy(['competitonConfig' => $competitionConfig]);
+        foreach( $pools as $pool ) {
+            $this->cacheService->resetTotals($pool, $gameRound);
+        }
     }
 
     protected function syncTeamTotals(

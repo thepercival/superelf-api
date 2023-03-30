@@ -32,13 +32,13 @@ use SuperElf\Pool\User\Repository as PoolUserRepository;
 final class FormationAction extends Action
 {
     protected OneTeamSimultaneous $oneTeamSimultaneous;
+    protected FormationEditor $formationEditor;
 
     public function __construct(
         protected PoolUserRepository $poolUserRepos,
         protected FormationRepository $formationRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected FormationEditor $formationEditor,
         protected PersonRepository $personRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected S11PlayerSyncer $s11PlayerSyncer,
@@ -48,6 +48,7 @@ final class FormationAction extends Action
     ) {
         parent::__construct($logger, $serializer);
         $this->oneTeamSimultaneous = new OneTeamSimultaneous();
+        $this->formationEditor = new FormationEditor($this->config, false);
     }
 
     /**

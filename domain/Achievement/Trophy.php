@@ -12,7 +12,6 @@ class Trophy extends AchievementBase  implements \Stringable
 {
     public function __construct(
         protected Competition $competition,
-        protected int $rank,
         PoolUser $poolUser,
         \DateTimeImmutable $createDateTime)
     {
@@ -22,11 +21,6 @@ class Trophy extends AchievementBase  implements \Stringable
     public function getCompetiton(): Competition {
         return $this->competition;
     }
-
-    public function getRank(): int {
-        return $this->rank;
-    }
-
 
     public function __toString(): string {
         $asignedTo = ' assigned to "' . $this->poolUser->getUser()->getName() . '"';

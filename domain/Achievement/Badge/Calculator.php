@@ -3,6 +3,7 @@
 namespace SuperElf\Achievement\Badge;
 
 use SuperElf\Achievement\BadgeCategory;
+use SuperElf\Points;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 
@@ -15,18 +16,18 @@ class Calculator
     }
 
     /**
-     * @param Pool $pool
+     * @param list<PoolUser> $poolUsers
+     * @param Points $points
      * @param BadgeCategory $badgeCategory
      * @return list<PoolUser>
      * @throws \Exception
      */
-    public function getBestPoolUsers(Pool $pool, BadgeCategory $badgeCategory): array
+    public function getBestPoolUsers(array $poolUsers, Points $points, BadgeCategory $badgeCategory): array
     {
         $bestPoolUsers = [];
         {
-            $points = $pool->getCompetitionConfig()->getPoints();
             $highestPoints = null;
-            foreach( $pool->getUsers() as $poolUser) {
+            foreach( $poolUsers as $poolUser) {
                 $currentPoints = $poolUser->getTotalPoints($points, $badgeCategory);
                 if( $highestPoints === null || $currentPoints > $highestPoints ) {
                     $bestPoolUsers = [$poolUser];

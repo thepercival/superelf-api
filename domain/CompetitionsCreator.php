@@ -78,7 +78,10 @@ class CompetitionsCreator
     public function getValidPoolUsers(Pool $pool, S11League $league): array
     {
         $validPoolUsers = array_values(
-            $pool->getUsers()->filter(function (PoolUser $poolUser): bool {
+            $pool->getUsers()->filter(function (PoolUser $poolUser) use($pool): bool {
+                if( $pool->getSeason()->getStartDateTime()->getTimestamp() < (new \DateTimeImmutable('2015-01-01'))->getTimestamp() ) {
+                    return true;
+                }
                 return $poolUser->canCompete();
             })->toArray()
         );

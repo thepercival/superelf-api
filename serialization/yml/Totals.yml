@@ -38,3 +38,9 @@ SuperElf\Totals:
     nrOfRedCards:
       type: int
       read_only: true
+    nrOfCleanSheets:
+      type: int
+      read_only: true
+    nrOfSpottySheets:
+      type: int
+      read_only: true
