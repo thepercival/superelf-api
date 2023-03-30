@@ -46,7 +46,7 @@ class Converter
 
         $opposite = $side->getOpposite();
         $sheet = Sheet::NORMAL;
-        if ($finalScore->get($opposite) === 0) {
+        if ($finalScore->get($opposite) === 0.0) {
             $sheet = Sheet::CLEAN;
         } elseif ($finalScore->get($opposite) > Defaults::SPOTTY_SHEET_THRESHOLD) {
             $sheet = Sheet::SPOTTY;
