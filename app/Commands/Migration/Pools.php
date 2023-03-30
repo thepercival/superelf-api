@@ -174,7 +174,6 @@ class Pools extends Command
         $sql .= 'FROM UsersPerPool pu ';
         $sql .= 'join UsersExt u on u.Id = pu.UserId ';
         $sql .= "where pu.PoolId = " . $oldPoolId . ' ';
-//        $sql .= 'and pu.Admin = 0 ';
         $sql .= 'order by u.LoginName';
 
         $stmt = $this->migrationConn->executeQuery($sql);

@@ -32,12 +32,11 @@ class Repository extends EntityRepository
             ->join("ut.poolUser", "upu")
             ->where('p.collection = :poolCollection')
             ->andWhere('upu.user = :user')
-            ->andWhere('ut.poolUser = :user')
             ->setParameter('poolCollection', $poolUser->getPool()->getCollection())
             ->setParameter('user', $poolUser->getUser());
 
-        /** @var list<UnviewedTrophy> $badges */
-        $badges = $queryBuilder->getQuery()->getResult();
-        return $badges;
+        /** @var list<UnviewedTrophy> $trophies */
+        $trophies = $queryBuilder->getQuery()->getResult();
+        return $trophies;
     }
 }
