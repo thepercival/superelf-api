@@ -93,7 +93,7 @@ class Syncer
         if ($gameRound === null) {
             return;
         }
-        $pools = $this->poolRepos->findBy(['competitonConfig' => $competitionConfig]);
+        $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach( $pools as $pool ) {
             $this->cacheService->resetTotals($pool, $gameRound);
         }
