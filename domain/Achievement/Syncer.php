@@ -79,7 +79,7 @@ class Syncer
 
         $trophyCalculator = new TrophyCalculator();
         $rank = 1;
-        $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition, 'rank' => $rank]);
+        $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition]);
         $createDateTime = $this->getCreateDateTime($trophies);
         foreach( $trophies as $trophy) {
             $this->logger->info('   trophy remove : ' . $trophy);
