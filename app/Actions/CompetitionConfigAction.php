@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Formation\Validator as FormationValidator;
+use SuperElf\Pool;
 
 final class CompetitionConfigAction extends Action
 {
@@ -50,20 +51,22 @@ final class CompetitionConfigAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
-    public function canCreateAndJoinPool(Request $request, Response $response, array $args): Response
+    public function poolActions(Request $request, Response $response, array $args): Response
     {
         try {
-            $canCreateAndJoinPool = false;
+            $poolActions = 0;
             $now = new \DateTimeImmutable();
 
             $competitionConfigs = $this->competitionConfigRepos->findActive();
             foreach ($competitionConfigs as $competitionConfig) {
                 if ($competitionConfig->getCreateAndJoinPeriod()->contains($now)) {
-                    $canCreateAndJoinPool = true;
-                    break;
+                    $poolActions += Pool\Actions::CreateAndJoin->value;
+                }
+                if ($competitionConfig->getAssemblePeriod()->contains($now)) {
+                    $poolActions += Pool\Actions::Assemble->value;
                 }
             }
-            $json = $this->serializer->serialize($canCreateAndJoinPool, 'json');
+            $json = $this->serializer->serialize($poolActions, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);

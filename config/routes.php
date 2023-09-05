@@ -48,8 +48,8 @@ return function (App $app): void {
                 $group->options('/passwordchange', AuthAction::class . ':options');
                 $group->post('/passwordchange', AuthAction::class . ':passwordchange');
             });
-            $group->options('/cancreateandjoinpool', CompetitionConfigAction::class . ':options');
-            $group->get('/cancreateandjoinpool', CompetitionConfigAction::class . ':canCreateAndJoinPool')->add(
+            $group->options('/poolActions', CompetitionConfigAction::class . ':options');
+            $group->get('/poolActions', CompetitionConfigAction::class . ':poolActions')->add(
                 VersionMiddleware::class
             );
 

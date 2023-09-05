@@ -127,7 +127,7 @@ class CompetitionsCreator
      * @param League $league
      * @param list<PoolUser> $validPoolUsers
      * @return PoolUser|null
-     * @throws \Sports\Exceptions\NoStructureException
+     * @throws \Sports\Exceptions\StructureNotFoundException
      */
     protected function getBestValidPoolUser(Pool $pool, S11League $league, array $validPoolUsers): PoolUser|null
     {
