@@ -49,7 +49,7 @@ class Player extends Identifiable
 
     public function getLine(): FootballLine
     {
-        $player = $this->getPerson()->getPlayers()->first();
+        $player = $this->getPlayers()->first();
         if (!($player instanceof TeamPlayer)) {
             throw new \Exception('s11player should always have a line', E_ERROR);
         }
