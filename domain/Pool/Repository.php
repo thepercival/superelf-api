@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
+use SuperElf\CompetitionConfig;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Pool;
+use SuperElf\PoolCollection;
 use SuperElf\Role;
 use SuperElf\User;
 
@@ -33,6 +35,24 @@ class Repository extends EntityRepository
 //            $this->_em->flush();
 //        }
 //    }
+
+
+    public function findWorldCup(CompetitionConfig $competitionConfig): Pool|null {
+        $query = $this->createQueryBuilder('p')
+            ->join("p.collection", "pc")
+            ->join("pc.association", "a")
+            ->join("p.competitionConfig", "cc")
+        ;
+
+        $query = $query->where('p.competitionConfig = :competitionConfig');
+        $query = $query->setParameter('competitionConfig', $competitionConfig);
+
+        $query = $query->andWhere('a.name = ' . PoolCollection::S11Association);
+
+        /** @var Pool|null $worldCupPool */
+        $worldCupPool = $query->getQuery()->getOneOrNullResult();
+        return $worldCupPool;
+    }
 
     /**
      * @param string|null $name
@@ -90,7 +110,7 @@ class Repository extends EntityRepository
             ->from('SuperElf\Pool\User', 'pu')
             ->where('pu.pool = p')
             ->andWhere('pu.user = :user');
-        if ($roles === Role::ADMIN) {
+        if ($roles & Role::ADMIN === Role::ADMIN) {
             $competitorQb = $competitorQb->andWhere('pu.admin = :admin');
         }
 
@@ -101,11 +121,12 @@ class Repository extends EntityRepository
             )
         );
         $qb = $qb->setParameter('user', $user);
-        if ($roles === Role::ADMIN) {
+        if ($roles & Role::ADMIN === Role::ADMIN) {
             $qb = $qb->setParameter('admin', true);
         }
         /** @var list<Pool> $pools */
         $pools = $qb->getQuery()->getResult();
+        $x = $qb->getQuery()->getSQL();
         return $pools;
     }
 

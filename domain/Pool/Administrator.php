@@ -30,6 +30,8 @@ use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\Formation\Editor as FormationEditor;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\PoolCollection;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\Sport\Administrator as SportAdministrator;
@@ -38,13 +40,15 @@ use SuperElf\User;
 class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
+    protected FormationEditor $formationEditor;
     /**
      * @var list<S11League>
      */
-    protected array $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup];
+    protected array $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup, S11League::WorldCup];
 
     public function __construct(
         protected PoolRepository $poolRepos,
+        protected PoolUserRepository $poolUserRepos,
         protected PointsRepository $pointsRepository,
         protected PeriodAdministrator $periodAdministrator,
         protected SportAdministrator $sportAdministrator,
@@ -61,6 +65,7 @@ class Administrator
         protected LoggerInterface $logger
     ) {
         $this->competitionsCreator = new CompetitionsCreator($structureRepos);
+        $this->formationEditor = new FormationEditor($this->config, false);
     }
 
     public function createCollection(string $name): PoolCollection
@@ -79,13 +84,15 @@ class Administrator
         return $poolCollection;
     }
 
-    public function createPool(CompetitionConfig $competitionConfig, string $name, User $user): Pool
+    public function createPool(CompetitionConfig $competitionConfig, string $name, User|null $user): Pool
     {
         $poolCollection = $this->createCollection($name);
 
         $pool = new Pool($poolCollection, $competitionConfig);
 
-        $this->addUser($pool, $user, true);
+        if( $user !== null ) {
+            $this->addUser($pool, $user, true);
+        }
         $this->poolRepos->save($pool, true);
 
         // $this->createPoolCompetitions($pool);
@@ -168,7 +175,7 @@ class Administrator
         }
     }
 
-    protected function checkOnStartedGames(Pool $pool): void
+    public function checkOnStartedGames(Pool $pool): void
     {
         foreach ($pool->getCompetitions() as $competition) {
             if ($competition->getSingleSport()->createVariant() instanceof AgainstH2h
@@ -200,6 +207,17 @@ class Administrator
         }
     }
 
+
+
+//    public function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool): void
+//    {
+//        $this->checkOnStartedGames($worldCupPool);
+//        $this->replaceWorldCupPoolUsers($worldCupPool);
+//        $this->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+//
+//    }
+
+
     public function replaceCompetitionsCompetitorsStructureAndGames(Pool $pool): void
     {
         $this->checkOnStartedGames($pool);
@@ -207,7 +225,7 @@ class Administrator
         $this->createCompetitionsCompetitorsStructureAndGames($pool);
     }
 
-    private function removeCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    public function removeCompetitionsCompetitorsStructureAndGames(Pool $pool): void
     {
         $competitions = $pool->getCompetitions();
         while ($competition = array_pop($competitions)) {
@@ -219,6 +237,48 @@ class Administrator
             }
         }
     }
+
+    /**
+     * @param Pool $worldCupPool
+     * @param list<PoolUser> $originalWorldCupPoolUsers
+     * @return void
+     * @throws \Exception
+     */
+    public function replaceWorldCupPoolUsers(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
+    {
+        $this->removeWorldCupPoolUsers($worldCupPool);
+        $this->copyAndSaveWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
+    }
+
+    private function removeWorldCupPoolUsers(Pool $worldCupPool): void
+    {
+        $poolUsers = array_values($worldCupPool->getUsers()->toArray());
+        while ($poolUser = array_pop($poolUsers)) {
+            $worldCupPool->getUsers()->removeElement($poolUser);
+            $this->poolUserRepos->remove($poolUser);
+        }
+    }
+
+    /**
+     * @param Pool $worldCupPool
+     * @param list<PoolUser> $originalWorldCupPoolUsers
+     * @return void
+     * @throws \Exception
+     */
+    private function copyAndSaveWorldCupPoolUsers(Pool $worldCupPool, array $originalWorldCupPoolUsers): void {
+        foreach( $originalWorldCupPoolUsers as $originalWorldCupPoolUser ) {
+            $poolUser = new PoolUser( $worldCupPool, $originalWorldCupPoolUser->getUser());
+            $this->poolUserRepos->save($poolUser);
+            $originalWorldCupFormation = $originalWorldCupPoolUser->getAssembleFormation();
+            if( $originalWorldCupFormation !== null ) {
+                $newFormation = $this->formationEditor->copyFormation($originalWorldCupFormation);
+                // $this->poolUserRepos->save($poolUser);
+                $poolUser->setAssembleFormation($newFormation);
+            }
+            $this->poolUserRepos->save($poolUser);
+        }
+    }
+
 
     protected function saveGamesRecursive(Round $round): void
     {

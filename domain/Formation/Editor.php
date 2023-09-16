@@ -65,6 +65,20 @@ class Editor
         return $formation;
     }
 
+    public function copyFormation(Formation $sourceFormation): Formation
+    {
+        $newFormation = new Formation($sourceFormation->getViewPeriod());
+        foreach ($sourceFormation->getLines() as $sourceFormationLine) {
+            $newLine = new FormationLine($newFormation, $sourceFormationLine->getNumber());
+            foreach( $sourceFormationLine->getPlaces() as $sourceFormationPlace) {
+                $formationPlace = new FormationPlace(
+                    $newLine, $sourceFormationPlace->getPlayer(), $sourceFormationPlace->getNumber());
+                $formationPlace->setPenaltyPoints($sourceFormationPlace->getPenaltyPoints() );
+            }
+        }
+        return $newFormation;
+    }
+
 
     /**
      * @param Formation $formation

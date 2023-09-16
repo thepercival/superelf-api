@@ -14,6 +14,7 @@ use SuperElf\Competitions\BaseCreator;
 use SuperElf\Competitions\CompetitionCreator;
 use SuperElf\Competitions\CupCreator;
 use SuperElf\Competitions\SuperCupCreator;
+use SuperElf\Competitions\WorldCupCreator;
 use SuperElf\League as S11League;
 use SuperElf\Pool\User as PoolUser;
 
@@ -77,21 +78,27 @@ class CompetitionsCreator
      */
     public function getValidPoolUsers(Pool $pool, S11League $league): array
     {
-        $validPoolUsers = array_values(
-            $pool->getUsers()->filter(function (PoolUser $poolUser) use($pool): bool {
-                if( $pool->getSeason()->getStartDateTime()->getTimestamp() < (new \DateTimeImmutable('2015-01-01'))->getTimestamp() ) {
-                    return true;
-                }
-                return $poolUser->canCompete();
-            })->toArray()
-        );
-
-        if ($league !== S11League::SuperCup) {
-            return $validPoolUsers;
+        if ($league === S11League::SuperCup) {
+            return $this->getValidSuperCupPoolUsers($pool);
+        } else if ($league === S11League::WorldCup) {
+            return $this->getValidWorldCupPoolUsers($pool);
         }
+        return array_values($pool->getUsers()->toArray());
+    }
+
+    /**
+     * @param Pool $pool
+     * @param S11League $league
+     * @return list<PoolUser>
+     */
+    public function getValidSuperCupPoolUsers(Pool $pool): array
+    {
+       $validPoolUsers = array_values($pool->getUsers()->toArray());
+
+
         $validPoolUsersSuperCup = [];
         $previous = $pool->getUnhaltedPrevious();
-        if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
+        /*if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
             $poolUsersCoen = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
                 return $poolUser->getUser()->getName() === 'coen';
             });
@@ -107,16 +114,20 @@ class CompetitionsCreator
                 $validPoolUsersSuperCup[] = $poolUserBets;
             }
             return $validPoolUsersSuperCup;
-        } elseif ($previous === null) {
+        } else*/
+
+        if ($previous === null) {
             return [];
         }
 
-        $bestPoolUserCompetition = $this->getBestValidPoolUser($previous, S11League::Competition, $validPoolUsers);
-        if ($bestPoolUserCompetition !== null) {
+        $bestPoolUsersCompetition = $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 1);
+        $bestPoolUserCompetition = reset($bestPoolUsersCompetition);
+        if ($bestPoolUserCompetition !== false) {
             $validPoolUsersSuperCup[] = $bestPoolUserCompetition;
         }
-        $bestPoolUserCup = $this->getBestValidPoolUser($previous, S11League::Cup, $validPoolUsers);
-        if ($bestPoolUserCup !== null) {
+        $bestPoolUsersCup = $this->getBestValidPoolUsers($previous, S11League::Cup, $validPoolUsers, 1);
+        $bestPoolUserCup = reset($bestPoolUsersCup);
+        if ($bestPoolUserCup !== false) {
             $validPoolUsersSuperCup[] = $bestPoolUserCup;
         }
         return $validPoolUsersSuperCup;
@@ -124,23 +135,58 @@ class CompetitionsCreator
 
     /**
      * @param Pool $pool
+     * @param S11League $league
+     * @return list<PoolUser>
+     */
+    public function getValidWorldCupPoolUsers(Pool $pool): array
+    {
+        $validPoolUsers = array_values($pool->getUsers()->toArray());
+
+        $previous = $pool->getUnhaltedPrevious();
+        /*if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
+            $poolUsersCoen = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
+                return $poolUser->getUser()->getName() === 'coen';
+            });
+            $poolUserCoen = array_pop($poolUsersCoen);
+            if ($poolUserCoen !== null) {
+                $validPoolUsersSuperCup[] = $poolUserCoen;
+            }
+            $poolUsersBets = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
+                return $poolUser->getUser()->getName() === 'bets';
+            });
+            $poolUserBets = array_pop($poolUsersBets);
+            if ($poolUserBets !== null) {
+                $validPoolUsersSuperCup[] = $poolUserBets;
+            }
+            return $validPoolUsersSuperCup;
+        } else*/
+        if ($previous === null) {
+            return [];
+        }
+        return  $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 2);
+    }
+
+
+    /**
+     * @param Pool $pool
      * @param League $league
      * @param list<PoolUser> $validPoolUsers
-     * @return PoolUser|null
+     * @return list<PoolUser>
      * @throws \Sports\Exceptions\StructureNotFoundException
      */
-    protected function getBestValidPoolUser(Pool $pool, S11League $league, array $validPoolUsers): PoolUser|null
+    protected function getBestValidPoolUsers(Pool $pool, S11League $league, array $validPoolUsers, int $max): array
     {
         $competition = $pool->getCompetition($league);
         if ($competition === null) {
-            return null;
+            return [];
         }
         $category = $this->structureRepos->getStructure($competition)->getSingleCategory();
         if ($category->getGamesState() !== State::Finished) {
-            return null;
+            return [];
         }
         $endRankingCalculator = new EndRankingCalculator($category);
         $rankingItems = $endRankingCalculator->getItems();
+        $bestValidPoolUsers = [];
         foreach ($rankingItems as $rankingItem) {
             $rankingStartLocation = $rankingItem->getStartLocation();
             if ($rankingStartLocation === null) {
@@ -149,11 +195,15 @@ class CompetitionsCreator
             foreach ($validPoolUsers as $validPoolUser) {
                 $competitor = $validPoolUser->getCompetitor($competition);
                 if ($competitor !== null && $competitor->equals($rankingStartLocation)) {
-                    return $validPoolUser;
+                    $bestValidPoolUsers[] = $validPoolUser;
+                    break;
                 }
             }
+            if( count($bestValidPoolUsers) === $max ) {
+                break;
+            }
         }
-        return null;
+        return $bestValidPoolUsers;
     }
 
 
@@ -182,6 +232,8 @@ class CompetitionsCreator
             return new CupCreator();
         } elseif ($s11League === S11League::SuperCup) {
             return new SuperCupCreator();
+        } elseif ($s11League === S11League::WorldCup) {
+            return new WorldCupCreator();
         }
         throw new \Exception('unknown competitiontype', E_ERROR);
     }

@@ -12,9 +12,15 @@ use Sports\Structure\Repository as StructureRepository;
 use SportsImport\Importer;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Competitor\Repository as CompetitorRepository;
+use SuperElf\Formation\Editor as FormationEditor;
+use SuperElf\League;
+use SuperElf\CompetitionConfig as CompetitionConfigBase;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\PoolCollection;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,7 +31,9 @@ class PoolCompetitionsCommand extends Command
     protected PoolAdministrator $poolAdmin;
     protected CompetitorRepository $competitorRepos;
     protected StructureRepository $structureRepos;
+    protected PoolUserRepository $poolUserRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
+    protected FormationEditor $formationEditor;
     protected Importer $importer;
 
     public function __construct(ContainerInterface $container)
@@ -33,6 +41,10 @@ class PoolCompetitionsCommand extends Command
         /** @var PoolRepository $poolRepos */
         $poolRepos = $container->get(PoolRepository::class);
         $this->poolRepos = $poolRepos;
+
+        /** @var PoolUserRepository $poolUserRepos */
+        $poolUserRepos = $container->get(PoolUserRepository::class);
+        $this->poolUserRepos = $poolUserRepos;
 
         /** @var PoolAdministrator $poolAdmin */
         $poolAdmin = $container->get(PoolAdministrator::class);
@@ -56,6 +68,7 @@ class PoolCompetitionsCommand extends Command
 
         parent::__construct($container);
         $this->importer->setGameEventSender(new QueueService($this->config->getArray('queue')));
+        $this->formationEditor = new FormationEditor($this->config, false);
     }
 
     protected function configure(): void
@@ -90,8 +103,21 @@ class PoolCompetitionsCommand extends Command
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
+//            /**
+//             * @var list<PoolUser>
+//             */
+//            $originalWorldCupPoolUsers = [];
+
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             foreach ($pools as $pool) {
+                if( $pool->getName() === PoolCollection::S11Association) {
+                    continue;
+                }
+                $this->getLogger()->info(
+                    'removing invalid poolUsers for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
+                );
+                $this->removeInvalidPoolUsers($pool);
+
                 $this->getLogger()->info(
                     'creating competitions for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
                 );
@@ -100,7 +126,18 @@ class PoolCompetitionsCommand extends Command
                 } else {
                     $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool);
                 }
+
+                // $originalWorldCupUsers = array_merge( $originalWorldCupPoolUsers, $worldCupPoolUsers );
+                // $worldCupPoolUsers = $this->getValidWorldCupPoolUsers($worldCupPool);
+
             }
+//            $worldCupPool = $this->createWorldCupPool($compConfig);
+//            if ($replace) {
+//                $this->replacePoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool, $originalWorldCupPoolUsers);
+//            } else {
+//                $this->createPoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool, $originalWorldCupPoolUsers);
+//            }
+
         } catch (\Exception $e) {
             if ($this->logger !== null) {
                 $this->logger->error($e->getMessage());
@@ -110,23 +147,80 @@ class PoolCompetitionsCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param Season $season
-     * @return list<Pool>
+     * @param Pool $worldCupPool
+     * @param list<PoolUser> $originalWorldCupPoolUsers
+     * @return void
+     * @throws \Exception
      */
-    protected function getPools(InputInterface $input, Season $season): array
+    private  function replacePoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
     {
-        if ($input->getArgument('poolId') !== null) {
-            $poolId = (string)$input->getArgument('poolId');
-            $pools = [];
-            $pool = $this->poolRepos->find((int)$poolId);
-            if ($pool !== null) {
-                $pools[] = $pool;
-            }
-            return $pools;
-        }
-        return $this->poolRepos->findByFilter(null, $season->getStartDateTime(), $season->getEndDateTime());
+        $this->poolAdmin->checkOnStartedGames($worldCupPool);
+        $this->poolAdmin->removeCompetitionsCompetitorsStructureAndGames($worldCupPool);
+
+        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
+        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+
     }
+
+    /**
+     * @param Pool $worldCupPool
+     * @param list<PoolUser> $originalWorldCupPoolUsers
+     * @return void
+     * @throws \Exception
+     */
+    private  function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
+    {
+        $this->poolAdmin->checkOnStartedGames($worldCupPool);
+        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
+        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+
+    }
+
+    private function createWorldCupPool(CompetitionConfigBase $compConfig): Pool {
+        $worldCupPool = $this->poolRepos->findWorldCup($compConfig);
+        if( $worldCupPool !== null ) {
+            return $worldCupPool;
+        }
+        return $this->poolAdmin->createPool($compConfig, League::WorldCup->name, null);
+    }
+
+    private function removeInvalidPoolUsers(Pool $pool): void {
+        $this->getLogger()->info(
+            'removing invalid poolUsers for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
+        );
+
+        $poolUsers = $pool->getUsers()->toArray();
+        foreach( $poolUsers as $poolUser ) {
+            if( !$poolUser->canCompete()) {
+                $pool->getUsers()->removeElement($poolUser);
+                $this->poolUserRepos->remove($poolUser);
+                $this->getLogger()->info(
+                    '   removing invalid poolUser "' . $poolUser->getUser()->getName() . '"'
+                );
+            }
+        }
+
+    }
+
+
+//    /**
+//     * @param InputInterface $input
+//     * @param Season $season
+//     * @return list<Pool>
+//     */
+//    protected function getPools(InputInterface $input, Season $season): array
+//    {
+//        if ($input->getArgument('poolId') !== null) {
+//            $poolId = (string)$input->getArgument('poolId');
+//            $pools = [];
+//            $pool = $this->poolRepos->find((int)$poolId);
+//            if ($pool !== null) {
+//                $pools[] = $pool;
+//            }
+//            return $pools;
+//        }
+//        return $this->poolRepos->findByFilter(null, $season->getStartDateTime(), $season->getEndDateTime());
+//    }
 //
 //    protected function importAssociations(Competitions $externalSourceCompetitions, Sport $sport): void
 //    {
