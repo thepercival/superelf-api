@@ -102,9 +102,12 @@ class Syncer
             return;
         }
         $gameParticipations = array_values($gamePlace->getParticipations()->toArray());
-        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team);
+        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team, $gamePlace->getGame());
         foreach ($s11Players as $s11Player) {
             $person = $s11Player->getPerson();
+//            if( $person->getLastName() === 'Dost') {
+//                $er = 12;
+//            }
             $player = $person->getPlayer($team, $game->getStartDateTime());
             if ($player === null) {
                 $this->logNoS11Player($person, $team, $game->getStartDateTime());

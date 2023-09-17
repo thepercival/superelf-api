@@ -118,8 +118,13 @@ class Syncer
         if ($gameRound === null) {
             return;
         }
-        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team);
+        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team, $gamePlace->getGame());
         foreach ($s11Players as $s11Player) {
+
+//            if( $s11Player->getPerson()->getLastName() === 'Lozano') {
+//                $er = 12;
+//            }
+
             $playerStats = array_values($s11Player->getStatistics()->toArray());
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
             $this->totalsRepos->save($s11Player->getTotals(), true);

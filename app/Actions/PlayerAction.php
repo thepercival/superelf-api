@@ -71,7 +71,7 @@ final class PlayerAction extends Action
             }
 
 
-            $players = $this->playerRepos->findByExt($viewPeriod, $team, $playerFilter->getLine(), $maxResults);
+            $players = $this->playerRepos->findByExt($viewPeriod, $team, null, $playerFilter->getLine(), $maxResults);
             // aan de persons moeten punten gekoppeld worden en daarna pas vrijgegeven worden???
 
             $serContext = $this->getSerializationContext(['players']);

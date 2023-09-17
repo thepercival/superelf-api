@@ -87,7 +87,7 @@ class Calculator
             $totalPoints = $totalsCarier->getTotals()->getPoints($line, $points, null);
             $totalsCarier->setTotalPoints($totalPoints);
         } catch(Exception $e ) {
-            $er = $e;
+            // $er = $e;
         }
     }
 }

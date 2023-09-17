@@ -6,6 +6,7 @@ namespace SuperElf\Player;
 
 use Doctrine\ORM\EntityRepository;
 use Sports\Team;
+use Sports\Game\Against as AgainstGame;
 use Sports\Team\Player as TeamPlayer;
 use SportsHelpers\Repository as BaseRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
@@ -23,12 +24,9 @@ class Repository extends EntityRepository
 
     /**
      * @param ViewPeriod $viewPeriod
-     * @param Team|null $team
-     * @param int|null $line
-     * @param int|null $maxRows
      * @return list<S11Player>
      */
-    public function findByExt(ViewPeriod $viewPeriod, Team $team = null, int $line = null, int $maxRows = null): array
+    public function findByViewPeriod(ViewPeriod $viewPeriod): array
     {
         $qb = $this->createQueryBuilder('s11pl')
             ->distinct()
@@ -38,10 +36,50 @@ class Repository extends EntityRepository
         ;
 
         $qb = $qb->setParameter('viewPeriod', $viewPeriod);
-        if ($team !== null) {
+
+        $qb = $qb->orderBy('s11pl.totalPoints', 'desc');
+        /** @var list<S11Player> $players */
+        $players = $qb->getQuery()->getResult();
+        return $players;
+    }
+
+    /**
+     * @param ViewPeriod $viewPeriod
+     * @param Team $team
+     * @param AgainstGame|null $game
+     * @param int|null $line
+     * @param int|null $maxRows
+     * @return list<S11Player>
+     */
+    public function findByExt(
+        ViewPeriod $viewPeriod,
+        Team|null $team,
+        AgainstGame|null $game,
+        int|null $line = null,
+        int|null $maxRows = null): array
+    {
+        $qb = $this->createQueryBuilder('s11pl')
+            ->distinct()
+            ->join("s11pl.person", "p")
+            ->join("s11pl.viewPeriod", "vp")
+            ->join('Sports\Team\Player', 'pl', 'WITH', 'p = pl.person')
+            ->where('pl.startDateTime < vp.endDateTime')
+            ->andWhere('pl.endDateTime > vp.startDateTime')
+            ->andWhere('s11pl.viewPeriod = :viewPeriod')
+        ;
+        $qb = $qb->setParameter('viewPeriod', $viewPeriod);
+
+        if( $team !== null) {
             $qb = $qb->andWhere('pl.team = :team');
             $qb = $qb->setParameter('team', $team);
         }
+
+        if( $game !== null) {
+            $qb = $qb->andWhere('pl.startDateTime <= :dateTime');
+            $qb = $qb->andWhere('pl.endDateTime > :dateTime');
+            $qb = $qb->setParameter('dateTime', $game->getStartDateTime());
+        }
+
         if ($line !== null) {
             $qb = $qb->andWhere('BIT_AND(pl.line, :line) = pl.line');
             $qb = $qb->setParameter('line', $line);
@@ -49,6 +87,7 @@ class Repository extends EntityRepository
         if ($maxRows !== null) {
             $qb = $qb->setMaxResults($maxRows);
         }
+
         $qb = $qb->orderBy('s11pl.totalPoints', 'desc');
         // $sql = $qb->getQuery()->getSQL();
         /** @var list<S11Player> $players */

@@ -84,7 +84,7 @@ class PlayerTotals extends Command
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {
                 $this->getLogger()->info('viewPeriod: ' . $viewPeriod);
-                $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod);
+                $s11Players = $this->s11PlayerRepos->findByViewPeriod($viewPeriod);
                 foreach ($s11Players as $s11Player) {
                     $playerStats = array_values($s11Player->getStatistics()->toArray());
                     $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
