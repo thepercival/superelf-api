@@ -2,6 +2,7 @@
 
 namespace SuperElf\Totals;
 
+use Exception;
 use SportsHelpers\Against\Result;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation;
@@ -77,8 +78,16 @@ class Calculator
 
     public function updateTotalPoints(FormationPlace|S11Player $totalsCarier, Points $points): void
     {
-        $totalsCarier->setTotalPoints(
-            $totalsCarier->getTotals()->getPoints($totalsCarier->getLine(), $points, null)
-        );
+        try {
+            if( $totalsCarier instanceof S11Player) {
+                $line = $totalsCarier->getLineFromPlayers();
+            } else {
+                $line = $totalsCarier->getLine();
+            }
+            $totalPoints = $totalsCarier->getTotals()->getPoints($line, $points, null);
+            $totalsCarier->setTotalPoints($totalPoints);
+        } catch(Exception $e ) {
+            $er = $e;
+        }
     }
 }

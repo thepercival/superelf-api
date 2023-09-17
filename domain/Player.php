@@ -47,7 +47,7 @@ class Player extends Identifiable
         return $this->person;
     }
 
-    public function getLine(): FootballLine
+    public function getLineFromPlayers(): FootballLine
     {
         $player = $this->getPlayers()->first();
         if ( $player === false ) {
