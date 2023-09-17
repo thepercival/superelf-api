@@ -50,9 +50,12 @@ class Player extends Identifiable
     public function getLine(): FootballLine
     {
         $player = $this->getPlayers()->first();
-        if (!($player instanceof TeamPlayer)) {
-            throw new \Exception('s11player should always have a line', E_ERROR);
+        if ( $player === false ) {
+            throw new \Exception('s11player ' . $this->getPerson()->getName(true) . ' for period ' . $this->getViewPeriod()->getPeriod()->toIso80000('Y-m-d') . ' has no teamPlayers', E_ERROR);
         }
+//        if (!($player instanceof TeamPlayer)) {
+//            throw new \Exception('s11player should always have a line', E_ERROR);
+//        }
         return FootballLine::from($player->getLine());
     }
 

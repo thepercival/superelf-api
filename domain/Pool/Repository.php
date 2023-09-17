@@ -110,7 +110,7 @@ class Repository extends EntityRepository
             ->from('SuperElf\Pool\User', 'pu')
             ->where('pu.pool = p')
             ->andWhere('pu.user = :user');
-        if ($roles & Role::ADMIN === Role::ADMIN) {
+        if (($roles & Role::ADMIN) === Role::ADMIN) {
             $competitorQb = $competitorQb->andWhere('pu.admin = :admin');
         }
 
@@ -121,12 +121,12 @@ class Repository extends EntityRepository
             )
         );
         $qb = $qb->setParameter('user', $user);
-        if ($roles & Role::ADMIN === Role::ADMIN) {
+        if (($roles & Role::ADMIN) === Role::ADMIN) {
             $qb = $qb->setParameter('admin', true);
         }
         /** @var list<Pool> $pools */
         $pools = $qb->getQuery()->getResult();
-        $x = $qb->getQuery()->getSQL();
+        // $x = $qb->getQuery()->getSQL();
         return $pools;
     }
 
