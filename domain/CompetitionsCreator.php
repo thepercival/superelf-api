@@ -120,16 +120,23 @@ class CompetitionsCreator
             return [];
         }
 
+        $bestPoolUsersCup = $this->getBestValidPoolUsers($previous, S11League::Cup, $validPoolUsers, 1);
+        $bestPoolUserCup = reset($bestPoolUsersCup);
+        if ($bestPoolUserCup !== false) {
+            $validPoolUsersSuperCup[] = $bestPoolUserCup;
+            $validPoolUsers = array_values(
+                array_filter($validPoolUsers, function( PoolUser $validPoolUser ) use ($bestPoolUserCup): bool {
+                return $validPoolUser !== $bestPoolUserCup;
+            } ) );
+        }
+
+
         $bestPoolUsersCompetition = $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 1);
         $bestPoolUserCompetition = reset($bestPoolUsersCompetition);
         if ($bestPoolUserCompetition !== false) {
             $validPoolUsersSuperCup[] = $bestPoolUserCompetition;
         }
-        $bestPoolUsersCup = $this->getBestValidPoolUsers($previous, S11League::Cup, $validPoolUsers, 1);
-        $bestPoolUserCup = reset($bestPoolUsersCup);
-        if ($bestPoolUserCup !== false) {
-            $validPoolUsersSuperCup[] = $bestPoolUserCup;
-        }
+
         return $validPoolUsersSuperCup;
     }
 
@@ -168,23 +175,23 @@ class CompetitionsCreator
 
 
     /**
-     * @param Pool $pool
+     * @param Pool $previousPool
      * @param League $league
      * @param list<PoolUser> $validPoolUsers
      * @return list<PoolUser>
      * @throws \Sports\Exceptions\StructureNotFoundException
      */
-    protected function getBestValidPoolUsers(Pool $pool, S11League $league, array $validPoolUsers, int $max): array
+    protected function getBestValidPoolUsers(Pool $previousPool, S11League $league, array $validPoolUsers, int $max): array
     {
-        $competition = $pool->getCompetition($league);
-        if ($competition === null) {
+        $previousCompetition = $previousPool->getCompetition($league);
+        if ($previousCompetition === null) {
             return [];
         }
-        $category = $this->structureRepos->getStructure($competition)->getSingleCategory();
-        if ($category->getGamesState() !== State::Finished) {
+        $previousCategory = $this->structureRepos->getStructure($previousCompetition)->getSingleCategory();
+        if ($previousCategory->getGamesState() !== State::Finished) {
             return [];
         }
-        $endRankingCalculator = new EndRankingCalculator($category);
+        $endRankingCalculator = new EndRankingCalculator($previousCategory);
         $rankingItems = $endRankingCalculator->getItems();
         $bestValidPoolUsers = [];
         foreach ($rankingItems as $rankingItem) {
@@ -192,11 +199,16 @@ class CompetitionsCreator
             if ($rankingStartLocation === null) {
                 continue;
             }
-            foreach ($validPoolUsers as $validPoolUser) {
-                $competitor = $validPoolUser->getCompetitor($competition);
-                if ($competitor !== null && $competitor->equals($rankingStartLocation)) {
-                    $bestValidPoolUsers[] = $validPoolUser;
-                    break;
+            foreach( $previousPool->getUsers() as $previousPoolUser) {
+                $previousCompetitor = $previousPoolUser->getCompetitor($previousCompetition);
+                if ($previousCompetitor !== null && $previousCompetitor->equals($rankingStartLocation)) {
+                    $user = $previousCompetitor->getPoolUser()->getUser();
+                    foreach ($validPoolUsers as $validPoolUser) {
+                        if ( $validPoolUser->getUser() === $user ) {
+                            $bestValidPoolUsers[] = $validPoolUser;
+                            break;
+                        }
+                    }
                 }
             }
             if( count($bestValidPoolUsers) === $max ) {

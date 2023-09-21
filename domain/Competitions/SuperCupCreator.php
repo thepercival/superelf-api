@@ -97,7 +97,8 @@ class SuperCupCreator extends BaseCreator
         $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();
         $gameRounds = $assembleViewPeriod->getGameRounds()->toArray();
 
-        // first gameRoundNumber no supercup
+        // first two gameRoundNumber no supercup
+        array_shift($gameRounds);
         array_shift($gameRounds);
 
         $nrOfRounds = 1;

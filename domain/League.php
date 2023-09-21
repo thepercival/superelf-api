@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
-use App\Commands\CompetitionConfig\Action as CompetitionConfigAction;
-
 enum League
 {
     case Competition;

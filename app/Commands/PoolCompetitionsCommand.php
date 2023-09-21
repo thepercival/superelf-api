@@ -15,6 +15,7 @@ use SuperElf\Competitor\Repository as CompetitorRepository;
 use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\League;
 use SuperElf\CompetitionConfig as CompetitionConfigBase;
+use SuperElf\League as S11League;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\Repository as PoolRepository;
@@ -83,7 +84,8 @@ class PoolCompetitionsCommand extends Command
             ->setHelp('creates the superelf-pool-competitions');
 
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
-        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
+        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2024/2025');
+        $this->addOption('s11league', null, InputOption::VALUE_REQUIRED, 'SuperCup');
         $this->addOption('replace', null, InputOption::VALUE_NONE);
 
         parent::configure();
@@ -103,6 +105,7 @@ class PoolCompetitionsCommand extends Command
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
+            $filterS11League = $this->getS11LeagueFromInput($input);
 //            /**
 //             * @var list<PoolUser>
 //             */
@@ -113,6 +116,7 @@ class PoolCompetitionsCommand extends Command
                 if( $pool->getName() === PoolCollection::S11Association) {
                     continue;
                 }
+
                 $this->getLogger()->info(
                     'removing invalid poolUsers for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
                 );
@@ -122,9 +126,9 @@ class PoolCompetitionsCommand extends Command
                     'creating competitions for pool "' . $pool->getName() . '"(' . (string)$pool->getId() . ')'
                 );
                 if ($replace) {
-                    $this->poolAdmin->replaceCompetitionsCompetitorsStructureAndGames($pool);
+                    $this->poolAdmin->replaceCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
                 } else {
-                    $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool);
+                    $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
                 }
 
                 // $originalWorldCupUsers = array_merge( $originalWorldCupPoolUsers, $worldCupPoolUsers );
@@ -154,11 +158,11 @@ class PoolCompetitionsCommand extends Command
      */
     private  function replacePoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
     {
-        $this->poolAdmin->checkOnStartedGames($worldCupPool);
-        $this->poolAdmin->removeCompetitionsCompetitorsStructureAndGames($worldCupPool);
+        $this->poolAdmin->checkOnStartedGames($worldCupPool, S11League::WorldCup);
+        $this->poolAdmin->removeCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
         $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
-        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
     }
 
@@ -170,9 +174,9 @@ class PoolCompetitionsCommand extends Command
      */
     private  function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
     {
-        $this->poolAdmin->checkOnStartedGames($worldCupPool);
+        $this->poolAdmin->checkOnStartedGames($worldCupPool, S11League::WorldCup);
         $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
-        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+        $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
     }
 
@@ -200,6 +204,15 @@ class PoolCompetitionsCommand extends Command
             }
         }
 
+    }
+
+    public function getS11LeagueFromInput(InputInterface $input): S11League|null
+    {
+        $optionValue = $input->getOption('s11league');
+        if (!is_string($optionValue) || strlen($optionValue) === 0) {
+            return null;
+        }
+        return S11League::from($optionValue);
     }
 
 

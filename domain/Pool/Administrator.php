@@ -107,11 +107,15 @@ class Administrator
         return $poolUser;
     }
 
-    public function createCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    public function createCompetitionsCompetitorsStructureAndGames(Pool $pool, S11League|null $filterS11League): void
     {
-        $this->checkOnExistingCompetitorsOrStructure($pool);
+        $this->checkOnExistingCompetitorsOrStructure($pool, $filterS11League);
         // $sourceStructure = $this->structureRepos->getStructure($pool->getCompetitionConfig()->getSourceCompetition());
         foreach ($this->s11Leagues as $s11League) {
+            if( $filterS11League !== null && $s11League !== $filterS11League) {
+                continue;
+            }
+
             $creator = $this->competitionsCreator->getCreator($s11League);
             $competition = $this->createPoolCompetition($pool, $s11League);
             if ($competition === null) {
@@ -154,9 +158,12 @@ class Administrator
         return $competition;
     }
 
-    protected function checkOnExistingCompetitorsOrStructure(Pool $pool): void
+    protected function checkOnExistingCompetitorsOrStructure(Pool $pool, S11League|null $filterS11League): void
     {
         foreach ($pool->getCompetitions() as $competition) {
+            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+                continue;
+            }
             if (count($pool->getCompetitors($competition)) > 0) {
                 throw new \Exception(
                     'competition "' . $competition->getName() . '" for pool "' . $pool->getName() .
@@ -175,9 +182,13 @@ class Administrator
         }
     }
 
-    public function checkOnStartedGames(Pool $pool): void
+    public function checkOnStartedGames(Pool $pool, S11League|null $filterS11League): void
     {
         foreach ($pool->getCompetitions() as $competition) {
+            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+                continue;
+            }
+
             if ($competition->getSingleSport()->createVariant() instanceof AgainstH2h
                 || $competition->getSingleSport()->createVariant() instanceof AgainstGpp) {
                 $hasAgainstGames = $this->againstGameRepos->hasCompetitionGames(
@@ -218,17 +229,21 @@ class Administrator
 //    }
 
 
-    public function replaceCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    public function replaceCompetitionsCompetitorsStructureAndGames(Pool $pool, S11League|null $filterS11League): void
     {
-        $this->checkOnStartedGames($pool);
-        $this->removeCompetitionsCompetitorsStructureAndGames($pool);
-        $this->createCompetitionsCompetitorsStructureAndGames($pool);
+        $this->checkOnStartedGames($pool, $filterS11League);
+        $this->removeCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
+        $this->createCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
     }
 
-    public function removeCompetitionsCompetitorsStructureAndGames(Pool $pool): void
+    public function removeCompetitionsCompetitorsStructureAndGames(Pool $pool, S11League|null $filterS11League): void
     {
         $competitions = $pool->getCompetitions();
         while ($competition = array_pop($competitions)) {
+            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+                continue;
+            }
+
             // competition and competitors
             $this->competitionRepos->remove($competition);
             // structure and games
