@@ -21,6 +21,7 @@ use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\User;
+use SuperElf\League as S11League;
 
 final class PoolAction extends Action
 {
@@ -77,7 +78,10 @@ final class PoolAction extends Action
             /** @var stdClass $poolData */
             $poolData = $this->getFormData($request);
             if (property_exists($poolData, "name") === false) {
-                throw new \Exception("geen naam ingevoerd");
+                throw new \Exception('geen naam ingevoerd');
+            }
+            if ($poolData->name === S11League::WorldCup->name) {
+                throw new \Exception('de naam "' . $poolData->name . '" is al gereserveerd');
             }
             if (property_exists($poolData, "competitionConfigId") === false) {
                 throw new \Exception("geen bron-competitie ingevoerd");

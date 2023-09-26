@@ -99,7 +99,6 @@ class SuperCupCreator extends BaseCreator
 
         // first two gameRoundNumber no supercup
         array_shift($gameRounds);
-        array_shift($gameRounds);
 
         $nrOfRounds = 1;
         $poule = $structure->getSingleCategory()->getRootRound()->getFirstPoule();

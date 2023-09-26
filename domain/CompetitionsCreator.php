@@ -16,11 +16,13 @@ use SuperElf\Competitions\CupCreator;
 use SuperElf\Competitions\SuperCupCreator;
 use SuperElf\Competitions\WorldCupCreator;
 use SuperElf\League as S11League;
+use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
 
 class CompetitionsCreator
 {
     public function __construct(
+        protected PoolRepository $poolRepos,
         protected StructureRepository $structureRepos
     ) {
     }
@@ -53,8 +55,20 @@ class CompetitionsCreator
             return null;
         }
 
-        $superCupCreator = $this->getCreator(S11League::SuperCup);
-        return $superCupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
+        if ($league === S11League::SuperCup) {
+            if ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2023-01-01'))
+                ||
+                ($pool->getSeason()->getStartDateTime() > (new \DateTimeImmutable('2021-01-01'))
+                    && $pool->getCollection()->getName() === 'kamp duim')
+            ) {
+                $superCupCreator = $this->getCreator(S11League::SuperCup);
+                return $superCupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
+            }
+            return null;
+        }
+
+        $worldCupCreator = $this->getCreator(S11League::WorldCup);
+        return $worldCupCreator->createCompetition($pool, $sport, PointsCalculation::Scores);
     }
 
     /**
@@ -80,10 +94,37 @@ class CompetitionsCreator
     {
         if ($league === S11League::SuperCup) {
             return $this->getValidSuperCupPoolUsers($pool);
-        } else if ($league === S11League::WorldCup) {
-            return $this->getValidWorldCupPoolUsers($pool);
         }
         return array_values($pool->getUsers()->toArray());
+    }
+
+    /**
+     * @param Pool $pool
+     * @param S11League $league
+     * @return list<PoolUser>
+     */
+    public function getOriginalValidPoolUsers(Pool $pool): array
+    {
+        $qualifiedWorldCupUsers = [];
+        $pools = $this->poolRepos->findBy(['competitionConfig' => $pool->getCompetitionConfig()]);
+        foreach ($pools as $pool) {
+            $qualifiedPoolUsers = $this->getValidWorldCupPoolUsers($pool);
+            foreach( $qualifiedPoolUsers as $qualifiedPoolUser ) {
+                $inQualifiedWorldCupUsers = false;
+                {
+                    foreach( $qualifiedWorldCupUsers as $qualifiedWorldCupUser ) {
+                        if( $qualifiedWorldCupUser->getUser() === $qualifiedPoolUser->getUser() ) {
+                            $inQualifiedWorldCupUsers = true;
+                            break;
+                        }
+                    }
+                }
+                if( !$inQualifiedWorldCupUsers ) {
+                    $qualifiedWorldCupUsers[] = $qualifiedPoolUser;
+                }
+            }
+        }
+        return $qualifiedWorldCupUsers;
     }
 
     /**
@@ -120,7 +161,7 @@ class CompetitionsCreator
             return [];
         }
 
-        $bestPoolUsersCup = $this->getBestValidPoolUsers($previous, S11League::Cup, $validPoolUsers, 1);
+        $bestPoolUsersCup = $this->getBestValidPoolUsers($previous, S11League::Cup, $validPoolUsers, 1, null);
         $bestPoolUserCup = reset($bestPoolUsersCup);
         if ($bestPoolUserCup !== false) {
             $validPoolUsersSuperCup[] = $bestPoolUserCup;
@@ -131,7 +172,7 @@ class CompetitionsCreator
         }
 
 
-        $bestPoolUsersCompetition = $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 1);
+        $bestPoolUsersCompetition = $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 1, null);
         $bestPoolUserCompetition = reset($bestPoolUsersCompetition);
         if ($bestPoolUserCompetition !== false) {
             $validPoolUsersSuperCup[] = $bestPoolUserCompetition;
@@ -139,6 +180,7 @@ class CompetitionsCreator
 
         return $validPoolUsersSuperCup;
     }
+
 
     /**
      * @param Pool $pool
@@ -150,6 +192,8 @@ class CompetitionsCreator
         $validPoolUsers = array_values($pool->getUsers()->toArray());
 
         $previous = $pool->getUnhaltedPrevious();
+
+
         /*if ($pool->getName() === 'kamp duim' and $pool->getSeason()->getName() === '2022/2023') {
             $poolUsersCoen = array_filter($validPoolUsers, function (PoolUser $poolUser): bool {
                 return $poolUser->getUser()->getName() === 'coen';
@@ -167,10 +211,10 @@ class CompetitionsCreator
             }
             return $validPoolUsersSuperCup;
         } else*/
-        if ($previous === null) {
+        if ($previous === null || $previous->getUsers()->count() < 6) {
             return [];
         }
-        return  $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, 2);
+        return $this->getBestValidPoolUsers($previous, S11League::Competition, $validPoolUsers, null, 2);
     }
 
 
@@ -178,12 +222,19 @@ class CompetitionsCreator
      * @param Pool $previousPool
      * @param League $league
      * @param list<PoolUser> $validPoolUsers
+     * @param int|null $max
+     * @param int|null $maxRank
      * @return list<PoolUser>
      * @throws \Sports\Exceptions\StructureNotFoundException
      */
-    protected function getBestValidPoolUsers(Pool $previousPool, S11League $league, array $validPoolUsers, int $max): array
+    protected function getBestValidPoolUsers(
+        Pool $previousPool,
+        S11League $previousS11League,
+        array $validPoolUsers,
+        int|null $max,
+        int|null $maxRank): array
     {
-        $previousCompetition = $previousPool->getCompetition($league);
+        $previousCompetition = $previousPool->getCompetition($previousS11League);
         if ($previousCompetition === null) {
             return [];
         }
@@ -197,6 +248,9 @@ class CompetitionsCreator
         foreach ($rankingItems as $rankingItem) {
             $rankingStartLocation = $rankingItem->getStartLocation();
             if ($rankingStartLocation === null) {
+                continue;
+            }
+            if( $maxRank !== null && $rankingItem->getRank() > $maxRank ) {
                 continue;
             }
             foreach( $previousPool->getUsers() as $previousPoolUser) {

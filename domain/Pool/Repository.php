@@ -8,8 +8,8 @@ use SuperElf\CompetitionConfig;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
 use SportsHelpers\Repository as BaseRepository;
+use SuperElf\League as S11League;
 use SuperElf\Pool;
-use SuperElf\PoolCollection;
 use SuperElf\Role;
 use SuperElf\User;
 
@@ -47,7 +47,8 @@ class Repository extends EntityRepository
         $query = $query->where('p.competitionConfig = :competitionConfig');
         $query = $query->setParameter('competitionConfig', $competitionConfig);
 
-        $query = $query->andWhere('a.name = ' . PoolCollection::S11Association);
+        $query = $query->andWhere('a.name = :associationName');
+        $query = $query->setParameter('associationName', S11League::WorldCup->name);
 
         /** @var Pool|null $worldCupPool */
         $worldCupPool = $query->getQuery()->getOneOrNullResult();

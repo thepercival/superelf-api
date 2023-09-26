@@ -59,6 +59,9 @@ return function (App $app): void {
             $group->get('/seasons', SeasonAction::class . ':fetch')->add(VersionMiddleware::class);
             $group->options('/pools/{poolId}', PoolAction::class . ':options');
             $group->get('/pools/{poolId}', PoolAction::class . ':fetchOne')->add(PoolMiddleware::class);
+            $group->options('/pools/worldcupid/{seasonId}', CompetitionConfigAction::class . ':options');
+            $group->get('/pools/worldcupid/{seasonId}', CompetitionConfigAction::class . ':fetchWorldCupId');
+
 
             $group->group(
                 '/competitionconfigs',

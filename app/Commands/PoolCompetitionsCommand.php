@@ -20,8 +20,6 @@ use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\Pool\User as PoolUser;
-use SuperElf\PoolCollection;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -106,14 +104,10 @@ class PoolCompetitionsCommand extends Command
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
             $filterS11League = $this->getS11LeagueFromInput($input);
-//            /**
-//             * @var list<PoolUser>
-//             */
-//            $originalWorldCupPoolUsers = [];
 
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             foreach ($pools as $pool) {
-                if( $pool->getName() === PoolCollection::S11Association) {
+                if( $pool->getName() === S11League::WorldCup->name) {
                     continue;
                 }
 
@@ -130,18 +124,15 @@ class PoolCompetitionsCommand extends Command
                 } else {
                     $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
                 }
-
-                // $originalWorldCupUsers = array_merge( $originalWorldCupPoolUsers, $worldCupPoolUsers );
-                // $worldCupPoolUsers = $this->getValidWorldCupPoolUsers($worldCupPool);
-
             }
-//            $worldCupPool = $this->createWorldCupPool($compConfig);
-//            if ($replace) {
-//                $this->replacePoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool, $originalWorldCupPoolUsers);
-//            } else {
-//                $this->createPoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool, $originalWorldCupPoolUsers);
-//            }
-
+            if( $filterS11League === null || $filterS11League === S11League::WorldCup ) {
+                $worldCupPool = $this->createWorldCupPool($compConfig);
+                if ($replace) {
+                    $this->replacePoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool);
+                } else {
+                    $this->createPoolUsersCompetitionsCompetitorsStructureAndGames($worldCupPool);
+                }
+            }
         } catch (\Exception $e) {
             if ($this->logger !== null) {
                 $this->logger->error($e->getMessage());
@@ -152,30 +143,28 @@ class PoolCompetitionsCommand extends Command
 
     /**
      * @param Pool $worldCupPool
-     * @param list<PoolUser> $originalWorldCupPoolUsers
      * @return void
      * @throws \Exception
      */
-    private  function replacePoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
+    private  function replacePoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool): void
     {
         $this->poolAdmin->checkOnStartedGames($worldCupPool, S11League::WorldCup);
         $this->poolAdmin->removeCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
-        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
+        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool);
         $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
     }
 
     /**
      * @param Pool $worldCupPool
-     * @param list<PoolUser> $originalWorldCupPoolUsers
      * @return void
      * @throws \Exception
      */
-    private  function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool, array $originalWorldCupPoolUsers): void
+    private  function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool): void
     {
         $this->poolAdmin->checkOnStartedGames($worldCupPool, S11League::WorldCup);
-        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool, $originalWorldCupPoolUsers);
+        $this->poolAdmin->replaceWorldCupPoolUsers($worldCupPool);
         $this->poolAdmin->createCompetitionsCompetitorsStructureAndGames($worldCupPool, S11League::WorldCup);
 
     }
@@ -185,7 +174,7 @@ class PoolCompetitionsCommand extends Command
         if( $worldCupPool !== null ) {
             return $worldCupPool;
         }
-        return $this->poolAdmin->createPool($compConfig, League::WorldCup->name, null);
+        return $this->poolAdmin->createPool($compConfig, League::WorldCup->name, null, true);
     }
 
     private function removeInvalidPoolUsers(Pool $pool): void {

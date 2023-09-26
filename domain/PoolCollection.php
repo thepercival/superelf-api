@@ -19,7 +19,6 @@ class PoolCollection extends Identifiable
      */
     protected Collection $pools;
 
-    public const S11Association = 'SuperElf';
     protected const MIN_LENGTH_NAME = 3;
     protected const MAX_LENGTH_NAME = 20;
 
