@@ -44,11 +44,11 @@ class WorldCupCreator extends BaseCreator
         $competitionSport = $poule->getCompetition()->getSingleSport();
         $createGames = function (ViewPeriod $viewPeriod) use ($poule, $competitionSport): void {
             foreach ($viewPeriod->getGameRounds() as $gameRound) {
-                if( $viewPeriod->getStartDateTime() < (new \DateTimeImmutable('2023-10-01'))) {
-                    if( $gameRound->getNumber() < 7 ) {
-                        continue;
-                    }
-                }
+//                if( $viewPeriod->getStartDateTime() < (new \DateTimeImmutable('2023-10-01'))) {
+//                    if( $gameRound->getNumber() < 7 ) {
+//                        continue;
+//                    }
+//                }
                 $game = new TogetherGame(
                     $poule,
                     $gameRound->getNumber(),
@@ -60,7 +60,7 @@ class WorldCupCreator extends BaseCreator
                 }
             }
         };
-        $createGames($pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod());
+        // $createGames($pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod());
         $createGames($pool->getCompetitionConfig()->getTransferPeriod()->getViewPeriod());
     }
 
