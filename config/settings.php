@@ -38,7 +38,6 @@ return [
         'meta' => [
             'entity_path' => [
                 __DIR__ . '/../vendor/thepercival/php-sports-helpers/db/doctrine-mappings',
-                __DIR__ . '/../vendor/thepercival/php-sports-planning/db/doctrine-mappings',
                 __DIR__ . '/../vendor/thepercival/php-sports/db/doctrine-mappings',
                 __DIR__ . '/../vendor/thepercival/php-sports-import/db/doctrine-mappings',
                 __DIR__ . '/../db/doctrine-mappings'

@@ -49,6 +49,8 @@ Type::addType('enum_PlanningTimeoutState', SportsPlanning\Planning\TimeoutStateT
 Type::addType('enum_GameState', Sports\Game\StateType::class);
 Type::addType('enum_BadgeCategory', SuperElf\Achievement\BadgeCategoryType::class);
 Type::addType('enum_FootballLine', Sports\Sport\FootballLineType::class);
+Type::addType('enum_Distribution', Sports\Qualify\DistributionType::class);
+
 //$em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
 
 return new SingleManagerProvider($em);

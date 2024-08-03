@@ -122,8 +122,8 @@ class PersonCommand extends Command
     {
         $loggerName = 'command-' . $this->customName;
         $logger = $this->initLoggerNew(
-            $this->getLogLevel($input),
-            $this->getStreamDef($input, $loggerName),
+            $this->getLogLevelFromInput($input),
+            $this->getStreamDefFromInput($input, $loggerName),
             $loggerName,
         );
         $this->s11PlayerSyncer->setLogger($logger);;

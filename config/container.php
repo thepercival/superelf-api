@@ -103,9 +103,11 @@ return [
         Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');
         Type::addType('enum_AgainstResult', SportsHelpers\Against\ResultType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstResult');
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_AgainstResult');
         Type::addType('enum_GameMode', SportsHelpers\GameModeType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameMode');
+        Type::addType('enum_Distribution', Sports\Qualify\DistributionType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_Distribution');
         Type::addType('enum_SelfReferee', SportsHelpers\SelfRefereeType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_SelfReferee');
         Type::addType('enum_EditMode', Sports\Planning\EditModeType::class);

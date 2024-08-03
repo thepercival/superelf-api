@@ -85,7 +85,7 @@ final class AgainstGameAction extends Action
                 throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
             }
 
-            $againstSide = AgainstSide::from((int)$args["side"]);
+            $againstSide = AgainstSide::from((string)$args["side"]);
 
             $lineupItems = $this->lineupConverter->convert($game->getSingleSidePlace($againstSide));
 
@@ -114,7 +114,7 @@ final class AgainstGameAction extends Action
                 throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
             }
 
-            $againstSide = AgainstSide::from((int)$args["side"]);
+            $againstSide = AgainstSide::from((string)$args["side"]);
             $gamePlace = $game->getSingleSidePlace($againstSide);
             $events = $this->eventConverter->convert($gamePlace);
 

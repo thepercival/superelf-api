@@ -4,7 +4,7 @@
 
 
 -- POST POST POST doctrine-update ===========================================================
--- alter table plannings ADD timeoutState varchar(20) DEFAULT NULL COMMENT '(DC2Type:enum_PlanningTimeoutState)';
+-- update qualifyGroups set distribution = 'horizontalSnake';
 
 -- INITIAL DB STEPS
 --      INSERT INTO externalSystems (name, website, username, password, apiurl, apikey) VALUES ('mySystem', 'https://mySystem.com/', null, null, 'https://api.mySystem.com/', null);

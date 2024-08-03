@@ -165,7 +165,7 @@ class Command extends SymCommand
         return new MailHandler($toEmailAddress, $subject, $fromEmailAddress, $mailLogLevel);
     }
 
-    protected function getLogLevel(InputInterface $input, int|null $defaultLogLevel = null): int
+    protected function getLogLevelFromInput(InputInterface $input, int|null $defaultLogLevel = null): int
     {
         if ($defaultLogLevel === null) {
             $loggerSettings = $this->config->getArray('logger');
@@ -182,7 +182,7 @@ class Command extends SymCommand
         return $defaultLogLevel;
     }
 
-    protected function getStreamDef(InputInterface $input, string|null $fileName = null): string
+    protected function getStreamDefFromInput(InputInterface $input, string|null $fileName = null): string
     {
         /** @var bool|null $logToFile */
         $logToFile = $input->getOption('logtofile');

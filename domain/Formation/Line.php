@@ -138,9 +138,10 @@ class Line extends Identifiable
      */
     public function getSubstituteAppearancesAsRoundNumbers(): array
     {
-        return $this->substituteAppearances->map(function (Appearance $appareance): int {
+        $substituteAppearances = $this->substituteAppearances->toArray();
+        return array_map(function (Appearance $appareance): int {
             return $appareance->getGameRound()->getNumber();
-        })->toArray();
+        }, $substituteAppearances);
     }
 
 

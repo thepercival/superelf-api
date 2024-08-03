@@ -128,7 +128,10 @@ EOT;
             "sub" => $user->getId(),
         ];
 
-        return JWT::encode($payload, $this->config->getString("auth.jwtsecret"));
+        return JWT::encode(
+            $payload,
+            $this->config->getString("auth.jwtsecret"),
+            $this->config->getString('auth.jwtalgorithm') );
     }
 
     protected function mailPasswordCode(User $user): void

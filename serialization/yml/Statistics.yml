@@ -9,7 +9,7 @@ SuperElf\Statistics:
       read_only: true
       groups: [ byPlayer ]
     result:
-      type: int
+      type: string
       access_type: public_method
       accessor:
         getter: getResultNative

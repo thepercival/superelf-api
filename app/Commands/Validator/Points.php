@@ -74,8 +74,8 @@ class Points extends Command
     {
         $loggerName = 'command-' . $this->customName;
         $logger = $this->initLoggerNew(
-            $this->getLogLevel($input),
-            $this->getStreamDef($input, $loggerName),
+            $this->getLogLevelFromInput($input),
+            $this->getStreamDefFromInput($input, $loggerName),
             $loggerName,
         );
 
@@ -176,9 +176,12 @@ class Points extends Command
             if( $totalPoints !== $substitute->getTotalPoints() ) {
                 $person = $substitute->getPlayer()?->getPerson();
                 $name =  $person !== null ? $person->getName() : 'unknown';
-                $grNrs = join( ',', array_values( $formationLine->getSubstituteAppearances()->map(function(Appearance $appearance): string {
-                    return $appearance->getGameRoundNumber() . '';
-                })->toArray()) );
+                $substituteAppearances = $formationLine->getSubstituteAppearances()->toArray();
+                $grNrs = join( ',', array_values(
+                    array_map(function(Appearance $appearance): string {
+                        return $appearance->getGameRoundNumber() . '';
+                    }, $substituteAppearances)
+                ));
                 throw new \Exception('totalpoints substitute(' . $formationLine->getLine()->value . ' - "'.$name.'") incorrect : ' . $substitute->getTotalPoints() . ' should be ' . $totalPoints . ', appearances: ' . $grNrs );
             }
         }

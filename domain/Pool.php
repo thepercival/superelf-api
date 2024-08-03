@@ -76,10 +76,10 @@ class Pool extends Identifiable
      */
     public function getCompetitions(): array
     {
-        $leagues = $this->getCollection()->getAssociation()->getLeagues();
-        $competitions = $leagues->map(function ($league): ?Competition {
+        $leagues = $this->getCollection()->getAssociation()->getLeagues()->toArray();
+        $competitions = array_map( function ($league): Competition|null {
             return $league->getCompetition($this->getSeason());
-        })->toArray();
+        }, $leagues);
         return array_values(array_filter($competitions, fn (Competition|null $c) => $c !== null));
     }
 

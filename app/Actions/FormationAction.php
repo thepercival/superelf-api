@@ -84,8 +84,13 @@ final class FormationAction extends Action
 //                $serGroups[] = 'transferactions';
 //            }
 
+            $formation = $poolUser->getFormation($viewPeriod);
+
+            if( $formation === null) {
+                throw new \Exception('het team kan niet opgehaald worden');
+            }
             $json = $this->serializer->serialize(
-                    $poolUser->getFormation($viewPeriod),
+                $formation,
                     'json'/*,
                     $this->getSerializationContext($serGroups)*/
                 );

@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.3",
     "ext-gd": "*",
     "ext-gmp": "*",
     "ext-json": "*",
@@ -39,7 +39,7 @@
     "thepercival/php-sports-helpers": "^1.0",
     "tuupola/base62": "^2.0",
     "tuupola/slim-basic-auth": "^3.2",
-    "tuupola/slim-jwt-auth": "^3.4",
+    "jimtools/jwt-auth": "^1.0",
     "vlucas/phpdotenv": "^5.3",
     "thepercival/zend-pdf": "^1.0",
     "slim/twig-view": "^3.1",
@@ -85,12 +85,18 @@
     ],
     "stan": "XDEBUG_MODE=off vendor/bin/phpstan analyse",
     "psalm": "XDEBUG_MODE=off vendor/bin/psalm --output-format=phpstorm --show-info=true --no-diff",
-    "doctrine-try": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --dump-sql --complete",
-    "doctrine-update": "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --force --complete",
     "doctrine-validate": "XDEBUG_MODE=off vendor/bin/doctrine orm:validate-schema",
     "doctrine-clearcache": [
       "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:query --flush",
       "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:metadata"
+    ],
+    "doctrine-try": [
+      "composer run doctrine-clearcache",
+      "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --dump-sql --complete"
+    ],
+    "doctrine-update": [
+      "composer run doctrine-clearcache",
+      "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --force --complete"
     ],
     "post-install-cmd": [
       "App\\Handlers\\ComposerPostInstall::execute",

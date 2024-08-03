@@ -204,9 +204,10 @@ class Calculator
     }
 
     public function output(string $header, S11Formation $currentFormation): string {
-        $linesAsString = $currentFormation->getLines()->map(function (S11FormationLine $formationLine): string {
+        $currentFormationLines = $currentFormation->getLines()->toArray();
+        $linesAsString = array_map(function (S11FormationLine $formationLine): string {
             return '' . count($formationLine->getStartingPlaces());
-        });
-        return $header . ' : ' . join('-', $linesAsString->toArray());
+        }, $currentFormationLines);
+        return $header . ' : ' . join('-', $linesAsString);
     }
 }

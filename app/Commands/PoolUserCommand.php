@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Command;
+use App\Commands\Person\Action as PersonAction;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use SuperElf\Achievement\BadgeCategory;
@@ -13,13 +14,13 @@ use SuperElf\User\Repository as UserRepository;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Output as FormationOutput;
 
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:pooluser
- *      show --season=2022/2023 --poolName='kamp duim' --userName='boy' --loglevel=200
+ * php bin/console.php app:pooluser --season=2022/2023 --pool='kamp duim' --user='boy' --loglevel=200
  */
 class PoolUserCommand extends Command
 {
@@ -79,7 +80,6 @@ class PoolUserCommand extends Command
         $this->addOption('badge', null, InputOption::VALUE_OPTIONAL, 'Card');
         // $this->addOption('dry-run', null, InputOption::VALUE_NONE);
 
-
         parent::configure();
     }
 
@@ -87,8 +87,8 @@ class PoolUserCommand extends Command
     {
         $loggerName = 'command-' . $this->customName;
         $logger = $this->initLoggerNew(
-            $this->getLogLevel($input),
-            $this->getStreamDef($input, $loggerName),
+            $this->getLogLevelFromInput($input),
+            $this->getStreamDefFromInput($input, $loggerName),
             $loggerName,
         );
 
@@ -112,7 +112,14 @@ class PoolUserCommand extends Command
             if( $poolCollection === null ) {
                 throw new \Exception('poolCollection not found');
             }
-            $pool = $this->poolRepos->findOneBy(['collection' => $poolCollection]);
+            $pool = null;
+            $pools = $this->poolRepos->findBy(['collection' => $poolCollection]);
+            foreach( $pools as $poolIt ) {
+                if( $poolIt->getCompetitionConfig()->getSeason() === $season) {
+                    $pool = $poolIt;
+                    break;
+                }
+            }
             if( $pool === null ) {
                 throw new \Exception('pool not found');
             }

@@ -159,7 +159,7 @@ class Statistics extends Identifiable
             && $this->directRedCard() === $compare->directRedCard();
     }
 
-    public function getResultNative(): int
+    public function getResultNative(): string
     {
         return $this->result->value;
     }

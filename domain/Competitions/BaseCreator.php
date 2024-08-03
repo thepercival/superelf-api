@@ -6,7 +6,7 @@ namespace SuperElf\Competitions;
 
 use Sports\Competition;
 use Sports\Competition\Sport as CompetitionSport;
-use Sports\Competition\Sport\Service as CompetitionSportService;
+use Sports\Competition\Sport\Editor as CompetitionSportEditor;
 use Sports\Competitor\StartLocation;
 use Sports\Planning\Config\Service as PlanningConfigService;
 use Sports\Ranking\PointsCalculation;
@@ -26,7 +26,9 @@ abstract class BaseCreator
 
     public function __construct(protected S11League $s11League)
     {
-        $this->structureEditor = new StructureEditor(new CompetitionSportService(), new PlanningConfigService());
+        $this->structureEditor = new StructureEditor(
+            new CompetitionSportEditor(),
+            new PlanningConfigService());
     }
 
 

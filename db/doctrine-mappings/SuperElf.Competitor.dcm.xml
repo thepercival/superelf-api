@@ -4,8 +4,9 @@
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
-        <field name="registered" column="registered" type="boolean" nullable="true" unique="false"/>
-        <field name="info" column="info" type="string" length="200" nullable="true" unique="false"/>
+        <field name="present" column="present" type="boolean" nullable="true" unique="false"/>
+        <field name="privateInfo" column="privateInfo" type="string" length="200" nullable="true" unique="false"/>
+        <field name="publicInfo" column="publicInfo" type="string" length="200" nullable="true" unique="false"/>
         <many-to-one field="poolUser" target-entity="SuperElf\Pool\User" inversed-by="competitors">
             <join-columns>
                 <join-column name="poolUserId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
