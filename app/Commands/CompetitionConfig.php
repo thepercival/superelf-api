@@ -24,7 +24,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 
 /**
- * php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2024/2025 --createAndJoinStart="2024-08-03 12:00" --assemblePeriod="2024-09-03 08:00=>2024-09-14 16:00" --transferPeriod="2025-02-02 12:00=>2025-02-07 18:00" --loglevel=200
  * php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2023/2024 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
  *      create                  --league=Eredivisie
  *                              --season=2014/2015
