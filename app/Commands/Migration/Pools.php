@@ -115,7 +115,7 @@ class Pools extends Command
 //        $f = CompetitionConfig::DateTimeFormat;
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
-
+        $this->addOption('skip-formations', null, InputOption::VALUE_NONE, 'skip-formations');
 
         parent::configure();
     }
@@ -147,6 +147,10 @@ class Pools extends Command
 
             $stmt = $this->migrationConn->executeQuery($sql);
 
+            /** @var bool|null $skipFormations */
+            $skipFormations = $input->getOption('skip-formations');
+            $skipFormations = is_bool($skipFormations) ? $skipFormations : false;
+
             while (($row = $stmt->fetchAssociative()) !== false) {
                 $user = $this->userRepos->findOneBy(['name' => $row['AdminUserName']]);
                 if ($user === null) {
@@ -156,7 +160,7 @@ class Pools extends Command
                 $pool = $this->poolAdministrator->createPool($compConfig, $row['Name'], $user);
                 $this->getLogger()->info('pool "' . $pool->getName() . '" created');
 
-                $this->createUsers($pool, (int)$row['PoolId']);
+                $this->createUsers($pool, $skipFormations, (int)$row['PoolId']);
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {
@@ -167,7 +171,7 @@ class Pools extends Command
     }
 
 
-    protected function createUsers(Pool $pool, int $oldPoolId): void
+    protected function createUsers(Pool $pool, bool $skipFormations, int $oldPoolId): void
     {
         // -------- CREATE ----------- //
         $sql = 'SELECT u.LoginName as userName, pu.Id as oldPoolUserId, pu.Admin as isAdmin ';
@@ -194,6 +198,9 @@ class Pools extends Command
                 $this->getLogger()->info('  pooluser "' . $newPoolUser->getUser()->getName() . '" created');
             }
 
+            if( $skipFormations === true ) {
+                continue;
+            }
             $this->createAssembleFormation($newPoolUser, $row['oldPoolUserId']);
 
             $this->createTransferFormation($newPoolUser, $row['oldPoolUserId']);

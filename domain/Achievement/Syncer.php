@@ -55,9 +55,9 @@ class Syncer
                 }
             }
         }
-        if( count($pools) > 0 && $allPoolsFinished ) {
-            $this->updateSeasonBadges($competitionConfig);
-        }
+//        if( count($pools) > 0 && $allPoolsFinished ) {
+//            $this->updateSeasonBadges($competitionConfig);
+//        }
     }
 
     public function updatePoolAchievements(Pool $pool, Competition $poolCompetition): bool {
