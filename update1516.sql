@@ -1,12 +1,12 @@
-insert into competitions (againstRuleSet, startDateTime, leagueId, seasonId)
-    (
-        select 	c.againstRuleSet, '2020-07-31 00:00:00', l.id, (select id from seasons where name = '2020/2021')
-        from 	competitions c
-                    join seasons s on s.id = c.seasonId
-                    join leagues l on l.id = c.leagueId
-                    join associations a on a.id = l.associationId
-        where a.name = 'Arriva' and s.name = '2022/2023' and l.name = 'Competition'
-    );
+-- insert into competitions (againstRuleSet, startDateTime, leagueId, seasonId)
+  --  (
+  --    select 	c.againstRuleSet, '2020-07-31 00:00:00', l.id, (select id from seasons where name = '2020/2021')
+  --    from 	competitions c
+  --                join seasons s on s.id = c.seasonId
+  --                join leagues l on l.id = c.leagueId
+  --                join associations a on a.id = l.associationId
+  --    where a.name = 'Arriva' and s.name = '2022/2023' and l.name = 'Competition'
+      -- );
 
 insert into trophies(createDateTime, poolUserId, competitionId)
     (
@@ -14,7 +14,7 @@ insert into trophies(createDateTime, poolUserId, competitionId)
                   (
                       select 	csub.id
                       from 	competitions csub
-                                  join leagues lsub on lsub.id = csub.leagueId
+                                  join leagues lsub on lsub.id = csub.leagueId  and lsub.associationId = a.id
                       where 	csub.seasonId = ss.id and lsub.name = 'Competition'
                   )
         from 	poolUsers pu
