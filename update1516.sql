@@ -1,3 +1,13 @@
+insert into competitions (againstRuleSet, startDateTime, leagueId, seasonId)
+    (
+        select 	c.againstRuleSet, '2015-07-01 00:00:00', l.id, (select id from seasons where name = '2015/2016')
+        from 	competitions c
+                    join seasons s on s.id = c.seasonId
+                    join leagues l on l.id = c.leagueId
+                    join associations a on a.id = l.associationId
+        where a.name = 'kamp duim' and s.name = '2014/2015' and l.name = 'Competition'
+    );
+
 insert into trophies(createDateTime, poolUserId, competitionId)
     (
         select 	CURRENT_DATE(), pu.Id,
