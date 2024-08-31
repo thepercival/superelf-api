@@ -1,6 +1,6 @@
 insert into competitions (againstRuleSet, startDateTime, leagueId, seasonId)
    (
-     select 	c.againstRuleSet, '2020-07-31 00:00:00', l.id, (select id from seasons where name = '2020/2021')
+     select 	c.againstRuleSet, '2021-07-31 00:00:00', l.id, (select id from seasons where name = '2021/2022')
      from 	competitions c
                  join seasons s on s.id = c.seasonId
                  join leagues l on l.id = c.leagueId
@@ -25,7 +25,7 @@ insert into trophies(createDateTime, poolUserId, competitionId)
                     join competitionConfigs cc on p.competitionConfigId = cc.id
                     join competitions sc on sc.id = cc.sourceCompetitionId
                     join seasons ss on ss.id = sc.seasonId
-        where  	a.name = 'Deerns' and u.name = 'richardm' and ss.name = '2020/2021'
+        where  	a.name = 'Deerns' and u.name = 'chris2' and ss.name = '2021/2022'
     );
 
 insert into badges(createDateTime, category, poolUserId, poolId, competitionConfigId)
@@ -41,7 +41,7 @@ insert into badges(createDateTime, category, poolUserId, poolId, competitionConf
                     join competitions c on c.leagueId = l.id and c.seasonId = sc.seasonId
                     join poolUsers pu on p.id = pu.poolId
                     join users u on u.id = pu.userId
-        where s.name = '2020/2021' and a.name = 'Deerns' and u.name = 'richardm'
+        where s.name = '2021/2022' and a.name = 'Deerns' and u.name = 'chris2'
     );
 
 insert into badges(createDateTime, category, poolUserId, poolId, competitionConfigId)
@@ -57,7 +57,7 @@ insert into badges(createDateTime, category, poolUserId, poolId, competitionConf
                     join competitions c on c.leagueId = l.id and c.seasonId = sc.seasonId
                     join poolUsers pu on p.id = pu.poolId
                     join users u on u.id = pu.userId
-        where s.name = '2020/2021' and a.name = 'Deerns' and u.name = 'richardm'
+        where s.name = '2021/2022' and a.name = 'Deerns' and u.name = 'chris2'
     );
 
 insert into badges(createDateTime, category, poolUserId, poolId, competitionConfigId)
@@ -73,7 +73,7 @@ insert into badges(createDateTime, category, poolUserId, poolId, competitionConf
                     join competitions c on c.leagueId = l.id and c.seasonId = sc.seasonId
                     join poolUsers pu on p.id = pu.poolId
                     join users u on u.id = pu.userId
-        where s.name = '2020/2021' and a.name = 'Deerns' and u.name = 'ralph'
+        where s.name = '2021/2022' and a.name = 'Deerns' and u.name = 'woutr'
     );
 
 insert into badges(createDateTime, category, poolUserId, poolId, competitionConfigId)
@@ -89,7 +89,7 @@ insert into badges(createDateTime, category, poolUserId, poolId, competitionConf
                     join competitions c on c.leagueId = l.id and c.seasonId = sc.seasonId
                     join poolUsers pu on p.id = pu.poolId
                     join users u on u.id = pu.userId
-        where s.name = '2020/2021' and a.name = 'Deerns' and u.name = 'higuita'
+        where s.name = '2021/2022' and a.name = 'Deerns' and u.name = 'ries'
     );
 insert into badges(createDateTime, category, poolUserId, poolId, competitionConfigId)
     (
@@ -104,5 +104,5 @@ insert into badges(createDateTime, category, poolUserId, poolId, competitionConf
                     join competitions c on c.leagueId = l.id and c.seasonId = sc.seasonId
                     join poolUsers pu on p.id = pu.poolId
                     join users u on u.id = pu.userId
-        where s.name = '2020/2021' and a.name = 'Deerns' and u.name = 'richardm'
+        where s.name = '2021/2022' and a.name = 'Deerns' and u.name = 'chantl'
     );
