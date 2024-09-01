@@ -29,6 +29,25 @@ class Badge extends AchievementBase implements \Stringable
         return $this->pool?->getId();
     }
 
+    public function getPoolName(): string {
+        return $this->pool?->getName() ?? '';
+    }
+
+    public function getSeasonShortName(): string {
+        $name = $this->competitionConfig->getSeason()->getName();
+        if( $name === '2019/2020') {
+            return '19/20';
+        } else if( $name === '2020/2021') {
+            return '20/21';
+        } else if ( $name === '2020') {
+            return '20';
+        }
+        while( strpos($name, '20') !== false ) {
+            $name = str_replace('20', '', $name);
+        }
+        return $name;
+    }
+
     public function getCompetitonConfig(): CompetitionConfig|null {
         return $this->competitionConfig;
     }
@@ -42,18 +61,10 @@ class Badge extends AchievementBase implements \Stringable
         return $this->category->value;
     }
 
-    public function getScopeDescription(): string {
-        $name = $this->competitionConfig->getSeason()->getName();
-        while( strpos($name, '20') !== false ) {
-            $name = str_replace('20', '', $name);
-        }
-        return $this->pool === null ? $name : $this->pool->getName() . ' ' . $name;
-    }
-
     public function __toString(): string {
         $cateogry = 'badge("' . $this->category->value . '")';
         $asignedTo = ' assigned to "' . $this->poolUser->getUser()->getName() . '"';
-        $scope = ' for ' . $this->getScopeDescription();
+        $scope = ' for ' . $this->getPoolName() . ' ' . $this->getSeasonShortName();
         $asignedAt = ' at "' . $this->createDateTime->format('Y-m-d') . '"';
         return $cateogry . $asignedTo . $scope . $asignedAt;
     }

@@ -10,9 +10,12 @@ SuperElf\Achievement\Badge:
         getter: getCategoryNative
       read_only: true
   virtual_properties:
-    getScopeDescription:
-      type: string
-      serialized_name: scopeDescription
     getPoolId:
       type: int
       serialized_name: poolId
+    getPoolName:
+      type: string
+      serialized_name: poolName
+    getSeasonShortName:
+      type: string
+      serialized_name: seasonShortName

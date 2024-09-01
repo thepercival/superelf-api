@@ -44,15 +44,15 @@ class Syncer
     public function syncPoolAchievements(CompetitionConfig $competitionConfig): void
     {
         $this->logger->info('updating pool-achievements .. ');
-        $allPoolsFinished = true;
+//        $allPoolsFinished = true;
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach ($pools as $pool) {
             $this->logger->info('   pool "' . $pool->getName() . '" .. ');
             foreach ($pool->getCompetitions() as $poolCompetition) {
-                $poolFinished = $this->updatePoolAchievements($pool, $poolCompetition);
-                if( !$poolFinished ) {
-                    $allPoolsFinished = false;
-                }
+                /*$poolFinished =*/ $this->updatePoolAchievements($pool, $poolCompetition);
+//                if( !$poolFinished ) {
+//                    $allPoolsFinished = false;
+//                }
             }
         }
 //        if( count($pools) > 0 && $allPoolsFinished ) {

@@ -22,6 +22,10 @@ class Trophy extends AchievementBase  implements \Stringable
         return $this->competition;
     }
 
+    public function getPoolId(): string|int|null {
+        return $this->poolUser->getPool()->getId();
+    }
+
     public function __toString(): string {
         $asignedTo = ' assigned to "' . $this->poolUser->getUser()->getName() . '"';
         $pool = ' for pool "' . $this->poolUser->getPool()->getName() . '"';

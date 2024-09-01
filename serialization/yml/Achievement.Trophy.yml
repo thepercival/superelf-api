@@ -5,3 +5,7 @@ SuperElf\Achievement\Trophy:
   properties:
     competition:
       type: Sports\Competition
+  virtual_properties:
+    getPoolId:
+      type: int
+      serialized_name: poolId

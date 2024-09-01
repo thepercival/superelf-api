@@ -21,7 +21,7 @@ class VersionMiddleware implements Middleware
             return $handler->handle($request);
         }
         $apiVersion = $request->getHeaderLine('X-Api-Version');
-        if ($apiVersion !== '18') {
+        if ($apiVersion !== '19') {
             return new ErrorResponse('de app/website moet vernieuwd worden, ververs de pagina', 418);
         }
         return $handler->handle($request);
