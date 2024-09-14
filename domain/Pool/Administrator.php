@@ -10,12 +10,14 @@ use Sports\Association;
 use Sports\Competition;
 use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Game\Against\Repository as AgainstGameRepository;
+use SuperElf\Formation\Editor as FormationEditor;
 use Sports\Game\State;
 use Sports\Game\Together as TogetherGame;
 use Sports\Game\Together\Repository as TogetherGameRepository;
 use Sports\League;
 use Sports\League\Repository as LeagueRepository;
 use Sports\Round;
+use Sports\Season;
 use Sports\Structure\Repository as StructureRepository;
 use SportsHelpers\Sport\Variant\Against\GamesPerPlace as AgainstGpp;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
@@ -30,7 +32,6 @@ use SuperElf\Points\Repository as PointsRepository;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\PoolCollection;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
@@ -317,6 +318,27 @@ class Administrator
             $this->poolUserRepos->save($poolUser);
         }
     }
+
+    public function copyPoolUserFormationToOtherPool(User $user, Pool $fromPool, Pool $toPool ): void {
+        $fromPoolUser = $fromPool->getUser($user);
+        if( $fromPoolUser === null ) {
+            throw new \Exception('from-poolUser not found');
+        }
+        $toPoolUser = $toPool->getUser($user);
+        if( $toPoolUser === null ) {
+            throw new \Exception('to-poolUser not found');
+        }
+        // remove to-pool-formation
+        $fromFormation = $fromPoolUser->getFormation($fromPool->getAssemblePeriod());
+        if( $fromFormation === null ) {
+            throw new \Exception('from-formation not found');
+        }
+        $formationEditor = new FormationEditor($this->config, false);
+        $toFormation = $formationEditor->copyFormation($fromFormation);
+        $toPoolUser->setAssembleFormation($toFormation);
+        $this->poolUserRepos->save($toPoolUser);
+    }
+
 
 
     protected function saveGamesRecursive(Round $round): void
