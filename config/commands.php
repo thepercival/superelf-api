@@ -81,9 +81,6 @@ $commands = [
     "app:migrate-pools" => function (ContainerInterface $container): MigratePoolsCommand {
         return new MigratePoolsCommand($container);
     },
-    "app:poolusercopy" => function (ContainerInterface $container): PoolUserCopyCommand {
-        return new PoolUserCopyCommand($container);
-    }
 ];
 
 $commands["app:help"] = function (ContainerInterface $container) use ($commands): HelpCommand {
