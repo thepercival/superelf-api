@@ -1,0 +1,9 @@
+-- update game
+php bin/console.php app:get games-basics --league=Eredivisie --season=2024/2025 --sport=football --gameRoundRange=10-10 --loglevel=200
+
+php bin/console.php app:get game --league=Eredivisie --season=2024/2025 --sport=football --id=1364 --loglevel=200
+
+php bin/console.php app:import sofascore game --league=Eredivisie --season=2024/2025 --sport=football --id=12448379 --loglevel=200
+
+-- sync
+php bin/console.php app:sync --loglevel=200
