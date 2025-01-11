@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a11942d741cba44812c99a72316b8f8b",
+    "content-hash": "78ea9673c53cf141c137a2dd2ab793e9",
     "packages": [
         {
             "name": "ahamed/jsphp",
@@ -1167,6 +1167,69 @@
                 }
             ],
             "time": "2024-10-30T19:48:12+00:00"
+        },
+        {
+            "name": "drupol/phpermutations",
+            "version": "1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/drupol/phpermutations.git",
+                "reference": "869912ebee25a761f09518299004eefd1c73f280"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/drupol/phpermutations/zipball/869912ebee25a761f09518299004eefd1c73f280",
+                "reference": "869912ebee25a761f09518299004eefd1c73f280",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 7.1.3"
+            },
+            "require-dev": {
+                "drupol/php-conventions": "^1.7.1",
+                "phpunit/php-code-coverage": "^4 || ^5",
+                "phpunit/phpunit": "^6 || ^7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "drupol\\phpermutations\\": "src/",
+                    "drupol\\phpermutations\\Tests\\": "tests/src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pol Dellaiera",
+                    "email": "pol.dellaiera@protonmail.com"
+                }
+            ],
+            "description": "Generators and iterators, permutations and combinations.",
+            "homepage": "https://github.com/drupol/phpermutations",
+            "keywords": [
+                "combinations",
+                "fibonacci",
+                "iterators",
+                "math",
+                "numbers",
+                "permutations",
+                "prime numbers",
+                "product"
+            ],
+            "support": {
+                "issues": "https://github.com/drupol/phpermutations/issues",
+                "source": "https://github.com/drupol/phpermutations"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/drupol",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-05-11T07:42:22+00:00"
         },
         {
             "name": "endroid/qr-code",
@@ -5776,16 +5839,16 @@
         },
         {
             "name": "thepercival/php-sports-helpers",
-            "version": "v1.2.66",
+            "version": "v1.2.57",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports-helpers.git",
-                "reference": "b65339d52d9b0f4cbc8eb28b29f9c800f95807c3"
+                "reference": "d4c87fc8134324b49131226ce4042d9556d02023"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports-helpers/zipball/b65339d52d9b0f4cbc8eb28b29f9c800f95807c3",
-                "reference": "b65339d52d9b0f4cbc8eb28b29f9c800f95807c3",
+                "url": "https://api.github.com/repos/thepercival/php-sports-helpers/zipball/d4c87fc8134324b49131226ce4042d9556d02023",
+                "reference": "d4c87fc8134324b49131226ce4042d9556d02023",
                 "shasum": ""
             },
             "require": {
@@ -5836,9 +5899,9 @@
             "support": {
                 "email": "coendunnink@gmail.com",
                 "issues": "https://github.com/thepercival/php-sports-helpers/issues",
-                "source": "https://github.com/thepercival/php-sports-helpers/tree/v1.2.66"
+                "source": "https://github.com/thepercival/php-sports-helpers/tree/v1.2.57"
             },
-            "time": "2024-12-02T17:01:10+00:00"
+            "time": "2024-07-30T11:59:51+00:00"
         },
         {
             "name": "thepercival/php-sports-import",
@@ -5919,20 +5982,21 @@
         },
         {
             "name": "thepercival/php-sports-planning",
-            "version": "v1.0.223",
+            "version": "v1.0.184",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports-planning.git",
-                "reference": "2cd5ee860142ba39992bd3a8e770dfc1dfdb5590"
+                "reference": "9a810cd785f16aed60ed61b122380c5527cc69fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports-planning/zipball/2cd5ee860142ba39992bd3a8e770dfc1dfdb5590",
-                "reference": "2cd5ee860142ba39992bd3a8e770dfc1dfdb5590",
+                "url": "https://api.github.com/repos/thepercival/php-sports-planning/zipball/9a810cd785f16aed60ed61b122380c5527cc69fc",
+                "reference": "9a810cd785f16aed60ed61b122380c5527cc69fc",
                 "shasum": ""
             },
             "require": {
                 "doctrine/orm": "^2.10",
+                "drupol/phpermutations": "^1.4",
                 "ext-json": "*",
                 "jms/serializer": "^3.16",
                 "league/period": "^4.9",
@@ -5985,9 +6049,9 @@
             "support": {
                 "email": "coendunnink@gmail.com",
                 "issues": "https://github.com/thepercival/php-sports-planning/issues",
-                "source": "https://github.com/thepercival/php-sports-planning/tree/v1.0.223"
+                "source": "https://github.com/thepercival/php-sports-planning/tree/v1.0.184"
             },
-            "time": "2024-10-13T20:44:17+00:00"
+            "time": "2024-07-30T12:08:25+00:00"
         },
         {
             "name": "thepercival/php-sports-scheduler",
