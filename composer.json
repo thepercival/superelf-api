@@ -34,9 +34,9 @@
     "symfony/property-access": "^6.0",
     "symfony/console": "^6.0",
     "thepercival/php-sports": "^1.0",
-    "thepercival/php-sports-planning": "^1.0",
+    "thepercival/php-sports-planning": "v1.0.184",
     "thepercival/php-sports-import": "^1.0",
-    "thepercival/php-sports-helpers": "^1.0",
+    "thepercival/php-sports-helpers": "v1.2.57",
     "tuupola/base62": "^2.0",
     "tuupola/slim-basic-auth": "^3.2",
     "jimtools/jwt-auth": "^1.0",
@@ -104,7 +104,10 @@
       "composer run doctrine-clearcache",
       "php vendor/bin/doctrine orm:generate-proxies --quiet"
     ],
-    "cs-fix": "php-cs-fixer fix ."
+    "cs-fix": "php-cs-fixer fix .",
+    "se-gameround": "php bin/console.php app:get games-basics --league=Eredivisie --season=2024/2025 --sport=football --gameRoundRange=17-18 --loglevel=200",
+    "se-game": "php bin/console.php app:get game --league=Eredivisie --season=2024/2025 --sport=football --id=<UNKONWN> --loglevel=200",
+    "se-game-import": "php bin/console.php app:import sofascore game --league=Eredivisie --season=2024/2025 --sport=football --id=<UNKONWN> --loglevel=200"
   },
   "config": {
     "allow-plugins": {
