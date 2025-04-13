@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use App\Commands\ExternalSource;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -14,10 +15,13 @@ use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
+use SportsImport\Attacher\Game\Against\Repository as AttacherGameRepository;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\State;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SportsHelpers\Against\Side as AgainstSide;
+use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
+use SportsImport\ExternalSource\SofaScore;
 use SuperElf\Game\Against\EventConverter;
 use SuperElf\LineupItem;
 
@@ -29,7 +33,9 @@ final class AgainstGameAction extends Action
     public function __construct(
         protected CompetitionRepository $competitionRepos,
         protected AgainstGameRepository $againstGameRepos,
+        protected AttacherGameRepository $againstGameAttacherRepos,
         protected TeamPlayerRepository $teamPlayerRepository,
+        protected ExternalSourceFactory $externalSourceFactory,
         LoggerInterface $logger,
         SerializerInterface $serializer
     ) {
@@ -170,9 +176,72 @@ final class AgainstGameAction extends Action
         return true;
     }
 
-//    protected function getSerializationContext(): SerializationContext
-//    {
-//        $serGroups = ['Default','players'];
-//        return SerializationContext::create()->setGroups($serGroups);
-//    }
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchSofaScoreLink(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+            $game = $this->againstGameRepos->find((int)$args["gameId"]);
+            if ($game === null) {
+                throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
+            }
+
+            $externalSource = $this->externalSourceFactory->createByName(SofaScore::NAME);
+            if( $externalSource === null ) {
+                throw new \Exception('kan de externalSource niet vinden', E_ERROR);
+            }
+            $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource->getExternalSource(), $game);
+            if( $externalId === null || strlen($externalId) === 0 ) {
+                throw new \Exception('kan de externalId niet vinden', E_ERROR);
+            }
+
+            $competitors = $competition->getTeamCompetitors()->toArray();
+            $startLocationMap = new StartLocationMap($competitors);
+
+            $homeCompetitor = null;
+            {
+                $homePlace = $game->getSingleSidePlace(AgainstSide::Home)->getPlace();
+                $homeStartLocation = $homePlace->getStartLocation();
+                if ($homeStartLocation !== null) {
+                    $homeCompetitor = $startLocationMap->getCompetitor($homeStartLocation);
+                }
+            }
+            $awayCompetitor = null;
+            {
+                $awayPlace = $game->getSingleSidePlace(AgainstSide::Away)->getPlace();
+                $awayStartLocation = $awayPlace->getStartLocation();
+                if ($awayStartLocation !== null) {
+                    $awayCompetitor = $startLocationMap->getCompetitor($awayStartLocation);
+                }
+            }
+            if( $homeCompetitor === null || $awayCompetitor === null ) {
+                throw new \Exception('competitors could not be found', E_ERROR);
+            }
+
+//            $competitorsDescription = $homeCompetitor->getName() . '-' . $awayCompetitor->getName();
+//            $competitorsDescription = strtolower(str_replace(" ", "-", $competitorsDescription));
+            // $againstPlace->get
+            // $link = "https://www.sofascore.com/football/match/pec-zwolle-feyenoord/" . $externalId;
+//            $link = "https://www.sofascore.com/football/match/" . $competitorsDescription . "/" . $externalId;
+            $competitors = urlencode( $homeCompetitor->getName() . " " . $awayCompetitor->getName() );
+            $link = "https://www.sofascore.com/api/v1/search/all?q=" . $competitors . "&page=0";
+
+            $arrLink = [
+                "link" => $link
+            ];
+
+            $json = $this->serializer->serialize($arrLink, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
 }

@@ -45,7 +45,10 @@ return function (App $app) {
                     new JwtAuthentication\RequestPathRule(
                         [
                             "path" => ["/"],
-                            "ignore" => ["/public"]
+                            "ignore" => [
+                                "/shells",
+                                "/auth/register", "/auth/validate", "/auth/login", "/auth/passwordreset", "auth/passwordchange"
+                            ]
                         ]
                     ),
                     new JwtAuthentication\RequestMethodRule(

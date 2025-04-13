@@ -30,8 +30,6 @@ use SportsHelpers\Sport\Variant\Single;
 use SuperElf\CompetitionConfig;
 use SuperElf\Competitor as PoolCompetitor;
 use SuperElf\Formation;
-use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\League as S11League;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
@@ -51,7 +49,6 @@ class Syncer
         protected AgainstScoreRepository $againstScoreRepos,
         protected TogetherScoreRepository $togetherScoreRepos,
         protected PlaceRepository $placeRepos,
-        protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
