@@ -10,12 +10,8 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\Game\State;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\GameRound\Repository as GameRoundRepository;
-use SuperElf\Periods\ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use Selective\Config\Configuration;
 use Memcached;
@@ -29,7 +25,6 @@ final class PoolTotalsAction extends Action
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected AgainstGameRepository $againstGameRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected GameRoundRepository $gameRoundRepos,
         protected Configuration $config,
         Memcached $memcached,
         LoggerInterface $logger,

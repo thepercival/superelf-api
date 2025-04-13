@@ -36,7 +36,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *                              --season=2022/2023
  *                              --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30"
  *                              --loglevel=200
- * php bin/console.php app:admin-competitionconfigs update-transfer-period  --league=Eredivisie --season=2022/2023 --transferPeriod="2023-01-23 15:00=>2023-01-24 18:45" --loglevel=200
+ * php bin/console.php app:admin-competitionconfigs update-transfer-period  --league=Eredivisie --season=2022/2023 --transferPeriod="2025-02-03 06:00=>2025-02-07 23:00" --loglevel=200
  *      update-transfer-period  --league=Eredivisie
  *                              --season=2022/2023
  *                              --transferPeriod="2023-01-23 15:00=>2023-01-24 18:45"

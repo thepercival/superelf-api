@@ -38,7 +38,49 @@ final class GameRoundAction extends Action
      * @param array<string, int|string> $args
      * @return Response
      */
-    public function fetchCustom(Request $request, Response $response, array $args): Response
+    public function fetchShells(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competitionConfig = $this->competitionConfigRepos->find((int)$args["competitionConfigId"]);
+            if ($competitionConfig === null) {
+                throw new \Exception('kan de competitieconfiguratie niet vinden', E_ERROR);
+            }
+            $viewPeriod = $this->viewPeriodRepos->find((int)$args["viewPeriodId"]);
+            if ($viewPeriod === null) {
+                throw new \Exception('kan de viewperiod niet vinden', E_ERROR);
+            }
+
+            $sourceCompetition = $competitionConfig->getSourceCompetition();
+            $gameRoundShells = $this->viewPeriodRepos->findGameRoundShells($sourceCompetition, $viewPeriod);
+
+//            $firstCreatedOrInProgress = $this->getFirstCreatedOrInProgress(
+//                $competitionConfig->getSourceCompetition(),
+//                $viewPeriod
+//            );
+//            $lastFinishedOrInProgress = $this->getLastFinishedOrInProgress(
+//                $competitionConfig->getSourceCompetition(),
+//                $viewPeriod
+//            );
+
+//            $gameRoundNumbers = [
+//                'firstCreatedOrInProgress' => $firstCreatedOrInProgress,
+//                'lastFinishedOrInProgress' => $lastFinishedOrInProgress
+//            ];
+
+            $json = $this->serializer->serialize($gameRoundShells, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function fetchActive(Request $request, Response $response, array $args): Response
     {
         try {
             $competitionConfig = $this->competitionConfigRepos->find((int)$args["competitionConfigId"]);
@@ -54,14 +96,14 @@ final class GameRoundAction extends Action
                 $competitionConfig->getSourceCompetition(),
                 $viewPeriod
             );
-            $lastFinishedOrInPorgress = $this->getLastFinishedOrInPorgress(
+            $lastFinishedOrInProgress = $this->getLastFinishedOrInProgress(
                 $competitionConfig->getSourceCompetition(),
                 $viewPeriod
             );
 
             $gameRoundNumbers = [
                 'firstCreatedOrInProgress' => $firstCreatedOrInProgress,
-                'lastFinishedOrInPorgress' => $lastFinishedOrInPorgress
+                'lastFinishedOrInProgress' => $lastFinishedOrInProgress
             ];
 
             $json = $this->serializer->serialize($gameRoundNumbers, 'json');
@@ -81,7 +123,7 @@ final class GameRoundAction extends Action
         return array_shift($gameRoundNumbers);
     }
 
-    protected function getLastFinishedOrInPorgress(Competition $competition, ViewPeriod $viewPeriod): int|null
+    protected function getLastFinishedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
     {
         $gameRoundNumbersWithFinishedGames = array_reverse(
             $this->againstGameRepos->getCompetitionGameRoundNumbers(

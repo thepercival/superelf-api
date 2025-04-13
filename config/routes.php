@@ -33,28 +33,55 @@ use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app): void {
+
+    $app->group(
+        '/users/{userId}',
+        function (Group $group): void {
+            $group->options('/shells', ShellAction::class . ':options');
+            $group->get('/shells', ShellAction::class . ':fetchWithRole');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class);
+
+    $app->group('/auth', function (Group $group): void {
+        $group->options('/register', AuthAction::class . ':options');
+        $group->post('/register', AuthAction::class . ':register');
+        $group->options('/validate', AuthAction::class . ':options');
+        $group->post('/validate', AuthAction::class . ':validate');
+        $group->options('/login', AuthAction::class . ':options');
+        $group->post('/login', AuthAction::class . ':login');
+        $group->options('/passwordreset', AuthAction::class . ':options');
+        $group->post('/passwordreset', AuthAction::class . ':passwordreset');
+        $group->options('/passwordchange', AuthAction::class . ':options');
+        $group->post('/passwordchange', AuthAction::class . ':passwordchange');
+    });
+    $app->group(
+        '/auth',
+        function (Group $group): void {
+            $group->options('/extendtoken', AuthAction::class . ':options');
+            $group->post('/extendtoken', AuthAction::class . ':extendToken');
+            $group->options('/profile/{userId}', AuthAction::class . ':options');
+            $group->put('/profile/{userId}', AuthAction::class . ':profile');
+        }
+    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+
+    $app->group(
+        '/shells',
+        function (Group $group): void {
+            $group->options('/shells', ShellAction::class . ':options');
+            $group->get('/shells', ShellAction::class . ':fetchPublic');
+        }
+    );
+
+    // OLD
     $app->group(
         '/public',
         function (Group $group): void {
-            $group->group('/auth', function (Group $group): void {
-                $group->options('/register', AuthAction::class . ':options');
-                $group->post('/register', AuthAction::class . ':register');
-                $group->options('/validate', AuthAction::class . ':options');
-                $group->post('/validate', AuthAction::class . ':validate');
-                $group->options('/login', AuthAction::class . ':options');
-                $group->post('/login', AuthAction::class . ':login');
-                $group->options('/passwordreset', AuthAction::class . ':options');
-                $group->post('/passwordreset', AuthAction::class . ':passwordreset');
-                $group->options('/passwordchange', AuthAction::class . ':options');
-                $group->post('/passwordchange', AuthAction::class . ':passwordchange');
-            });
+
             $group->options('/poolActions', CompetitionConfigAction::class . ':options');
             $group->get('/poolActions', CompetitionConfigAction::class . ':poolActions')->add(
                 VersionMiddleware::class
             );
 
-            $group->options('/shells', ShellAction::class . ':options');
-            $group->get('/shells', ShellAction::class . ':fetchPublic')->add(VersionMiddleware::class);
             $group->options('/seasons', SeasonAction::class . ':options');
             $group->get('/seasons', SeasonAction::class . ':fetch')->add(VersionMiddleware::class);
             $group->options('/pools/{poolId}', PoolAction::class . ':options');
@@ -72,8 +99,11 @@ return function (App $app): void {
                     $group->group(
                         '/{competitionConfigId}/',
                         function (Group $group): void {
-                            $group->options('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':options');
-                            $group->get('viewperiods/{viewPeriodId}/fetchcustom', GameRoundAction::class . ':fetchCustom');
+                            $group->options('viewperiods/{viewPeriodId}/gamerounds', GameRoundAction::class . ':options');
+                            $group->get('viewperiods/{viewPeriodId}/gamerounds', GameRoundAction::class . ':fetchShells');
+
+                            $group->options('viewperiods/{viewPeriodId}/gamerounds/active', GameRoundAction::class . ':options');
+                            $group->get('viewperiods/{viewPeriodId}/gamerounds/active', GameRoundAction::class . ':fetchActive');
 
                             $group->options('availableformations', CompetitionConfigAction::class . ':options');
                             $group->get('availableformations', CompetitionConfigAction::class . ':fetchAvailableFormations');
@@ -113,6 +143,14 @@ return function (App $app): void {
                                     $group->get('', AgainstGameAction::class . ':fetchEvents');
                                 },
                             );
+                            $group->group(
+                                '/sofascore',
+                                function (Group $group): void {
+                                    $group->options('', AgainstGameAction::class . ':options');
+                                    $group->get('', AgainstGameAction::class . ':fetchSofaScoreLink');
+                                },
+                            );
+
                         },
                     );
                     $group->options('/structure', StructureAction::class . ':options');
@@ -153,15 +191,7 @@ return function (App $app): void {
         }
     );
 
-    $app->group(
-        '/auth',
-        function (Group $group): void {
-            $group->options('/extendtoken', AuthAction::class . ':options');
-            $group->post('/extendtoken', AuthAction::class . ':extendToken');
-            $group->options('/profile/{userId}', AuthAction::class . ':options');
-            $group->put('/profile/{userId}', AuthAction::class . ':profile');
-        }
-    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+
 
     $app->group(
         '/users/{userId}',
@@ -398,15 +428,5 @@ return function (App $app): void {
             $group->put('/{scoutedPlayerId}', ScoutedPlayerAction::class . ':edit');
             $group->delete('/{scoutedPlayerId}', ScoutedPlayerAction::class . ':remove');
         },
-    )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
-
-    $app->group(
-        '',
-        function (Group $group): void {
-            $group->options('/shellswithrole', ShellAction::class . ':options');
-            $group->get('/shellswithrole', ShellAction::class . ':fetchWithRole');
-            $group->options('/shells', ShellAction::class . ':options');
-            $group->get('/shells', ShellAction::class . ':fetchPublic');
-        }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 };

@@ -5,14 +5,21 @@ declare(strict_types=1);
 namespace SuperElf\Periods\ViewPeriod;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\ResultSetMapping;
+use League\Period\Period;
+use Sports\Category;
 use Sports\Competition;
+use Sports\Game\State;
 use Sports\Poule;
+use Sports\Qualify\Group as QualifyGroup;
 use SportsHelpers\Repository as BaseRepository;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
 use SportsHelpers\Sport\Variant\WithNrOfPlaces\Against\H2h as AgainstH2hWithNrOfPlaces;
+use SuperElf\GameRound\GameRoundShell;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 /**
+ * @psalm-type _GameRoundRow = array{gameRoundNumber: int, startDateTime: string, endDateTime: string, created: int, inProgress: int, finished: int}
  * @template-extends EntityRepository<ViewPeriod>
  */
 class Repository extends EntityRepository
@@ -83,5 +90,65 @@ class Repository extends EntityRepository
             return null;
         }
         return reset($viewPeriods);
+    }
+
+    /**
+     * @param Competition $sourceCompetition
+     * @param ViewPeriod $viewPeriod
+     * @return list<GameRoundShell>
+     * @throws \Exception
+     */
+    public function findGameRoundShells(
+        Competition $sourceCompetition,
+        ViewPeriod $viewPeriod): array
+    {
+
+        // Define the ResultSetMapping
+        $rsm = new ResultSetMapping();
+        $rsm->addScalarResult('gameRoundNumber', 'gameRoundNumber');
+        $rsm->addScalarResult('startDateTime', 'startDateTime');
+        $rsm->addScalarResult('endDateTime', 'endDateTime');
+        $rsm->addScalarResult('created', 'created');
+        $rsm->addScalarResult('inProgress', 'inProgress');
+        $rsm->addScalarResult('finished', 'finished');
+
+        // Create the native SQL query
+        $sql = "
+        select 		min(ag.gameRoundNumber) as gameRoundNumber
+        ,           min(ag.startDateTime) as startDateTime
+        ,           max(ag.startDateTime) as endDateTime
+        ,			COUNT(CASE WHEN ag.state = 'created' THEN 1 END) AS created
+        ,			COUNT(CASE WHEN ag.state = 'inProgress' THEN 1 END) AS inProgress
+        ,			COUNT(CASE WHEN ag.state = 'finished' THEN 1 END) AS finished
+        from 		againstGames as ag
+                    join poules p on p.id = ag.pouleId
+    			    join rounds r on r.id = p.roundId
+    			    join structureCells sc on sc.id = r.structureCellId
+    			    join roundNumbers rn on rn.id = sc.roundNumberId
+        where 		ag.startDateTime >= :viewPeriodStart
+        and 		ag.startDateTime <= :viewPeriodEnd
+        and         rn.competitionId = :sourceCompetitionId
+        group by 	ag.gameRoundNumber
+        order by 	ag.gameRoundNumber
+       ";
+
+        // Create the query
+        $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
+        $query->setParameter('viewPeriodStart', $viewPeriod->getStartDateTime());
+        $query->setParameter('viewPeriodEnd', $viewPeriod->getEndDateTime());
+        $query->setParameter('sourceCompetitionId', $sourceCompetition->getId());
+
+        /** @var list<GameRoundShell> $result */
+        $result = $query->getResult();
+
+        return array_map(function($row): GameRoundShell {
+            return new GameRoundShell(
+                $row['gameRoundNumber'],
+                new Period($row['startDateTime'], $row['endDateTime']),
+                $row['created'],
+                $row['inProgress'],
+                $row['finished']
+            );
+        }, $result );
     }
 }
