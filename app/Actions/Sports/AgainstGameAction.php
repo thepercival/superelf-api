@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
-use App\Commands\ExternalSource;
+use Sports\Competitor\Team as TeamCompetitor;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Competitor;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Against\Repository as AgainstGameRepository;
@@ -203,8 +204,12 @@ final class AgainstGameAction extends Action
                 throw new \Exception('kan de externalId niet vinden', E_ERROR);
             }
 
-            $competitors = $competition->getTeamCompetitors()->toArray();
-            $startLocationMap = new StartLocationMap($competitors);
+            $teamCompetitors = $competition->getTeamCompetitors()->toArray();
+            $competitors = array_map(function(TeamCompetitor $teamCompetitor): Competitor {
+                return $teamCompetitor;
+            }, $teamCompetitors);
+            $startLocationMap = new StartLocationMap(array_values($competitors));
+
 
             $homeCompetitor = null;
             {
@@ -231,8 +236,8 @@ final class AgainstGameAction extends Action
             // $againstPlace->get
             // $link = "https://www.sofascore.com/football/match/pec-zwolle-feyenoord/" . $externalId;
 //            $link = "https://www.sofascore.com/football/match/" . $competitorsDescription . "/" . $externalId;
-            $competitors = urlencode( $homeCompetitor->getName() . " " . $awayCompetitor->getName() );
-            $link = "https://www.sofascore.com/api/v1/search/all?q=" . $competitors . "&page=0";
+            $encodedCompetitors = urlencode( $homeCompetitor->getName() . " " . $awayCompetitor->getName() );
+            $link = "https://www.sofascore.com/api/v1/search/all?q=" . $encodedCompetitors . "&page=0";
 
             $arrLink = [
                 "link" => $link

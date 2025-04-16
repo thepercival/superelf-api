@@ -6,7 +6,6 @@ namespace SuperElf\Periods\ViewPeriod;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\ResultSetMapping;
-use League\Period\Period;
 use Sports\Category;
 use Sports\Competition;
 use Sports\Game\State;
@@ -16,6 +15,7 @@ use SportsHelpers\Repository as BaseRepository;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
 use SportsHelpers\Sport\Variant\WithNrOfPlaces\Against\H2h as AgainstH2hWithNrOfPlaces;
 use SuperElf\GameRound\GameRoundShell;
+use SuperElf\Period;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 /**
@@ -138,17 +138,18 @@ class Repository extends EntityRepository
         $query->setParameter('viewPeriodEnd', $viewPeriod->getEndDateTime());
         $query->setParameter('sourceCompetitionId', $sourceCompetition->getId());
 
-        /** @var list<GameRoundShell> $result */
-        $result = $query->getResult();
+        /** @var list<_GameRoundRow> $results */
+        $results = $query->getResult();
+
 
         return array_map(function($row): GameRoundShell {
             return new GameRoundShell(
                 $row['gameRoundNumber'],
-                new Period($row['startDateTime'], $row['endDateTime']),
+                new Period(new \League\Period\Period($row['startDateTime'], $row['endDateTime'])),
                 $row['created'],
                 $row['inProgress'],
                 $row['finished']
             );
-        }, $result );
+        }, $results );
     }
 }

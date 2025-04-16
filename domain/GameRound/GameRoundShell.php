@@ -2,7 +2,8 @@
 
 namespace SuperElf\GameRound;
 
-use League\Period\Period;
+
+use SuperElf\Period;
 
 readonly class GameRoundShell
 {

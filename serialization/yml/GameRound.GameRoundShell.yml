@@ -2,13 +2,17 @@ SuperElf\GameRound\GameRoundShell:
 #  exclusion_policy: ALL
   exclude: false
   access_type: public_property
-#  properties:
+properties:
 #    number:
 #      type: integer
-#    startDateTime:
-#      type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
-#      serialized_name: start
-#      read_only: true
+  startDateTime:
+    type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+    serialized_name: start
+    read_only: true
+  endDateTime:
+    type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
+    serialized_name: end
+    read_only: true
 #    created:
 #      type: integer
 #    inProgress:

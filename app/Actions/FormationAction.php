@@ -90,12 +90,9 @@ final class FormationAction extends Action
                 throw new \Exception('het team kan niet opgehaald worden');
             }
             $json = $this->serializer->serialize(
-                $formation,
-                    'json'/*,
-                    $this->getSerializationContext($serGroups)*/
-                );
-
-                return $this->respondWithJson($response, $json);
+                $formation, 'json'/*, $this->getSerializationContext($serGroups)*/
+            );
+            return $this->respondWithJson($response, $json);
 
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 400, $this->logger);

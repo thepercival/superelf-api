@@ -10,7 +10,7 @@ use League\Period\Period as LeaguePeriod;
 use SportsHelpers\Identifiable;
 use Stringable;
 
-abstract class Period extends Identifiable implements Stringable
+class Period extends Identifiable implements Stringable
 {
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
