@@ -47,7 +47,8 @@ return function (App $app) {
                             "path" => ["/"],
                             "ignore" => [
                                 "/shells",
-                                "/auth/register", "/auth/validate", "/auth/login", "/auth/passwordreset", "auth/passwordchange"
+                                "/auth/register", "/auth/validate", "/auth/login", "/auth/passwordreset", "/auth/passwordchange",
+                                "/public/poolActions"
                             ]
                         ]
                     ),

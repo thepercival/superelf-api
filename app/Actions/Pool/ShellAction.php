@@ -36,8 +36,6 @@ final class ShellAction extends Action
      */
     public function fetchPublic(Request $request, Response $response, array $args): Response
     {
-        /** @var User $user */
-        $user = $request->getAttribute("user");
         try {
             $queryParams = $request->getQueryParams();
 
@@ -72,7 +70,7 @@ final class ShellAction extends Action
             $shells = [];
             $poolsByDates = $this->poolRepos->findByFilter($name, $startDateTime, $endDateTime);
             foreach ($poolsByDates as $pool) {
-                $shells[] = new Shell($pool, $user, $nrOfUsers);
+                $shells[] = new Shell($pool, null, $nrOfUsers);
             }
 
             $json = $this->serializer->serialize($shells, 'json', $context);

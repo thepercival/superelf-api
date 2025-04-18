@@ -54,6 +54,7 @@ return function (App $app): void {
         $group->options('/passwordchange', AuthAction::class . ':options');
         $group->post('/passwordchange', AuthAction::class . ':passwordchange');
     });
+
     $app->group(
         '/auth',
         function (Group $group): void {
@@ -64,13 +65,8 @@ return function (App $app): void {
         }
     )->add(UserAuthMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
 
-    $app->group(
-        '/shells',
-        function (Group $group): void {
-            $group->options('/shells', ShellAction::class . ':options');
-            $group->get('/shells', ShellAction::class . ':fetchPublic');
-        }
-    );
+    $app->options('/shells', ShellAction::class . ':options');
+    $app->get('/shells', ShellAction::class . ':fetchPublic');
 
     // OLD
     $app->group(
