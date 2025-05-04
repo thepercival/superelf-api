@@ -100,7 +100,9 @@ class Repository extends EntityRepository
      */
     public function findGameRoundShells(
         Competition $sourceCompetition,
-        ViewPeriod $viewPeriod): array
+        ViewPeriod $viewPeriod,
+        bool $orderByDate = false,
+    ): array
     {
 
         // Define the ResultSetMapping
@@ -129,7 +131,7 @@ class Repository extends EntityRepository
         and 		ag.startDateTime <= :viewPeriodEnd
         and         rn.competitionId = :sourceCompetitionId
         group by 	ag.gameRoundNumber
-        order by 	ag.gameRoundNumber
+        order by 	ag." . ($orderByDate ? "startDateTime" : "gameRoundNumber") . "
        ";
 
         // Create the query

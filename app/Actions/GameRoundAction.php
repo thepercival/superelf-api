@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use SuperElf\CacheService;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Competition;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Periods\ViewPeriod;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use Selective\Config\Configuration;
 
@@ -53,20 +50,6 @@ final class GameRoundAction extends Action
             $sourceCompetition = $competitionConfig->getSourceCompetition();
             $gameRoundShells = $this->viewPeriodRepos->findGameRoundShells($sourceCompetition, $viewPeriod);
 
-//            $firstCreatedOrInProgress = $this->getFirstCreatedOrInProgress(
-//                $competitionConfig->getSourceCompetition(),
-//                $viewPeriod
-//            );
-//            $lastFinishedOrInProgress = $this->getLastFinishedOrInProgress(
-//                $competitionConfig->getSourceCompetition(),
-//                $viewPeriod
-//            );
-
-//            $gameRoundNumbers = [
-//                'firstCreatedOrInProgress' => $firstCreatedOrInProgress,
-//                'lastFinishedOrInProgress' => $lastFinishedOrInProgress
-//            ];
-
             $json = $this->serializer->serialize($gameRoundShells, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
@@ -92,14 +75,34 @@ final class GameRoundAction extends Action
                 throw new \Exception('kan de viewperiod niet vinden', E_ERROR);
             }
 
-            $firstCreatedOrInProgress = $this->getFirstCreatedOrInProgress(
-                $competitionConfig->getSourceCompetition(),
-                $viewPeriod
-            );
-            $lastFinishedOrInProgress = $this->getLastFinishedOrInProgress(
-                $competitionConfig->getSourceCompetition(),
-                $viewPeriod
-            );
+            $sourceCompetition = $competitionConfig->getSourceCompetition();
+            $gameRoundShells = $this->viewPeriodRepos->findGameRoundShells(
+                $sourceCompetition, $viewPeriod, true /* order by date to return correct values */ );
+
+            $firstCreatedOrInProgress = null;
+            foreach( $gameRoundShells as $gameRoundShell) {
+                if( $gameRoundShell->state === State::Created && $firstCreatedOrInProgress === null) {
+                    $firstCreatedOrInProgress = $gameRoundShell;
+                }
+                if( $gameRoundShell->state === State::InProgress) {
+                    if( $firstCreatedOrInProgress === null ) {
+                        $firstCreatedOrInProgress = $gameRoundShell;
+                    }
+                }
+            }
+
+            $lastInProgress = null;
+            $lastFinished = null;
+            $reversedGameRoundShells = array_reverse($gameRoundShells);
+            foreach( $reversedGameRoundShells as $gameRoundShell) {
+                if( $gameRoundShell->state === State::Finished && $lastFinished === null) {
+                    $lastFinished = $gameRoundShell; // 30
+                }
+                if( $gameRoundShell->state === State::InProgress && $lastInProgress === null) {
+                    $lastInProgress = $gameRoundShell;
+                }
+            }
+            $lastFinishedOrInProgress = $lastInProgress ?? $lastFinished;
 
             $gameRoundNumbers = [
                 'firstCreatedOrInProgress' => $firstCreatedOrInProgress,
@@ -112,50 +115,6 @@ final class GameRoundAction extends Action
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
     }
-
-    protected function getFirstCreatedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
-    {
-        $gameRoundNumbers = $this->againstGameRepos->getCompetitionGameRoundNumbers(
-            $competition,
-            [State::Created, State::InProgress],
-            $viewPeriod->getPeriod()
-        );
-        return array_shift($gameRoundNumbers);
-    }
-
-    protected function getLastFinishedOrInProgress(Competition $competition, ViewPeriod $viewPeriod): int|null
-    {
-        $gameRoundNumbersWithFinishedGames = array_reverse(
-            $this->againstGameRepos->getCompetitionGameRoundNumbers(
-                $competition,
-                [State::Finished],
-                $viewPeriod->getPeriod()
-            )
-        );
-        if (count($gameRoundNumbersWithFinishedGames) === 0) {
-            return null;
-        }
-
-        // start mapped created games
-//        $gameRoundNumbersWithCreatedGames = $this->againstGameRepos->getCompetitionGameRoundNumbers(
-//            $competition,
-//            [State::Created],
-//            $viewPeriod->getPeriod()
-//        );
-//        $mappedGameRoundNumbersWithCreatedGames = [];
-//        foreach ($gameRoundNumbersWithCreatedGames as $gameRoundNumberWithCreatedGames) {
-//            $mappedGameRoundNumbersWithCreatedGames[$gameRoundNumberWithCreatedGames] = true;
-//        }
-        // end mapped created games
-
-//        foreach ($gameRoundNumbersWithFinishedGames as $gameRoundNumberWithFinishedGames) {
-//            if (!array_key_exists($gameRoundNumberWithFinishedGames, $mappedGameRoundNumbersWithCreatedGames)) {
-//                return $gameRoundNumberWithFinishedGames;
-//            }
-//        }
-        return array_shift($gameRoundNumbersWithFinishedGames);
-    }
-
 
 
 //    protected function getSerializationContext(): SerializationContext
