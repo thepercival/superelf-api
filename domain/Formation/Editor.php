@@ -59,7 +59,7 @@ class Editor
         foreach ($sportsFormation->getLines() as $sportsFormationLine) {
             $line = new FormationLine($formation, $sportsFormationLine->getNumber());
             for ($placeNumber = 0; $placeNumber <= $sportsFormationLine->getNrOfPersons(); $placeNumber++) {
-                new FormationPlace($line, null, $placeNumber);
+                new FormationPlace($line, null, $placeNumber, 0);
             }
         }
         return $formation;
@@ -72,7 +72,8 @@ class Editor
             $newLine = new FormationLine($newFormation, $sourceFormationLine->getNumber());
             foreach( $sourceFormationLine->getPlaces() as $sourceFormationPlace) {
                 $formationPlace = new FormationPlace(
-                    $newLine, $sourceFormationPlace->getPlayer(), $sourceFormationPlace->getNumber());
+                    $newLine, $sourceFormationPlace->getPlayer(),
+                    $sourceFormationPlace->getNumber(), $sourceFormationPlace->getMarketValue());
                 $formationPlace->setPenaltyPoints($sourceFormationPlace->getPenaltyPoints() );
             }
         }
@@ -114,7 +115,7 @@ class Editor
             $newSportFormationLine = $newSportFormation->getLine($formationLine->getNumber());
             $diffPlaces = $newSportFormationLine->getNrOfPersons() - ($formationLine->getPlaces()->count() - 1);
             for ($i = 0 ; $i < $diffPlaces ; $i++) {
-                $addedPlaces[] = new FormationPlace($formationLine, null);
+                $addedPlaces[] = new FormationPlace($formationLine, null, null, 0);
             }
         }
 

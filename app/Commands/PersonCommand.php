@@ -304,18 +304,19 @@ class PersonCommand extends Command
         $newAt = $this->inputHelper->getDateTimeFromInput($input, 'at', 'Y-m-d');
         $newAt = $newAt->setTime(0, 0);
 
-        $newTeamAbbr = $this->inputHelper->getStringFromInput($input, 'newTeamAbbr',);
-        $newTeam = $this->teamRepos->findOneBy(['abbreviation' => $newTeamAbbr]);
+        $newTeam = $this->inputHelper->getTeamFromInput($input, 'newTeamAbbr');
         if ($newTeam === null) {
-            throw new \Exception('team not found by abbr. : "' . $newTeamAbbr . '"', E_ERROR);
+            throw new \Exception('team not found by abbr.', E_ERROR);
         }
 
         $newLine = $this->getLineFromInput($input);
 
+        $newMarketValue = $this->inputHelper->getNumberFromInput($input, 'newMarketValue');
+
         $season = $competitionConfig->getSeason();
 
         $roleEditor = new RoleEditor($this->getLogger());
-        $roleEditor->update($season, $person, $newAt, $newTeam, $newLine);
+        $roleEditor->update($season, $person, $newAt, $newTeam, $newLine, $newMarketValue);
 
         $this->personRepos->save($person);
 

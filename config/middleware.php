@@ -20,6 +20,7 @@ use Tuupola\Middleware\JwtAuthentication;
 
 // middleware is executed by LIFO
 /** @psalm-suppress UnusedClosureParam */
+/** @psalm-suppress ArgumentTypeCoercion */
 return function (App $app) {
     $container = $app->getContainer();
     if ($container === null) {
@@ -37,6 +38,7 @@ return function (App $app) {
     );
 
     $app->add(
+        /** @psalm-suppress ArgumentTypeCoercion */
         new JwtAuthentication(
             [
                 "secret" => $config->getString('auth.jwtsecret'),
@@ -58,7 +60,7 @@ return function (App $app) {
                         ]
                     )
                 ],
-                "error" => function (Response $response, array $args): UnauthorizedResponse {
+                "error" => function (array $args): UnauthorizedResponse {
                     /** @var string $message */
                     $message = $args['message'];
                     return new UnauthorizedResponse($message);

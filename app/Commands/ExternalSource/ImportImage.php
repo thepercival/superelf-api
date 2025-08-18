@@ -46,7 +46,7 @@ class ImportImage extends ExternalSourceCommand
             // the "--help" option
             ->setHelp('import the images');
 
-        $this->addOption('teamId', null, InputOption::VALUE_OPTIONAL, 'teamId');
+        $this->addOption('teamAbbr', null, InputOption::VALUE_OPTIONAL, 'FEY');
         $this->addOption('personId', null, InputOption::VALUE_OPTIONAL, 'personId');
 
         parent::configure();

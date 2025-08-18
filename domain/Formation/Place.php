@@ -11,7 +11,6 @@ use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
 use SuperElf\Player as S11Player;
 use SuperElf\Points;
-use SuperElf\Points\Calculator;
 use SuperElf\Statistics;
 use SuperElf\Totals;
 
@@ -25,7 +24,8 @@ class Place extends Identifiable
     public function __construct(
         protected FormationLine $formationLine,
         protected S11player|null $player,
-        int|null $number = null
+        int|null $number,
+        protected int $marketValue
     ) {
         if (!$this->formationLine->getPlaces()->contains($this)) {
             $this->formationLine->getPlaces()->add($this);
@@ -50,6 +50,16 @@ class Place extends Identifiable
     public function getNumber(): int
     {
         return $this->number;
+    }
+
+    public function getMarketValue(): int
+    {
+        return $this->marketValue;
+    }
+
+    public function setMarketValue(int $marketValue): void
+    {
+        $this->marketValue = $marketValue;
     }
 
     public function getPenaltyPoints(): int

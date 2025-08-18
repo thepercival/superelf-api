@@ -23,6 +23,9 @@ SuperElf\Pool\User:
       groups: [ transferactions ]
       read_only: true
   virtual_properties:
+    hasAssembleFormation:
+      type: boolean
+      serialized_name: hasAssembleFormation
     getNrOfAssembled:
       type: integer
       groups: [ admin ]
