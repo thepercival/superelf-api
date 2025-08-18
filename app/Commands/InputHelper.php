@@ -101,14 +101,14 @@ class InputHelper
         return $association;
     }
 
-    public function getTeamFromInput(InputInterface $input): Team|null
+    public function getTeamFromInput(InputInterface $input, string $customOptionName = null): Team|null
     {
-        $optionName = 'teamId';
+        $optionName = $customOptionName ?? 'teamAbbr';
         $optionValue = $input->getOption($optionName);
         if (!is_string($optionValue) || strlen($optionValue) === 0) {
             return null;
         }
-        return $this->teamRepos->findOneBy(['id' => $optionValue]);
+        return $this->teamRepos->findOneBy(['abbreviation' => $optionValue]);
     }
 
     public function getPersonFromInput(InputInterface $input): Person|null
@@ -149,6 +149,23 @@ class InputHelper
         }
         return $fallBackValue;
     }
+
+    public function getNumberFromInput(
+        InputInterface $input,
+        string $optionName,
+        int $fallBackValue = null
+    ): int {
+        /** @var string|null $optionValue */
+        $optionValue = $input->getOption($optionName);
+        if (is_string($optionValue) && is_numeric($optionValue)) {
+            return (int)$optionValue;
+        }
+        if ($fallBackValue === null) {
+            throw new Exception('option "' . $optionName . '"  not found');
+        }
+        return $fallBackValue;
+    }
+
 
     public function getIdFromInput(InputInterface $input, int|string|false $fallBackValue = null): int|string|false
     {

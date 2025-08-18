@@ -5,6 +5,7 @@
       <field name="number" column="number" type="smallint" nullable="false" unique="false"/>
       <field name="penaltyPoints" column="penaltyPoints" type="smallint" nullable="false" unique="false"/>
       <field name="totalPoints" column="totalPoints" type="smallint" nullable="false" unique="false"/>
+      <field name="marketValue" column="marketValue" type="bigint" nullable="false" unique="false"/>
       <many-to-one field="formationLine" target-entity="SuperElf\Formation\Line" inversed-by="places">
           <join-columns>
               <join-column name="formationLineId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

@@ -280,6 +280,8 @@ final class FormationAction extends Action
                 }
                 $viewPeriod = $poolUser->getPool()->getAssemblePeriod()->getViewPeriod();
                 $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $player->getPerson());
+
+                $formationPlace->setMarketValue($player->getMarketValue());
             }
             if ($s11Player && $formationPlace->getFormationLine()->getNumber() !== $s11Player->getLineFromPlayers()->value) {
                 throw new \Exception("de linies komen niet overeen", E_ERROR);

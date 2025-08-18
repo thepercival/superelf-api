@@ -23,7 +23,8 @@ class Calculator
         foreach( $assembleFormation->getLines() as $assembleLine) {
             $line = new S11FormationLine($transferFormation, $assembleLine->getNumber());
             foreach( $assembleLine->getPlaces() as $assemblePlace) {
-                new S11FormationPlace($line, $assemblePlace->getPlayer(), $assemblePlace->getNumber());
+                new S11FormationPlace($line, $assemblePlace->getPlayer(),
+                    $assemblePlace->getNumber(), $assemblePlace->getMarketValue());
             }
         }
         return $transferFormation;
@@ -103,7 +104,8 @@ class Calculator
                 new S11FormationPlace(
                     $line,
                     $newS11Player,
-                    $currentPlace->getNumber()
+                    $currentPlace->getNumber(),
+                    $currentPlace->getMarketValue()
                 );                
             }
         }
@@ -117,7 +119,7 @@ class Calculator
             $line = new S11FormationLine($newFormation, $currentLine->getNumber());
             foreach( $currentLine->getPlaces() as $currentPlace) {
                 new S11FormationPlace(
-                    $line, $currentPlace->getPlayer(), $currentPlace->getNumber()
+                    $line, $currentPlace->getPlayer(), $currentPlace->getNumber(), $currentPlace->getMarketValue()
                 );
             }
             if( $line->getNumber() === $playerLineNumber) {
@@ -127,7 +129,7 @@ class Calculator
                 $placeNumber = $asSubstitute ? 0 : count($currentLine->getStartingPlaces()) + 1;
                 // console->log('add Place to lineNr ' + line->getNumber() + ' as placeNr ' + placeNumber);
                 new S11FormationPlace(
-                    $line, $newS11Player, $placeNumber
+                    $line, $newS11Player, $placeNumber, $player->getMarketValue()
                 );
             }  
         }
@@ -157,7 +159,7 @@ class Calculator
                     if( $removed && $currentPlace->getNumber() > 0 ) {
                         $newPlaceNumber--;
                     }
-                    new S11FormationPlace($line, $currentPlace->getPlayer(), $newPlaceNumber);
+                    new S11FormationPlace($line, $currentPlace->getPlayer(), $newPlaceNumber, $currentPlace->getMarketValue());
             }
         }
         return $newFormation;
@@ -174,7 +176,8 @@ class Calculator
                 $places = $currentLine->getPlaces();
             }
             foreach( $places as $currentPlace) {
-                new S11FormationPlace($line, $currentPlace->getPlayer(), $currentPlace->getNumber());
+                new S11FormationPlace($line, $currentPlace->getPlayer(),
+                    $currentPlace->getNumber(), $currentPlace->getMarketValue());
             }
         }
         return $newFormation;

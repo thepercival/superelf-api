@@ -146,6 +146,10 @@ class User extends Identifiable
         $this->assembleFormation = $formation;
     }
 
+    public function hasAssembleFormation(): bool {
+        return $this->assembleFormation !== null;
+    }
+
     public function getTransferFormation(): ?Formation
     {
         return $this->transferFormation;

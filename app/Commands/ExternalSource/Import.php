@@ -66,7 +66,7 @@ class Import extends ExternalSourceCommand
         $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'game-id');
         $this->addOption('startDateTime', null, InputOption::VALUE_OPTIONAL, 'Y-m-d H:i');
         $this->addOption('no-events', null, InputOption::VALUE_NONE, 'no-events');
-        $this->addOption('teamId', null, InputOption::VALUE_OPTIONAL, '12');
+        $this->addOption('teamAbbr', null, InputOption::VALUE_OPTIONAL, 'FEY');
 
         parent::configure();
     }
