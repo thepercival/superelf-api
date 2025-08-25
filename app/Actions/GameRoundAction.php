@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use Sports\Competition\Repository as CompetitionRepository;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use Selective\Config\Configuration;
 
@@ -20,6 +21,7 @@ final class GameRoundAction extends Action
 
     public function __construct(
         protected CompetitionConfigRepository $competitionConfigRepos,
+        protected CompetitionRepository $competitionRepos,
         protected AgainstGameRepository $againstGameRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected Configuration $config,
@@ -113,6 +115,34 @@ final class GameRoundAction extends Action
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array<string, int|string> $args
+     * @return Response
+     */
+    public function isActive(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args["competitionId"]);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+            $gameRoundNumber = (int)$args["gameRoundNumber"];
+
+            $active = $this->againstGameRepos->hasCompetitionGames($competition,null, $gameRoundNumber);
+            $leagueActive = [
+                'active' => $active
+            ];
+
+            $json = $this->serializer->serialize($leagueActive, 'json');
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 400, $this->logger);
         }
     }
 

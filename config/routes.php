@@ -156,6 +156,9 @@ return function (App $app): void {
                 },
             )->add(VersionMiddleware::class);
 
+            $group->options('/competitions/{competitionId}/active/{gameRoundNumber}', GameRoundAction::class . ':options');
+            $group->get('/competitions/{competitionId}/active/{gameRoundNumber}', GameRoundAction::class . ':isActive');
+
             $group->group(
                 '/pools',
                 function (Group $group): void {
