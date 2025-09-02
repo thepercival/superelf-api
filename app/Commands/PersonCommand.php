@@ -113,6 +113,7 @@ class PersonCommand extends Command
         $this->addOption('at', null, InputOption::VALUE_OPTIONAL, 'Y-m-d');
         $this->addOption('newTeamAbbr', null, InputOption::VALUE_OPTIONAL, 'EMM');
         $this->addOption('newLine', null, InputOption::VALUE_OPTIONAL, 'A||M||D||G');
+        $this->addOption('newMarketValue', null, InputOption::VALUE_OPTIONAL, '2000000');
         $this->addOption('showPoints', null, InputOption::VALUE_NONE);
 
         parent::configure();
