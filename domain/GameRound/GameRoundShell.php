@@ -5,6 +5,9 @@ namespace SuperElf\GameRound;
 use Sports\Game\State;
 use SuperElf\Period;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 readonly class GameRoundShell
 {
     public int $totalNrOfGames;

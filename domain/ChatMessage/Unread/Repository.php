@@ -14,7 +14,7 @@ use SuperElf\Pool\User as PoolUser;
 /**
  * @template-extends EntityRepository<UnreadChatMessage>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<UnreadChatMessage>

@@ -8,6 +8,9 @@ use SuperElf\Achievement\Unviewed as UnviewedBase;
 use SuperElf\Achievement\Trophy as TrophyBase;
 use SuperElf\Pool\User as PoolUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Trophy extends UnviewedBase
 {
     public function __construct(PoolUser $poolUser, protected TrophyBase $trophy)

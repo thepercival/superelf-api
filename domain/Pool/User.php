@@ -25,6 +25,9 @@ use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Transfer;
 use SuperElf\User as BaseUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class User extends Identifiable
 {
     protected bool $admin;

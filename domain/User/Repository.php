@@ -11,7 +11,7 @@ use SuperElf\User;
 /**
  * @template-extends EntityRepository<User>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<User>

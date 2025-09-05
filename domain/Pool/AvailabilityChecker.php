@@ -9,7 +9,7 @@ use Sports\Season;
 use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\User;
 
-class AvailabilityChecker
+final class AvailabilityChecker
 {
     protected PoolCollectionRepository $poolCollectionRepos;
     protected AssociationRepository $associationRepos;

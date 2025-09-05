@@ -9,6 +9,9 @@ use SuperElf\Periods\TransferPeriod\Action;
 use SuperElf\Pool\User as PoolUser;
 use Sports\Sport\FootballLine;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Substitution extends Action
 {
     public function __construct(

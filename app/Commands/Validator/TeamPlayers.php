@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class TeamPlayers extends Command
+final class TeamPlayers extends Command
 {
     protected ImportGetter $getter;
     protected AgainstGameRepository $againstGameRepos;
@@ -35,6 +35,7 @@ class TeamPlayers extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -52,6 +53,7 @@ class TeamPlayers extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-validate-team-players');
@@ -70,7 +72,7 @@ class TeamPlayers extends Command
 
             $seasonPeriod = $competition->getSeason()->getPeriod();
             foreach ($competition->getTeams() as $team) {
-                $this->getLogger()->info('validating team ' . $team);
+                $this->getLogger()->info('validating team ' . $team->__toString());
                 $teamPlayers = $this->teamPlayerRepos->findByExt($seasonPeriod, $team);
                 foreach ($teamPlayers as $teamPlayer) {
                     $validator->validate($teamPlayer, $competition);

@@ -19,7 +19,7 @@ use SuperElf\League as S11League;
 use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
 
-class CompetitionsCreator
+final class CompetitionsCreator
 {
     public function __construct(
         protected PoolRepository $poolRepos,
@@ -298,9 +298,8 @@ class CompetitionsCreator
             return new CupCreator();
         } elseif ($s11League === S11League::SuperCup) {
             return new SuperCupCreator();
-        } elseif ($s11League === S11League::WorldCup) {
+        } // elseif ($s11League === S11League::WorldCup)
             return new WorldCupCreator();
-        }
-        throw new \Exception('unknown competitiontype', E_ERROR);
+        // }
     }
 }

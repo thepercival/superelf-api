@@ -10,6 +10,9 @@ use Sports\Game\State;
 use SportsHelpers\Identifiable;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class GameRound extends Identifiable
 {
     public function __construct(protected ViewPeriod $viewPeriod, protected int $number)

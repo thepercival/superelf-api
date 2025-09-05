@@ -24,7 +24,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CreateFormationsCommand extends Command
+final class CreateFormationsCommand extends Command
 {
     private string $customName = 'create-transfer-formations';
 
@@ -64,6 +64,7 @@ class CreateFormationsCommand extends Command
         $this->formationValidator = new FormationValidator($this->config);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -79,6 +80,7 @@ class CreateFormationsCommand extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $loggerName = 'command-' . $this->customName;

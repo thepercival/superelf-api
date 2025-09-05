@@ -10,9 +10,12 @@ use Sports\Competitor as SportsCompetitor;
 use Sports\Competitor\StartLocation;
 use SuperElf\Pool\User as PoolUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Competitor extends StartLocation implements SportsCompetitor
 {
-    public const MAX_LENGTH_INGO = 200;
+    public const int MAX_LENGTH_INGO = 200;
 
     protected int|string|null $id = null;
     protected bool $present = false;
@@ -40,11 +43,13 @@ class Competitor extends StartLocation implements SportsCompetitor
         return $this->poolUser;
     }
 
+    #[\Override]
     public function getCompetition(): Competition
     {
         return $this->competition;
     }
 
+    #[\Override]
     public function getName(): string
     {
         return $this->getUser()->getName();
@@ -60,6 +65,7 @@ class Competitor extends StartLocation implements SportsCompetitor
         return $this->getCompetition()->getId();
     }
 
+    #[\Override]
     public function getPresent(): bool
     {
         return $this->present;
@@ -70,6 +76,7 @@ class Competitor extends StartLocation implements SportsCompetitor
         $this->present = $present;
     }
 
+    #[\Override]
     public function getPublicInfo(): string|null
     {
         return $this->publicInfo;
@@ -88,6 +95,7 @@ class Competitor extends StartLocation implements SportsCompetitor
         $this->publicInfo = $publicInfo;
     }
 
+    #[\Override]
     public function getPrivateInfo(): string|null
     {
         return $this->privateInfo;

@@ -21,18 +21,20 @@ use SuperElf\League as S11League;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Pool;
 
-class CupCreator extends BaseCreator
+final class CupCreator extends BaseCreator
 {
     public function __construct()
     {
         parent::__construct(S11League::Cup);
     }
 
+    #[\Override]
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
     {
         return $sport->createAgainstPersistVariant(3, 1);
     }
 
+    #[\Override]
     public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
         // $nrOfRounds = $this->getNrOfRounds($nrOfValidPoolUsers);
@@ -64,6 +66,7 @@ class CupCreator extends BaseCreator
         $againstQualifyConfig->setDrawPointsExt(0);
     }
 
+    #[\Override]
     public function createGames(Structure $structure, Pool $pool): void
     {
         $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();
@@ -198,7 +201,7 @@ class CupCreator extends BaseCreator
         if (count($removedGameRounds) !== self::NrOfAgainstGamesPerRound) {
             throw new \Exception('not enough gameRounds', E_ERROR);
         }
-        return array_values($removedGameRounds);
+        return $removedGameRounds;
     }
 
     protected function getNrOfQualifiers(int $nrOfCompetitors): int

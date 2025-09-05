@@ -38,7 +38,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *      updateCurrentLine     --league=Eredivisie --season=2022/2023 --id=21 --newLine=A --loglevel=200
  *      stop                  --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --loglevel=200
  */
-class PersonCommand extends Command
+final class PersonCommand extends Command
 {
     private string $customName = 'person';
 
@@ -93,6 +93,7 @@ class PersonCommand extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -119,6 +120,7 @@ class PersonCommand extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $loggerName = 'command-' . $this->customName;
@@ -446,7 +448,7 @@ class PersonCommand extends Command
                 continue;
             }
 
-            $totalsCalculator = new TotalsCalculator($competitionConfig);
+            $totalsCalculator = new TotalsCalculator();
 
             $playerStats = array_values($s11Player->getStatistics()->toArray());
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);

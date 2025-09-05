@@ -13,9 +13,12 @@ use SuperElf\Points;
 use SuperElf\Statistics;
 use SuperElf\Totals;
 
-class Calculator
+/**
+ * @psalm-api
+ */
+final class Calculator
 {
-    public function __construct(protected CompetitionConfig $competitionConfig)
+    public function __construct()
     {
     }
 

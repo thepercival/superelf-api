@@ -7,7 +7,7 @@ namespace SuperElf\Score;
 use Sports\Sport\FootballLine;
 use SuperElf\FootballScore;
 
-class LinePoints extends Points
+final class LinePoints extends Points
 {
     public function __construct(private FootballLine $line, FootballScore $score, int $points)
     {

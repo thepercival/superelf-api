@@ -2,7 +2,7 @@
 
 namespace SuperElf\AQMP;
 
-class Receiver
+final class Receiver
 {
     /*
 

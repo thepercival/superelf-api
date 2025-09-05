@@ -9,6 +9,9 @@ use SportsHelpers\Identifiable;
 use SuperElf\Score\LinePoints as LineScorePoints;
 use SuperElf\Score\Points as ScorePoints;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Points extends Identifiable
 {
     /**

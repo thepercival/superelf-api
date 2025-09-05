@@ -9,6 +9,9 @@ use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
 use SuperElf\GameRound as BaseGameRound;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Appearance extends Identifiable
 {
     public function __construct(

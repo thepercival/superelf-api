@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace App\Response;
 
-class UnauthorizedResponse extends ErrorResponse
+final class UnauthorizedResponse extends ErrorResponse
 {
     public function __construct(string $message)
     {

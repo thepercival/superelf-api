@@ -22,7 +22,7 @@ use SuperElf\Player as S11Player;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Totals;
 
-class Syncer
+final class Syncer
 {
     protected LoggerInterface|null $logger = null;
 
@@ -125,7 +125,7 @@ class Syncer
         $this->logInfo("  voor persoon: " . $person->getName() . " is geen speler gevonden");
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod();
-            $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => periode " . $basePeriod);
+            $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => periode " . $basePeriod->toIso8601());
         }
     }
 

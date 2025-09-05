@@ -8,7 +8,7 @@ use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Team\Player\Repository as TeamPlayerRepository;
 use SuperElf\LineupItem;
 
-class Converter
+final class Converter
 {
     public function __construct(protected TeamPlayerRepository $teamPlayerRepository)
     {

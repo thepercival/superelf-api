@@ -15,7 +15,7 @@ use SuperElf\User;
 use SuperElf\User\Repository as UserRepository;
 use Tuupola\Base62;
 
-class Service
+final class Service
 {
     public function __construct(
         protected UserRepository $userRepos,

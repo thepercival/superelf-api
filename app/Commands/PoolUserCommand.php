@@ -25,7 +25,7 @@ use Symfony\Component\Console\Input\InputArgument;
 /**
  * php bin/console.php app:pooluser --season=2022/2023 --pool='kamp duim' --user='boy' --loglevel=200
  */
-class PoolUserCommand extends Command
+final class PoolUserCommand extends Command
 {
     private string $customName = 'pooluser';
 
@@ -76,6 +76,7 @@ class PoolUserCommand extends Command
 //        $this->formationValidator = new FormationValidator($this->config);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -100,6 +101,7 @@ class PoolUserCommand extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $loggerName = 'command-' . $this->customName;

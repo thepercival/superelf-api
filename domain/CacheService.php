@@ -9,7 +9,7 @@ use Memcached;
 use SuperElf\GameRound\TotalsCalculator;
 use SuperElf\Periods\ViewPeriod;
 
-class CacheService
+final class CacheService
 {
     public const GameRoundFormationLinesTotalsPrefix = 'json-gameRound-formLines-totals';
     public const CacheTime = 86400;

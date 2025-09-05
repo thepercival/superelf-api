@@ -7,6 +7,9 @@ namespace SuperElf;
 use SportsHelpers\Identifiable;
 use SuperElf\Player as S11Player;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class ScoutedPlayer extends Identifiable
 {
     public function __construct(

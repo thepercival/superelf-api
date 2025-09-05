@@ -11,7 +11,7 @@ use SuperElf\Points;
 /**
  * @template-extends EntityRepository<Points>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Points>

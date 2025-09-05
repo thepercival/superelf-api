@@ -11,7 +11,7 @@ use SuperElf\Formation;
 /**
  * @template-extends EntityRepository<Formation>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Formation>

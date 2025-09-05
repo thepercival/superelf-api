@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Points extends Command
+final class Points extends Command
 {
     private string $customName = 'validate-points';
     protected ImportGetter $getter;
@@ -53,6 +53,7 @@ class Points extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -70,6 +71,7 @@ class Points extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $loggerName = 'command-' . $this->customName;

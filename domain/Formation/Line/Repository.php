@@ -12,7 +12,7 @@ use SuperElf\Player as Player;
 /**
  * @template-extends EntityRepository<FormationLine>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<FormationLine>

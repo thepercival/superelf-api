@@ -37,7 +37,7 @@ enum FootballScore: string
         elseif( $type === Sport::SENDOFF ) {
             return self::RedCard;
         }
-        return throw new \Exception('unknown cardtype', E_ERROR);
+        throw new \Exception('unknown cardtype', E_ERROR);
     }
 
 

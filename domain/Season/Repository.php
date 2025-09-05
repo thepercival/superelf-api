@@ -11,7 +11,7 @@ use SportsHelpers\Repository as BaseRepository;
 /**
  * @template-extends EntityRepository<Season>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Season>

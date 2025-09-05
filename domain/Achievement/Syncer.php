@@ -26,7 +26,7 @@ use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Pool\Repository as PoolRepository;
 
-class Syncer
+final class Syncer
 {
     public function __construct(
         protected PoolRepository $poolRepos,
@@ -82,13 +82,13 @@ class Syncer
         $trophies = $this->trophyRepos->findBy(['competition' => $poolCompetition]);
         $createDateTime = $this->getCreateDateTime($trophies);
         foreach( $trophies as $trophy) {
-            $this->logger->info('   trophy remove : ' . $trophy);
+            $this->logger->info('   trophy remove : ' . $trophy->showDescription());
             $this->trophyRepos->remove($trophy, true);
         }
         $poolUsers = $trophyCalculator->getPoolUsersByRank($pool, $poolCompetition, $rank, $structure);
         foreach( $poolUsers as $poolUser) {
             $trophy = new Trophy($poolCompetition, $poolUser, $createDateTime);
-            $this->logger->info('   trophy add : ' . $trophy);
+            $this->logger->info('   trophy add : ' . $trophy->showDescription());
             $this->trophyRepos->save($trophy, true);
             foreach( $pool->getUsers() as $poolUser) {
                 $this->unviewedTrophyRepos->save(new UnviewedTrophy($poolUser, $trophy), true);
@@ -115,14 +115,14 @@ class Syncer
                 $createDateTime = $this->getCreateDateTime($badges);
             }
             foreach( $badges as $badge) {
-                $this->logger->info('   badge remove : ' . $badge);
+                $this->logger->info('   badge remove : ' . $badge->showDescription());
                 $this->badgeRepos->remove($badge, true);
             }
             $poolUsers = array_values( $pool->getUsers()->toArray() );
             $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
             foreach( $bestPoolUsers as $aBestPoolUser) {
                 $badge = new Badge($badgeCategory, $pool, $competitionConfig, $aBestPoolUser, $createDateTime);
-                $this->logger->info('   badge add : ' . $badge);
+                $this->logger->info('   badge add : ' . $badge->showDescription());
                 $this->badgeRepos->save($badge, true);
                 foreach( $pool->getUsers() as $poolUser) {
                     $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
@@ -144,13 +144,13 @@ class Syncer
                 $createDateTime = $this->getCreateDateTime($badges);
             }
             foreach( $badges as $badge) {
-                $this->logger->info('   badge remove : ' . $badge);
+                $this->logger->info('   badge remove : ' . $badge->showDescription());
                 $this->badgeRepos->remove($badge, true);
             }
             $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
             foreach( $bestPoolUsers as $aBestPoolUser) {
                 $badge = new Badge($badgeCategory, null, $competitionConfig, $aBestPoolUser, $createDateTime);
-                $this->logger->info('   badge add : ' . $badge);
+                $this->logger->info('   badge add : ' . $badge->showDescription());
                 $this->badgeRepos->save($badge, true);
                 // season badges have no unviewed
 //                foreach( $pool->getUsers() as $poolUser) {

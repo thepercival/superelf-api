@@ -8,6 +8,9 @@ use SuperElf\Pool;
 use SuperElf\Role;
 use SuperElf\User;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Shell
 {
     private int|string $poolId;

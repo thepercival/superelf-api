@@ -14,10 +14,11 @@
     }
   ],
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "ext-gd": "*",
     "ext-gmp": "*",
     "ext-json": "*",
+    "ext-memcached": "*",
     "doctrine/orm": "^2.7",
     "doctrine/cache": "^2.0",
     "endroid/qr-code": "^4.0",
@@ -25,7 +26,7 @@
     "middlewares/negotiation": "^2.0",
     "monolog/monolog": "^2.0",
     "phpmailer/phpmailer": "^6.1",
-    "php-di/php-di": "^6.0",
+    "php-di/php-di": "^7.0",
     "selective/config": "^1.1",
     "slim/psr7": "^1.1",
     "slim/slim": "^4.3",
@@ -44,20 +45,19 @@
     "thepercival/zend-pdf": "^1.0",
     "slim/twig-view": "^3.1",
     "enqueue/amqp-lib": "^0.10",
-    "symfony/cache": "^6.0",
-    "ext-memcached": "*"
+    "symfony/cache": "^6.0"
   },
   "require-dev": {
     "composer/composer": "^2.2",
-    "phpunit/phpunit": "^9.5",
-    "phpstan/phpstan": "^1.2",
-    "phpstan/phpstan-doctrine": "^1.0",
+    "phpunit/phpunit": "^12.0",
+    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan-doctrine": "^2.0",
     "phpstan/extension-installer": "^1.0",
-    "phpstan/phpstan-phpunit": "^1.0",
-    "phpstan/phpstan-strict-rules": "^1.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpstan/phpstan-strict-rules": "^2.0",
     "friendsofphp/php-cs-fixer": "^3.2",
-    "vimeo/psalm": "^4.15",
-    "psalm/plugin-phpunit": "^0.16",
+    "vimeo/psalm": "^6.0",
+    "psalm/plugin-phpunit": "^0.19",
     "weirdan/doctrine-psalm-plugin": "^2.0"
   },
   "autoload": {

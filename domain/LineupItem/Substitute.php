@@ -5,6 +5,9 @@ namespace SuperElf\LineupItem;
 use Sports\Team\Player as TeamPlayer;
 use SuperElf\LineupItem;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Substitute extends LineupItem
 {
     public function __construct(protected int $minute, TeamPlayer $player, self|null $substitute)

@@ -12,8 +12,9 @@ use SuperElf\User;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthorizationMiddleware;
 
-class AdminMiddleware extends AuthorizationMiddleware
+final class AdminMiddleware extends AuthorizationMiddleware
 {
+    #[\Override]
     protected function isAuthorized(Request $request): void
     {
         /** @var User|null $user */

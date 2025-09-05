@@ -22,7 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 // php bin/console.php app:import:image sofascore teams --league=eredivisie --season=2022/2023
-class ImportImage extends ExternalSourceCommand
+final class ImportImage extends ExternalSourceCommand
 {
     protected Importer $importer;
 
@@ -35,6 +35,7 @@ class ImportImage extends ExternalSourceCommand
         $this->importer->setGameEventSender(new QueueService($this->config->getArray('queue')));
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -52,6 +53,7 @@ class ImportImage extends ExternalSourceCommand
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-import-image');

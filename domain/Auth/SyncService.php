@@ -12,7 +12,7 @@ use SuperElf\User\Repository as UserRepository;
 use SuperElf\Pool;
 use Selective\Config\Configuration;
 
-class SyncService
+final class SyncService
 {
     public function __construct(
         /*private UserRepository $userRepos,*/

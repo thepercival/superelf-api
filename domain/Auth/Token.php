@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
-class Token
+final class Token
 {
     protected string|int $userId;
 

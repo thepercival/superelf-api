@@ -34,7 +34,7 @@ use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
-use SuperElf\Totals\Syncer as TotalsSyncer;
+use SuperElf\Totals\TotalsSyncer as TotalsSyncer;
 use SuperElf\Achievement\Syncer as AchievementsSyncer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -43,7 +43,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * php bin/console.php app:sync --league=Eredivisie --season=2022/2023 --id=181
  */
-class Sync extends Command
+final class Sync extends Command
 {
     private string $customName = 'sync';
 
@@ -113,6 +113,7 @@ class Sync extends Command
         $this->entityManager = $entityManager;
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -134,6 +135,7 @@ class Sync extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $logger = $this->customInitLogger($input);

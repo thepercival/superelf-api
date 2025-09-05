@@ -15,7 +15,7 @@ use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Points\Creator as PointsCreator;
 
-class Administrator
+final class Administrator
 {
     /**
      * @param list<CompetitionConfig> $existingCompetitionConfigs

@@ -13,7 +13,7 @@ use SuperElf\Pool;
 /**
  * @template-extends EntityRepository<ChatMessage>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<ChatMessage>

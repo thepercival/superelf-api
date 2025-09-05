@@ -15,7 +15,7 @@ use SuperElf\Player as S11Player;
 /**
  * @template-extends EntityRepository<S11Player>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<S11Player>

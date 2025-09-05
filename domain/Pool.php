@@ -14,6 +14,9 @@ use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Pool extends Identifiable
 {
     /**

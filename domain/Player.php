@@ -16,6 +16,9 @@ use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use League\Period\Period;
 use SuperElf\Points\Calculator;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Player extends Identifiable
 {
     protected Totals $totals;

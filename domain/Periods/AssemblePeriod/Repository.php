@@ -11,7 +11,7 @@ use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 /**
  * @template-extends EntityRepository<AssemblePeriod>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<AssemblePeriod>

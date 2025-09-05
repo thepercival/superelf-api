@@ -20,7 +20,6 @@ use SuperElf\CacheService;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Pool\Repository as PoolRepository;
@@ -28,14 +27,16 @@ use SuperElf\Points;
 use SuperElf\Totals\Calculator as TotalsCalculator;
 use SuperElf\Totals\Repository as TotalsRepository;
 
-class Syncer
+/**
+ * @psalm-api
+ */
+final class TotalsSyncer
 {
     // protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;
     protected CacheService $cacheService;
 
     public function __construct(
-        protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected PoolRepository $poolRepos,
         protected TotalsRepository $totalsRepos,
@@ -49,8 +50,7 @@ class Syncer
 
     public function syncTotals(
         CompetitionConfig $competitionConfig,
-        AgainstGame $game,
-        bool $alwaysUpdateTotals = false
+        AgainstGame $game
     ): void {
         $competition = $game->getRound()->getNumber()->getCompetition();
         if ($competitionConfig->getSourceCompetition() !== $competition) {
@@ -58,7 +58,7 @@ class Syncer
         }
 
         $points = $competitionConfig->getPoints();
-        $totalsCalculator = new TotalsCalculator($competitionConfig);
+        $totalsCalculator = new TotalsCalculator();
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
 //
@@ -84,8 +84,7 @@ class Syncer
                 $totalsCalculator,
                 $gamePlace,
                 $teamCompetitor->getTeam(),
-                $points,
-                $alwaysUpdateTotals
+                $points
             );
         }
 
@@ -104,8 +103,7 @@ class Syncer
         TotalsCalculator $totalsCalculator,
         AgainstGamePlace $gamePlace,
         Team $team,
-        Points $points,
-        bool $alwaysUpdateTotals = false
+        Points $points
     ): void {
         $this->logInfo('calculating statistics ' . $team->getName() . ' ..');
         $game = $gamePlace->getGame();

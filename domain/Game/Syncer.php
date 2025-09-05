@@ -39,7 +39,7 @@ use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
 use SuperElf\Pool\Repository as PoolRepository;
 
-class Syncer
+final class Syncer
 {
     public function __construct(
         protected PoolRepository $poolRepos,
@@ -302,7 +302,7 @@ class Syncer
                 $this->logger->info('       qualifyPlace not set, because already has finished games');
                 continue;
             }
-            $this->logger->info('       set qualifyPlace for ' . $changedPlace->getStructureLocation());
+            $this->logger->info('       set qualifyPlace for ' . $changedPlace->getStructureLocation()->__toString());
             $this->placeRepos->save($changedPlace, true );
         }
     }

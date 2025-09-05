@@ -10,6 +10,9 @@ use League\Period\Period;
 use SuperElf\GameRound;
 use SuperElf\Period as BasePeriod;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class ViewPeriod extends BasePeriod
 {
     /**

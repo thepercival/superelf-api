@@ -18,6 +18,9 @@ use SuperElf\Points;
 use SuperElf\Substitute\Appearance;
 use SuperElf\Totals;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Line extends Identifiable
 {
     /**

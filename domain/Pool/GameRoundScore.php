@@ -8,6 +8,9 @@ use SuperElf\GameRound;
 use SuperElf\GameRound\Score as BaseGameRoundScore;
 use SuperElf\Pool;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class GameRoundScore extends BaseGameRoundScore
 {
     public function __construct(protected Pool $pool, GameRound $gameRound)

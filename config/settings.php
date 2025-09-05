@@ -7,6 +7,9 @@ use Monolog\Logger;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
+$wwwUrlLocalPath = realpath(__DIR__ . "/../../");
+$apiUrlLocalPath = realpath(__DIR__ . '/../public/');
+
 return [
     'environment' => $_ENV['ENVIRONMENT'],
     'namespace' => 'superelf' . $_ENV['ENVIRONMENT'],
@@ -79,9 +82,9 @@ return [
     ],
     'www' => [
         'wwwurl' => $_ENV['WWW_URL'],
-        'wwwurl-localpath' => realpath(__DIR__ . "/../../") . "/superelf/dist/",
+        'wwwurl-localpath' => ($wwwUrlLocalPath !== false ? $wwwUrlLocalPath : '') . "/superelf/dist/",
         'apiurl' => $_ENV['API_URL'],
-        "apiurl-localpath" => realpath(__DIR__ . '/../public/') . '/',
+        "apiurl-localpath" => ($apiUrlLocalPath !== false ? $apiUrlLocalPath : '') . '/',
     ],
     'email' => [
         'from' => "info@superelf-eredivisie.nl",

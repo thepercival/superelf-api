@@ -38,7 +38,7 @@ use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
 use SuperElf\Sport\Administrator as SportAdministrator;
 use SuperElf\User;
 
-class Administrator
+final class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
     protected FormationEditor $formationEditor;

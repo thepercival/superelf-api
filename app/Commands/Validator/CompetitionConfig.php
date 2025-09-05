@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CompetitionConfig extends Command
+final class CompetitionConfig extends Command
 {
     protected ImportGetter $getter;
     protected CompetitionConfigRepository $competitionConfigRepos;
@@ -40,6 +40,7 @@ class CompetitionConfig extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -57,6 +58,7 @@ class CompetitionConfig extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-validate-competitionconfig');

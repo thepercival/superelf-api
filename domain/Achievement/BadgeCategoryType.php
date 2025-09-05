@@ -8,13 +8,15 @@ namespace SuperElf\Achievement;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use SportsHelpers\EnumDbType;
 
-class BadgeCategoryType extends EnumDbType
+final class BadgeCategoryType extends EnumDbType
 {
+    #[\Override]
     public static function getNameHelper(): string
     {
         return 'enum_BadgeCategory';
     }
 
+    #[\Override]
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
         if( $value === null ) {
@@ -26,6 +28,7 @@ class BadgeCategoryType extends EnumDbType
         return $value;
     }
 
+    #[\Override]
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
         if ($value === BadgeCategory::Result->value) {
@@ -46,6 +49,7 @@ class BadgeCategoryType extends EnumDbType
         return null;
     }
 
+    #[\Override]
     public function getSQLDeclaration(array $column, AbstractPlatform $platform)
     {
         return 'varchar(10)';

@@ -120,7 +120,13 @@ final class PoolAction extends Action
 
             $baseUrl = $this->config->getString("www.wwwurl");
             $url = $baseUrl . "pool/join/" . (string)$pool->getId() . "/" . $this->getJoinKey($pool);
-            return $this->respondWithJson($response, json_encode([ "url" => $url ]));
+
+            $urlAsJson = json_encode([ "url" => $url ]);
+            if( $urlAsJson === false ) {
+                throw new \Exception('invalid json');
+            }
+
+            return $this->respondWithJson($response, $urlAsJson);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }

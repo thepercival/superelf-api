@@ -11,7 +11,7 @@ use SuperElf\Totals as S11Totals;
 /**
  * @template-extends EntityRepository<S11Totals>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<S11Totals>

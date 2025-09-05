@@ -36,7 +36,7 @@ return function (App $app) {
             return $response; // ->withoutHeader("X-Powered-By");
         }
     );
-
+    /** @psalm-suppress MixedArgumentTypeCoercion */
     $app->add(
         /** @psalm-suppress ArgumentTypeCoercion */
         new JwtAuthentication(
@@ -59,12 +59,11 @@ return function (App $app) {
                             "ignore" => ["OPTIONS"]
                         ]
                     )
-                ],
-                "error" => function (array $args): UnauthorizedResponse {
-                    /** @var string $message */
+                ]/*,
+                "error" => function (Slim\Psr7\Response $response): UnauthorizedResponse {
                     $message = $args['message'];
-                    return new UnauthorizedResponse($message);
-                },
+                    return new UnauthorizedResponse($response->getM);
+                }*/,
                 "before" => function (Request $request, array $args): Request {
                     if (is_array($args['decoded']) && count($args['decoded']) > 0) {
                         /** @var array<string, string|int> $decoded */

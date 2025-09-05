@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class HelpCommand extends Command
+final class HelpCommand extends Command
 {
     /**
      * @param ContainerInterface $container
@@ -21,6 +21,7 @@ class HelpCommand extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -40,6 +41,7 @@ class HelpCommand extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->initLogger($input, 'command-help');

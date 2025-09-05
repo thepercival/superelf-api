@@ -11,7 +11,7 @@ use SuperElf\Transfer;
 /**
  * @template-extends EntityRepository<Transfer>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Transfer>

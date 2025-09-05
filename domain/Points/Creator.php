@@ -8,7 +8,7 @@ use Sports\Season;
 use SuperElf\Defaults;
 use SuperElf\Points;
 
-class Creator
+final class Creator
 {
     public function __construct()
     {

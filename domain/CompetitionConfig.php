@@ -10,10 +10,13 @@ use Sports\Season;
 use SportsHelpers\Identifiable;
 use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
-use SuperElf\Periods\ViewPeriod as ViewPeriod;
+use SuperElf\Periods\ViewPeriod;
 use SuperElf\Score\LinePoints as LineScorePoints;
 use SuperElf\Score\Points as ScorePoints;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class CompetitionConfig extends Identifiable
 {
     /**

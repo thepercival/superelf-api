@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Auth;
 
-class Settings
+final class Settings
 {
     /**
      * @var string

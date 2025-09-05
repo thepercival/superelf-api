@@ -11,6 +11,9 @@ use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Player as S11Player;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Statistics extends Identifiable
 {
     public function __construct(

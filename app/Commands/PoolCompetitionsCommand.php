@@ -24,7 +24,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PoolCompetitionsCommand extends Command
+final class PoolCompetitionsCommand extends Command
 {
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdmin;
@@ -70,6 +70,7 @@ class PoolCompetitionsCommand extends Command
         $this->formationEditor = new FormationEditor($this->config, false);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -89,6 +90,7 @@ class PoolCompetitionsCommand extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-create-pool-competitions');

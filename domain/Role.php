@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Role
 {
-    public const COMPETITOR = 1;
-    public const ADMIN = 2;
-    public const SYSADMIN = 4;
+    public const int COMPETITOR = 1;
+    public const int ADMIN = 2;
+    public const int SYSADMIN = 4;
 
     public static function getName(int $role): string
     {

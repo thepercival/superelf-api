@@ -33,7 +33,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *                              --startDateTime="2022-09-02 20:00"
  *                              --loglevel=200
  */
-class Import extends ExternalSourceCommand
+final class Import extends ExternalSourceCommand
 {
     protected Importer $importer;
     protected AgainstGameRepository $againstGameRepos;
@@ -51,6 +51,7 @@ class Import extends ExternalSourceCommand
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -71,6 +72,7 @@ class Import extends ExternalSourceCommand
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {

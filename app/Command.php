@@ -76,6 +76,7 @@ class Command extends SymCommand
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addOption('logtofile', null, InputOption::VALUE_NONE, 'logtofile?');

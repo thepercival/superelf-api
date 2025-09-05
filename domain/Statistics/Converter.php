@@ -17,7 +17,7 @@ use SuperElf\Player as S11Player;
 use SuperElf\Sheet;
 use SuperElf\Statistics;
 
-class Converter
+final class Converter
 {
     public function __construct(
         protected OneTeamSimultaneous $oneTeamSimultaneous
@@ -32,7 +32,7 @@ class Converter
     ): Statistics {
         $gameRound = $viewPeriod->getGameRound($game->getGameRoundNumber());
         if ($gameRound === null) {
-            throw new \Exception('gameround "' . $game->getGameRoundNumber() .'" could not be found in viewperiod ' . $viewPeriod, E_ERROR);
+            throw new \Exception('gameround "' . $game->getGameRoundNumber() .'" could not be found in viewperiod ' . $viewPeriod->getPeriod()->toIso8601(), E_ERROR);
         }
         if ($participation === null) {
             return $this->getDefaultStatistics($s11Player, $gameRound, $game);

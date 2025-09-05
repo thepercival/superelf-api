@@ -8,7 +8,7 @@ use Sports\Competition\Repository as CompetitionRepository;
 use Sports\Season\Repository as SeasonRepository;
 use Sports\Sport\Repository as SportRepository;
 
-class Service
+final class Service
 {
     public function __construct(
         protected CompetitionRepository $competitionRepos,

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Sheet
 {
-    public const CLEAN = 1;
-    public const NORMAL = 2;
-    public const SPOTTY = 3;
+    public const int CLEAN = 1;
+    public const int NORMAL = 2;
+    public const int SPOTTY = 3;
 }

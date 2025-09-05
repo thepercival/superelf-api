@@ -8,6 +8,9 @@ use DateTimeImmutable;
 use Sports\Competition\Referee;
 use SportsHelpers\Identifiable;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class User extends Identifiable
 {
     private string $emailaddress;
@@ -15,12 +18,12 @@ class User extends Identifiable
     private string|null $forgetpassword = null;
     private bool $validated;
 
-    public const MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
-    public const MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
-    public const MIN_LENGTH_PASSWORD = 3;
-    public const MAX_LENGTH_PASSWORD = 50;
-    public const MIN_LENGTH_NAME = 2;
-    public const MAX_LENGTH_NAME = 15;
+    public const int MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
+    public const int MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
+    public const int MIN_LENGTH_PASSWORD = 3;
+    public const int MAX_LENGTH_PASSWORD = 50;
+    public const int MIN_LENGTH_NAME = 2;
+    public const int MAX_LENGTH_NAME = 15;
 
     public function __construct(
         string $emailaddress,
@@ -72,10 +75,10 @@ class User extends Identifiable
         return $this->salt;
     }
 
-    public function setSalt(string $salt): void
-    {
-        $this->salt = $salt;
-    }
+//    public function setSalt(string $salt): void
+//    {
+//        $this->salt = $salt;
+//    }
 
     public function getName(): string
     {
@@ -109,11 +112,10 @@ class User extends Identifiable
 
     public function resetForgetpassword(): void
     {
-        $forgetpassword = rand(100000, 999999);
-        $tomorrow = date("Y-m-d", strtotime('tomorrow'));
-        $tomorrow = new \DateTimeImmutable($tomorrow);
+        $forgetPassword = rand(100000, 999999);
+        $tomorrow = new DateTimeImmutable('tomorrow');
         $tomorrow = $tomorrow->add(new \DateInterval('P1D'));
-        $this->setForgetpassword($forgetpassword . ":" . $tomorrow->format("Y-m-d"));
+        $this->setForgetpassword($forgetPassword . ":" . $tomorrow->format("Y-m-d"));
     }
 
     public function getForgetpasswordToken(): string

@@ -11,13 +11,14 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Selective\Config\Configuration;
 
-class UpdateSitemap extends Command
+final class UpdateSitemap extends Command
 {
     public function __construct(ContainerInterface $container)
     {
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -31,6 +32,7 @@ class UpdateSitemap extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-update-sitemap');

@@ -13,7 +13,7 @@ use SuperElf\Player as S11Player;
 /**
  * @template-extends EntityRepository<FormationPlace>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<FormationPlace>

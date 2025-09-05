@@ -11,7 +11,7 @@ use SuperElf\GameRound as BaseGameRound;
 /**
  * @template-extends EntityRepository<BaseGameRound>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<BaseGameRound>

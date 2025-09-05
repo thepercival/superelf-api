@@ -8,6 +8,9 @@ use SuperElf\Achievement\Unviewed as UnviewedBase;
 use SuperElf\Achievement\Badge as BadgeBase;
 use SuperElf\Pool\User as PoolUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Badge extends UnviewedBase
 {
     public function __construct(PoolUser $poolUser, protected BadgeBase $badge)

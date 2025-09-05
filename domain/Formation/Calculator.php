@@ -16,7 +16,7 @@ use SuperElf\Replacement;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
 
-class Calculator
+final class Calculator
 {
     public function convertToTransferFormation(S11Formation $assembleFormation, ViewPeriod $transferViewPeriod): S11Formation {
         $transferFormation = new S11Formation($transferViewPeriod);

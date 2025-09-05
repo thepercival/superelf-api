@@ -16,7 +16,7 @@ use SuperElf\CompetitionConfig;
 /**
  * @template-extends EntityRepository<CompetitionConfig>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     private SeasonRepository $seasonRepos;
 

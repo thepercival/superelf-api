@@ -6,7 +6,7 @@ namespace App\Handlers;
 
 use Composer\Script\Event;
 
-class ComposerPostInstall
+final class ComposerPostInstall
 {
     /** @psalm-suppress UndefinedClass */
     public static function execute(Event $event): int
@@ -16,9 +16,11 @@ class ComposerPostInstall
 //            return -1;
 //        }
 
-        $pathPrefix = realpath(
-                __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".."
-            ) . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
+        $pathPrefix = realpath(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "..");
+        if( $pathPrefix === false ) {
+            throw new \Exception('invalid path prefix');
+        }
+        $pathPrefix .= DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
 
         self::resetRouterCache($pathPrefix);
         self::resetSerializerCache($pathPrefix);

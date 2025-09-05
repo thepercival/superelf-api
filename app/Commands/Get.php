@@ -34,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * php bin/console.php app:get games-basics --sport=football --league=Eredivisie --season=2022/2023 --gameRoundRange=21-21
  * php bin/console.php app:get game --sport=football --league=Eredivisie --season=2022/2023 --id=181
  */
-class Get extends Command
+final class Get extends Command
 {
     use EntityTrait;
 
@@ -74,6 +74,7 @@ class Get extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -99,6 +100,7 @@ class Get extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-get');

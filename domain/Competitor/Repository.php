@@ -11,7 +11,7 @@ use SuperElf\Competitor;
 /**
  * @template-extends EntityRepository<Competitor>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Competitor>

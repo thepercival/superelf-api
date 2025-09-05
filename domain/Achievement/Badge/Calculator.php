@@ -7,7 +7,7 @@ use SuperElf\Points;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 
-class Calculator
+final class Calculator
 {
     public const MIN_NR_OF_POOLUSERS = 5;
 

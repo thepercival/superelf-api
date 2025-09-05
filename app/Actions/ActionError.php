@@ -6,7 +6,7 @@ namespace App\Actions;
 
 use JsonSerializable;
 
-class ActionError implements JsonSerializable
+final class ActionError implements JsonSerializable
 {
     public const BAD_REQUEST = 'BAD_REQUEST';
     public const INSUFFICIENT_PRIVILEGES = 'INSUFFICIENT_PRIVILEGES';
@@ -52,10 +52,11 @@ class ActionError implements JsonSerializable
         return $this;
     }
 
+    #[\Override]
     /**
      * @return array<string, string|null>
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         $payload = [
             'type' => $this->type,

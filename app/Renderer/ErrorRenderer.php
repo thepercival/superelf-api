@@ -6,8 +6,9 @@ namespace App\Renderer;
 
 use Slim\Error\Renderers\PlainTextErrorRenderer;
 
-class ErrorRenderer extends PlainTextErrorRenderer
+final class ErrorRenderer extends PlainTextErrorRenderer
 {
+    #[\Override]
     /**
      * @param \Throwable $exception
      * @param bool $displayErrorDetails

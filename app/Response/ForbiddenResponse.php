@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace App\Response;
 
-class ForbiddenResponse extends ErrorResponse
+final class ForbiddenResponse extends ErrorResponse
 {
     public function __construct(string $message)
     {

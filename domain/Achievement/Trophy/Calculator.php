@@ -11,7 +11,7 @@ use SuperElf\Pool\User as PoolUser;
 use SuperElf\Competitor as S11Competitor;
 use Sports\Ranking\Calculator\End as EndRankingCalculator;
 
-class Calculator
+final class Calculator
 {
     public function __construct()
     {

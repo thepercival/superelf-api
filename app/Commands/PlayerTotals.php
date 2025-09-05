@@ -16,7 +16,7 @@ use SuperElf\Totals\Repository as TotalsRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PlayerTotals extends Command
+final class PlayerTotals extends Command
 {
     protected ViewPeriodRepository $viewPeriodRepos;
     protected S11PlayerRepository $s11PlayerRepos;
@@ -54,6 +54,7 @@ class PlayerTotals extends Command
         $this->pointsCreator = $pointsCreator;
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -71,6 +72,7 @@ class PlayerTotals extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-update-playertotals');
@@ -79,11 +81,11 @@ class PlayerTotals extends Command
         try {
             $compConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
             $points = $compConfig->getPoints();
-            $totalsCalculator = new TotalsCalculator($compConfig);
+            $totalsCalculator = new TotalsCalculator();
 
             $viewPeriods = $this->viewPeriodRepos->findBy(['sourceCompetition' => $compConfig->getSourceCompetition()]);
             foreach ($viewPeriods as $viewPeriod) {
-                $this->getLogger()->info('viewPeriod: ' . $viewPeriod);
+                $this->getLogger()->info('viewPeriod: ' . $viewPeriod->getPeriod()->toIso8601());
                 $s11Players = $this->s11PlayerRepos->findByViewPeriod($viewPeriod);
                 foreach ($s11Players as $s11Player) {
                     $playerStats = array_values($s11Player->getStatistics()->toArray());

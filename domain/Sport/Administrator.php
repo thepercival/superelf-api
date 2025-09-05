@@ -7,7 +7,7 @@ namespace SuperElf\Sport;
 use Sports\Sport;
 use Sports\Sport\Repository as SportRepository;
 
-class Administrator
+final class Administrator
 {
     public const SportName = 'superelf';
 

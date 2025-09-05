@@ -14,7 +14,7 @@ use SuperElf\FootballScore;
 use SuperElf\Game\Against\GoalEvent as AgainstGameGoalEvent;
 use SuperElf\Game\Against\CardEvent as AgainstGameCardEvent;
 
-class EventConverter
+final class EventConverter
 {
     public function __construct(protected TeamPlayerRepository $teamPlayerRepository)
     {

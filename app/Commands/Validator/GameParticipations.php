@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class GameParticipations extends Command
+final class GameParticipations extends Command
 {
     protected AgainstGameRepository $againstGameRepos;
     protected TeamPlayerRepository $teamPlayerRepos;
@@ -33,6 +33,7 @@ class GameParticipations extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -50,6 +51,7 @@ class GameParticipations extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-validate-game-participations');

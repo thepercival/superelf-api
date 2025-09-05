@@ -9,6 +9,9 @@ use SportsHelpers\Against\Result;
 use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Totals extends Identifiable
 {
     public function __construct(

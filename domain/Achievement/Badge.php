@@ -9,7 +9,10 @@ use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Achievement as AchievementBase;
 
-class Badge extends AchievementBase implements \Stringable
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
+class Badge extends AchievementBase
 {
     public function __construct(
         protected BadgeCategory $category,
@@ -61,7 +64,7 @@ class Badge extends AchievementBase implements \Stringable
         return $this->category->value;
     }
 
-    public function __toString(): string {
+    public function showDescription(): string {
         $cateogry = 'badge("' . $this->category->value . '")';
         $asignedTo = ' assigned to "' . $this->poolUser->getUser()->getName() . '"';
         $scope = ' for ' . $this->getPoolName() . ' ' . $this->getSeasonShortName();

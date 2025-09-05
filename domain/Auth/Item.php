@@ -6,7 +6,7 @@ namespace SuperElf\Auth;
 
 use SuperElf\User;
 
-class Item
+final class Item
 {
     protected string $token;
     protected User $user;

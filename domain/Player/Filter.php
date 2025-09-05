@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf\Player;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Filter
 {
     protected int|string|null $teamId = null;

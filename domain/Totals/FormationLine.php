@@ -5,7 +5,10 @@ namespace SuperElf\Totals;
 use Sports\Sport\FootballLine;
 use SuperElf\Totals as TotalsBase;
 
-class FormationLine
+/**
+ * @psalm-api
+ */
+final class FormationLine
 {
     public function __construct(protected FootballLine $line, protected TotalsBase $totals) {
     }

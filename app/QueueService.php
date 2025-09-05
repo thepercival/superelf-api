@@ -25,7 +25,7 @@ use SportsImport\Queue\Person\ImportEvents as ImportPersonEvents;
  * Class QueueService
  * @package App
  */
-class QueueService implements ImportGameEvents, ImportPersonEvents
+final class QueueService implements ImportGameEvents, ImportPersonEvents
 {
     private string $queueSuffix = '';
 
@@ -43,12 +43,14 @@ class QueueService implements ImportGameEvents, ImportPersonEvents
         unset($amqpOptions['suffix']);
     }
 
+    #[\Override]
     public function sendCreateEvent(Game $newGame): void
     {
         $content = ['action' => GameEventAction::Create->value, 'gameId' => $newGame->getId()];
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
+    #[\Override]
     public function sendCreatePersonEvent(Person $person, Season $season): void
     {
         $content = [
@@ -59,6 +61,7 @@ class QueueService implements ImportGameEvents, ImportPersonEvents
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
+    #[\Override]
     public function sendRescheduleEvent(\DateTimeImmutable $oldStartDateTime, Game $updatedGame): void
     {
         $content = [
@@ -69,6 +72,7 @@ class QueueService implements ImportGameEvents, ImportPersonEvents
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
+    #[\Override]
     public function sendUpdateBasicsEvent(Game $updatedGame): void
     {
         $content = [
@@ -78,6 +82,7 @@ class QueueService implements ImportGameEvents, ImportPersonEvents
         $this->sendEventHelper(self::GENERAL_QUEUE, $content);
     }
 
+    #[\Override]
     public function sendUpdateScoresLineupsAndEventsEvent(Game $updatedGame): void
     {
         $content = [
@@ -109,7 +114,11 @@ class QueueService implements ImportGameEvents, ImportPersonEvents
 
         $context->bind(new AmqpBind($exchange, $queue));
 
-        $message = $context->createMessage(json_encode($content));
+        $jsonContent = json_encode($content);
+        if( $jsonContent === false ) {
+            throw new \Exception('invalid json content');
+        }
+        $message = $context->createMessage($jsonContent);
         $context->createProducer()->send($queue, $message);
     }
 

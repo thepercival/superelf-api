@@ -15,13 +15,14 @@ use SuperElf\League as S11League;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Pool;
 
-class CompetitionCreator extends BaseCreator
+final class CompetitionCreator extends BaseCreator
 {
     public function __construct()
     {
         parent::__construct(S11League::Competition);
     }
 
+    #[\Override]
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
     {
         return $sport->createTogetherPersistVariant(
@@ -31,12 +32,14 @@ class CompetitionCreator extends BaseCreator
         );
     }
 
+    #[\Override]
     public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
         $structure = $this->structureEditor->create($competition, [$nrOfValidPoolUsers]);
         return $structure;
     }
 
+    #[\Override]
     public function createGames(Structure $structure, Pool $pool): void
     {
         $poule = $structure->getSingleCategory()->getRootRound()->getFirstPoule();

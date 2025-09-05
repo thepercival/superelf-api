@@ -4,7 +4,10 @@ namespace SuperElf\Totals;
 
 use SuperElf\Totals\FormationLine as FormationLineTotals;
 
-class PoolUser
+/**
+ * @psalm-api
+ */
+final class PoolUser
 {
     /**
      * @param int $poolUserId

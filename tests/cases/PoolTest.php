@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Tests;
 
-class PoolTest extends \PHPUnit\Framework\TestCase
+final class PoolTest extends \PHPUnit\Framework\TestCase
 {
     public function testWinnersOrLosersDescription(): void
     {

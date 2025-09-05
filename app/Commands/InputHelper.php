@@ -26,7 +26,7 @@ use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use Symfony\Component\Console\Input\InputInterface;
 
-class InputHelper
+final class InputHelper
 {
     protected SportRepository $sportRepos;
     protected AssociationRepository $associationRepos;

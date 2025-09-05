@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Defaults
 {
     public const MAXNROFTRANSFERS = 2;

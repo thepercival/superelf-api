@@ -8,6 +8,9 @@ use League\Period\Period;
 use SuperElf\Period as BasePeriod;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class TransferPeriod extends BasePeriod
 {
     protected int $maxNrOfTransfers;

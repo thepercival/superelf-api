@@ -11,6 +11,9 @@ use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Periods\TransferPeriod\Action;
 use SuperElf\Pool\User as PoolUser;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Transfer extends Action
 {
     public function __construct(

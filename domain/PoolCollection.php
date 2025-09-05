@@ -11,6 +11,9 @@ use Sports\League;
 use SportsHelpers\Identifiable;
 use SuperElf\League as S11League;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class PoolCollection extends Identifiable
 {
     protected Association $association;
@@ -19,8 +22,8 @@ class PoolCollection extends Identifiable
      */
     protected Collection $pools;
 
-    protected const MIN_LENGTH_NAME = 3;
-    protected const MAX_LENGTH_NAME = 20;
+    protected const int MIN_LENGTH_NAME = 3;
+    protected const int MAX_LENGTH_NAME = 20;
 
     public function __construct(Association $association)
     {

@@ -39,6 +39,7 @@ abstract class ExternalSource extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this->addArgument('externalSource', InputArgument::REQUIRED, 'for example sofascore');

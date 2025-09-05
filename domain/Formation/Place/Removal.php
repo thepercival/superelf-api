@@ -7,6 +7,9 @@ namespace SuperElf\Formation\Place;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Player as S11Player;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Removal
 {
     public function __construct(

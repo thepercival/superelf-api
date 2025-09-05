@@ -15,7 +15,7 @@ use SuperElf\Periods\AssemblePeriod as AssemblePeriod;
 use SuperElf\Periods\TransferPeriod as TransferPeriod;
 use SuperElf\Pool\User as PoolUser;
 
-class Editor
+final class Editor
 {
     protected Validator $validator;
 

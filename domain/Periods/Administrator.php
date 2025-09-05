@@ -11,7 +11,7 @@ use SuperElf\Periods\TransferPeriod\Repository as TransferPeriodRepository;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Pool\Repository as PoolRepository;
 
-class Administrator
+final class Administrator
 {
     public function __construct(
         protected PoolRepository $poolRepos,

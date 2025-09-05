@@ -12,7 +12,7 @@ use SuperElf\Substitute\Appearance;
 /**
  * @template-extends EntityRepository<Appearance>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Appearance>

@@ -11,7 +11,7 @@ use SuperElf\Substitution;
 /**
  * @template-extends EntityRepository<Substitution>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<Substitution>

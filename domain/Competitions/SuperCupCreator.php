@@ -16,18 +16,20 @@ use SportsHelpers\Sport\PersistVariant;
 use SuperElf\League as S11League;
 use SuperElf\Pool;
 
-class SuperCupCreator extends BaseCreator
+final class SuperCupCreator extends BaseCreator
 {
     public function __construct()
     {
         parent::__construct(S11League::SuperCup);
     }
 
+    #[\Override]
     protected function convertSportToPersistVariant(Sport $sport): PersistVariant
     {
         return $sport->createAgainstPersistVariant(3, 1);
     }
 
+    #[\Override]
     public function createStructure(Competition $competition, int $nrOfValidPoolUsers): Structure
     {
         $structure = $this->structureEditor->create($competition, [2]);
@@ -92,6 +94,7 @@ class SuperCupCreator extends BaseCreator
 //        }
 //    }
 
+    #[\Override]
     public function createGames(Structure $structure, Pool $pool): void
     {
         $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();

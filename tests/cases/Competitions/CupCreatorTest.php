@@ -19,7 +19,7 @@ use SuperElf\PoolCollection;
 use SuperElf\Pool;
 use SuperElf\TestHelpers\Creator;
 
-class CupCreatorTest extends TestCase
+final class CupCreatorTest extends TestCase
 {
     use Creator;
 

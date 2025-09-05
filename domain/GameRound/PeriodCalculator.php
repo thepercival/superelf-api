@@ -8,7 +8,7 @@ use League\Period\Period;
 use Sports\Game\Against as AgainstGame;
 use SuperElf\GameRound;
 
-class PeriodCalculator
+final class PeriodCalculator
 {
     public function __construct()
     {

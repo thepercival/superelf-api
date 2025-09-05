@@ -16,7 +16,7 @@ use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points\Creator as PointsCreator;
 
-class Syncer
+final class Syncer
 {
     protected LoggerInterface|null $logger = null;
 
@@ -56,7 +56,7 @@ class Syncer
                     $newGameRound = new GameRound($viewPeriod, $viewPeriodGameRoundNumber);
                     $this->gameRoundRepos->save($newGameRound, true);
                     $changedGameRoundNumbers[] = $newGameRound->getNumber();
-                    $vpDescr = 'viewperiod "' . $viewPeriod . '"';
+                    $vpDescr = 'viewperiod "' . $viewPeriod->getPeriod()->toIso8601() . '"';
                     $this->logInfo('add gameround "' . $viewPeriodGameRoundNumber . '" for ' . $vpDescr);
                 }
             }
@@ -68,7 +68,7 @@ class Syncer
                     $viewPeriodGameRounds->removeElement($viewPeriodGameRound);
                     $this->gameRoundRepos->remove($viewPeriodGameRound);
                     $changedGameRoundNumbers[] = $viewPeriodGameRound->getNumber();
-                    $vpDescr = 'viewperiod "' . $viewPeriod . '"';
+                    $vpDescr = 'viewperiod "' . $viewPeriod->getPeriod()->toIso8601() . '"';
                     $this->logInfo('removed gameround "' . $viewPeriodGameRound->getNumber() . '" for ' . $vpDescr);
                 }
             }

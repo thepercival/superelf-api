@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\CompetitionConfig;
 
-class AdminstatorTest extends \PHPUnit\Framework\TestCase
+final class AdminstatorTest extends \PHPUnit\Framework\TestCase
 {
     public function testCreateSeasonOverlap(): void
     {

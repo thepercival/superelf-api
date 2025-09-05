@@ -13,12 +13,13 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
-class UserMiddleware implements MiddlewareInterface
+final class UserMiddleware implements MiddlewareInterface
 {
     public function __construct(protected UserRepository $userRepos)
     {
     }
 
+    #[\Override]
     public function process(Request $request, RequestHandler $handler): Response
     {
         if ($request->getMethod() === "OPTIONS") {

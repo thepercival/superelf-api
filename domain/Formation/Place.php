@@ -14,6 +14,9 @@ use SuperElf\Points;
 use SuperElf\Statistics;
 use SuperElf\Totals;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Place extends Identifiable
 {
     protected int $number;

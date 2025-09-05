@@ -27,6 +27,7 @@ final class CorsMiddleware implements MiddlewareInterface
         $this->origin = $origin;
     }
 
+    #[\Override]
     public function process(Request $request, RequestHandler $handler): Response
     {
         $routeContext = RouteContext::fromRequest($request);

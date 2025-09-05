@@ -11,7 +11,7 @@ use SuperElf\Periods\TransferPeriod as TransferPeriod;
 /**
  * @template-extends EntityRepository<TransferPeriod>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<TransferPeriod>

@@ -27,7 +27,7 @@ use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Statistics\Repository as StatisticsRepository;
 use SuperElf\Totals\Repository as TotalsRepository;
 
-class Syncer
+final class Syncer
 {
     // protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;

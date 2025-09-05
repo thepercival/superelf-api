@@ -11,7 +11,7 @@ use SuperElf\Pool\User as PoolUser;
 /**
  * @template-extends EntityRepository<PoolUser>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<PoolUser>

@@ -11,7 +11,7 @@ use SuperElf\Totals as TotalsBase;
 use SuperElf\Totals\FormationLine as GameRoundFormationLineTotals;
 use SuperElf\Totals\PoolUser as PoolUserTotals;
 
-class TotalsCalculator
+final class TotalsCalculator
 {
     public function __construct() {
     }

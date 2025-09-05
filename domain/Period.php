@@ -10,7 +10,7 @@ use League\Period\Period as LeaguePeriod;
 use SportsHelpers\Identifiable;
 use Stringable;
 
-class Period extends Identifiable implements Stringable
+class Period extends Identifiable
 {
     protected DateTimeImmutable $startDateTime;
     protected DateTimeImmutable $endDateTime;
@@ -49,12 +49,5 @@ class Period extends Identifiable implements Stringable
     public function contains(DateTimeImmutable $date = null): bool
     {
         return $this->getPeriod()->contains($date !== null ? $date : new DateTimeImmutable());
-    }
-
-    public function __toString(): string
-    {
-        return $this->getStartDateTime()->format(DateTime::ISO8601) .
-            ' => ' .
-            $this->getEndDateTime()->format(DateTime::ISO8601);
     }
 }

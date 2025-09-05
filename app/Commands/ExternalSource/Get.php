@@ -24,7 +24,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Get extends ExternalSourceCommand
+final class Get extends ExternalSourceCommand
 {
     protected ImportGetter $getter;
 
@@ -37,6 +37,7 @@ class Get extends ExternalSourceCommand
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -55,6 +56,7 @@ class Get extends ExternalSourceCommand
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-get-external');

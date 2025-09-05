@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use Sports\Person;
 use Sports\Team\Player;
 
-class OneTeamSimultaneous
+final class OneTeamSimultaneous
 {
     public function getPlayer(Person $person, DateTimeImmutable $dateTime = null): ?Player
     {

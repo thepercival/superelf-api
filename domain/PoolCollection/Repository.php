@@ -11,7 +11,7 @@ use SuperElf\PoolCollection;
 /**
  * @template-extends EntityRepository<PoolCollection>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<PoolCollection>

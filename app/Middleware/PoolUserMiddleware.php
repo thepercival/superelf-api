@@ -12,7 +12,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
-class PoolUserMiddleware implements MiddlewareInterface
+final class PoolUserMiddleware implements MiddlewareInterface
 {
     protected PoolUserRepository $poolUserRepos;
 
@@ -22,6 +22,7 @@ class PoolUserMiddleware implements MiddlewareInterface
         $this->poolUserRepos = $poolUserRepos;
     }
 
+    #[\Override]
     public function process(Request $request, RequestHandler $handler): Response
     {
         if ($request->getMethod() === "OPTIONS") {

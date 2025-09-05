@@ -6,7 +6,7 @@ use Sports\Formation as SportsFormation;
 use Sports\Formation\Line as SportsFormationLine;
 use Sports\Sport\FootballLine;
 
-class FootballEditor
+final class FootballEditor
 {
     public function addPersonToLine(SportsFormation $formation, FootballLine $footballLine): SportsFormation {
         $newFormation = new SportsFormation();

@@ -22,7 +22,7 @@ use SuperElf\Periods\ViewPeriod as ViewPeriod;
  * @psalm-type _GameRoundRow = array{gameRoundNumber: int, startDateTime: string, endDateTime: string, created: int, inProgress: int, finished: int}
  * @template-extends EntityRepository<ViewPeriod>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<ViewPeriod>

@@ -25,7 +25,7 @@ use SuperElf\Replacement;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
 
-class Validator
+final class Validator
 {
     /**
      * @var list<SportsFormation>
@@ -383,7 +383,7 @@ class Validator
         }
 
         if( $playerOut->getTeam() !== $playerIn->getTeam() ) {
-            throw new \Exception('teams('.$playerOut->getTeam().', <= ' . $playerIn->getTeam() . ') zijn ongelijk');
+            throw new \Exception('teams(' . $playerOut->getTeam()->__toString() . ', <= ' . $playerIn->getTeam()->__toString() . ') zijn ongelijk');
         }
     }
 

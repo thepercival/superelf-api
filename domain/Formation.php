@@ -19,6 +19,9 @@ use SuperElf\Formation\Place;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Player as S11Player;
 
+/**
+ * @psalm-suppress ClassMustBeFinal
+ */
 class Formation extends Identifiable
 {
     /**

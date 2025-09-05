@@ -9,8 +9,9 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\User;
 
-class PoolUserMiddleware extends AuthorizationMiddleware
+final class PoolUserMiddleware extends AuthorizationMiddleware
 {
+    #[\Override]
     protected function isAuthorized(Request $request): void
     {
         /** @var PoolUser|null $poolUser */

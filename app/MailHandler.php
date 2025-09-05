@@ -16,6 +16,7 @@ final class MailHandler extends NativeMailerHandler
         $this->mailer = $mailer;
     }
 
+    #[\Override]
     /**
      * {@inheritdoc}
      */

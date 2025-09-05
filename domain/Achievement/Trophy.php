@@ -8,7 +8,7 @@ use SuperElf\Pool\User as PoolUser;
 use Sports\Competition;
 use SuperElf\Achievement as AchievementBase;
 
-class Trophy extends AchievementBase  implements \Stringable
+final class Trophy extends AchievementBase
 {
     public function __construct(
         protected Competition $competition,
@@ -26,7 +26,7 @@ class Trophy extends AchievementBase  implements \Stringable
         return $this->poolUser->getPool()->getId();
     }
 
-    public function __toString(): string {
+    public function showDescription(): string {
         $asignedTo = ' assigned to "' . $this->poolUser->getUser()->getName() . '"';
         $pool = ' for pool "' . $this->poolUser->getPool()->getName() . '"';
         $competition = ' for competition "' . $this->competition->getName() . '"';

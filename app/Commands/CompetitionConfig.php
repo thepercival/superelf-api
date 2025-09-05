@@ -16,7 +16,7 @@ use SuperElf\GameRound\Syncer as GameRoundSyncer;
 use SuperElf\Player\Syncer as S11PlayerSyncer;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
-use SuperElf\Totals\Syncer as TotalsSyncer;
+use SuperElf\Totals\TotalsSyncer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -31,7 +31,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *                              --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"
  *                              --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00"
  *                              --loglevel=200
- * php bin/console.php app:admin-competitionconfigs update-assemble-period  --league=Eredivisie --season=2022/2023 --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30" --loglevel=200
+ * php bin/console.php app:admin-cofinal mpetitionconfigs update-assemble-period  --league=Eredivisie --season=2022/2023 --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30" --loglevel=200
  *      update-assemble-period  --league=Eredivisie
  *                              --season=2022/2023
  *                              --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30"
@@ -45,7 +45,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *      show                    --league=Eredivisie
  *                              --season=2022/2023
  */
-class CompetitionConfig extends Command
+final class CompetitionConfig extends Command
 {
     public const DateTimeFormat = 'Y-m-d H:i';
     protected AgainstGameRepository $againstGameRepos;
@@ -93,6 +93,7 @@ class CompetitionConfig extends Command
         parent::__construct($container);
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -113,6 +114,7 @@ class CompetitionConfig extends Command
         parent::configure();
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-competitionconfig');

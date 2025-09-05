@@ -21,12 +21,12 @@ use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use SuperElf\Player\Repository as PlayerRepository;
 use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Totals\Syncer as TotalsSyncer;
+use SuperElf\Totals\TotalsSyncer as TotalsSyncer;
 use SuperElf\Substitute\Appearance;
 use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
 use SuperElf\Totals\Calculator as TotalsCalculator;
 
-class Syncer
+final class Syncer
 {
     protected LoggerInterface|null $logger = null;
 
@@ -60,13 +60,13 @@ class Syncer
         $gameRound = $viewPeriod->getGameRound($game->getGameRoundNumber());
         if ($gameRound === null) {
             throw new Exception('gameround "' . $game->getGameRoundNumber() . '"  for viewperiod "' .
-                    $viewPeriod . '" could not be found for gameStartDate "' .
+                    $viewPeriod->getPeriod()->toIso8601() . '" could not be found for gameStartDate "' .
                     $game->getStartDateTime()->format(DateTimeInterface::ATOM), E_ERROR);
         }
         $this->logInfo('updating substituteAppereances ..');
 
         $teamCalculator = new TeamCalculator($competition);
-        $totalsCalculator = new TotalsCalculator($competitionConfig);
+        $totalsCalculator = new TotalsCalculator();
         $points = $competitionConfig->getPoints();
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
         foreach( $pools as $pool ) {

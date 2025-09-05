@@ -12,7 +12,7 @@ use SuperElf\Pool\User as PoolUser;
 /**
  * @template-extends EntityRepository<UnviewedBadge>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<UnviewedBadge>

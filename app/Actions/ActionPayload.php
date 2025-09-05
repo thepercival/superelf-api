@@ -6,7 +6,7 @@ namespace App\Actions;
 
 use JsonSerializable;
 
-class ActionPayload implements JsonSerializable
+final class ActionPayload implements JsonSerializable
 {
     /**
      * @param int                   $statusCode
@@ -38,6 +38,7 @@ class ActionPayload implements JsonSerializable
         return $this->error;
     }
 
+    #[\Override]
     /**
      * @return array<string, array<string, mixed>|object|int>
      */

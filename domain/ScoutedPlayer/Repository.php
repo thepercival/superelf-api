@@ -13,7 +13,7 @@ use SuperElf\User;
 /**
  * @template-extends EntityRepository<ScoutedPlayer>
  */
-class Repository extends EntityRepository
+final class Repository extends EntityRepository
 {
     /**
      * @use BaseRepository<ScoutedPlayer>
