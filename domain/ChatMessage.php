@@ -8,7 +8,7 @@ use Sports\Poule;
 use SportsHelpers\Identifiable;
 use SuperElf\Pool\User as PoolUser;
 
-final class ChatMessage extends Identifiable
+class ChatMessage extends Identifiable
 {
     protected \DateTimeImmutable $dateTime;
 
