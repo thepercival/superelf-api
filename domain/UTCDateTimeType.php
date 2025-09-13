@@ -33,7 +33,7 @@ final class UTCDateTimeType extends DateTimeImmutableType
     }
 
     #[\Override]
-    public function convertToPHPValue( $value, AbstractPlatform $platform): \DateTimeImmutable
+    public function convertToPHPValue( $value, AbstractPlatform $platform): \DateTimeImmutable|null
     {
         if (null === $value || $value instanceof DateTimeImmutable) {
             return $value;

@@ -29,7 +29,7 @@ final class BadgeCategoryType extends EnumDbType
     }
 
     #[\Override]
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue($value, AbstractPlatform $platform): BadgeCategory|null
     {
         if ($value === BadgeCategory::Result->value) {
             return BadgeCategory::Result;

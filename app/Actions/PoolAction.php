@@ -158,6 +158,10 @@ final class PoolAction extends Action
             if ($pool->getUser($user) !== null) {
                 throw new \Exception('je bent al ingeschreven voor de pool');
             }
+            $now = new \DateTimeImmutable();
+            if (!$pool->getCompetitionConfig()->getCreateAndJoinPeriod()->getPeriod()->contains($now)) {
+                throw new \Exception('de inschrijfperiode is niet actief');
+            }
             $poolUser = $this->poolAdministrator->addUser($pool, $user, false);
 
             $this->poolUserRepos->save($poolUser, true);

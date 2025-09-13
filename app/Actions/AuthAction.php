@@ -144,13 +144,24 @@ final class AuthAction extends Action
             if ($user === null) {
                 throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
             }
-            $environment = $this->config->getString('environment');
-            if (!($environment === 'development' && $this->config->getBool('ignorePassword') === true)
-                && (!password_verify($user->getSalt() . $password, $user->getPassword())
+
+            $ignorePassword = $this->config->getBool('ignorePassword');
+            if ($ignorePassword !== true)
+            {
+                if ((!password_verify($user->getSalt() . $password, $user->getPassword())
                     && hash('sha512', $user->getSalt() . $password) !== $user->getPassword())
-            ) {
-                throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
+                ) {
+                    throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
+                }
             }
+
+
+//            if (!($environment === 'development' && $this->config->getBool('ignorePassword') === true)
+//                && (!password_verify($user->getSalt() . $password, $user->getPassword())
+//                    && hash('sha512', $user->getSalt() . $password) !== $user->getPassword())
+//            ) {
+//                throw new \Exception("ongeldige emailadres-wachtwoord-combinatie");
+//            }
 
             if (!$user->getValidated()) {
                 throw new \Exception(

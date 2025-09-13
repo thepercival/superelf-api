@@ -8,7 +8,7 @@ use SuperElf\Pool\User as PoolUser;
 use Sports\Competition;
 use SuperElf\Achievement as AchievementBase;
 
-final class Trophy extends AchievementBase
+class Trophy extends AchievementBase
 {
     public function __construct(
         protected Competition $competition,

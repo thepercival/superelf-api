@@ -24,10 +24,11 @@ class ErrorResponse extends Response
         $handle = fopen("php://temp", "wb+");
         if ($handle !== false) {
             $body = new Stream($handle);
-            $json = json_encode(["message" => $message]/*, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT*/);
-            if (is_string($json)) {
-                $body->write($json);
-            }
+            $body->write($message);
+//            $json = json_encode(["message" => $message]/*, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT*/);
+//            if (is_string($json)) {
+//                $body->write($json);
+//            }
         }
         parent::__construct($status, $headers, $body);
     }
