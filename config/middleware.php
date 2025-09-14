@@ -50,7 +50,7 @@ return function (App $app) {
                             "ignore" => [
                                 "/shells",
                                 "/auth/register", "/auth/validate", "/auth/login", "/auth/passwordreset", "/auth/passwordchange",
-                                "/public/poolActions"
+                                "/public"
                             ]
                         ]
                     ),
