@@ -23,7 +23,8 @@ final class RangeCalculator
     {
         $height = 1;    // Title
         $height++;      // period-names
-        $height++;      // period-start-end
+        $height++;      // period-start-end-date
+        $height++;      // period-start-end-time
         $height++;      // border
         return $height + $this->getMaxNrOfGameRounds($competitionConfig);
     }

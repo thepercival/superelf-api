@@ -80,7 +80,7 @@ $ sql: update users set salt = 'f?????';
 # php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2024/2025 --createAndJoinStart="2024-08-03 12:00" --assemblePeriod="2024-09-03 08:00=>2024-09-14 14:30" --transferPeriod="2025-02-02 12:00=>2025-02-07 17:00"
 # php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2025/2026 --createAndJoinStart="2025-07-31 12:00" --assemblePeriod="2025-09-02 08:00=>2026-09-13 12:30" --transferPeriod="2026-02-03 12:00=>2026-02-06 20:00"
 
-# php bin/console.php app:admin-competitionconfigs update-transfer-period --league=Eredivisie --season=2025/2026 --transferPeriod="2015-01-26 00:00=>2015-01-29 20:00"
+# php bin/console.php app:admin-competitionconfigs update-transfer-period --league=Eredivisie --season=2025/2026 --transferPeriod="2026-02-03 12:00=>2026-02-06 19:00"
 
 -- STEP 8 => SYNC GAMEROUNDS
 # php bin/console.php app:sync --league=Eredivisie --season=2025/2026 --gameRoundRange=1-34

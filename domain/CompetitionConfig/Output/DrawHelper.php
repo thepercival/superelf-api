@@ -23,6 +23,7 @@ final class DrawHelper
     public const TransferViewPeriodTitle = 'transfer-viewperiod';
     public const MaxLeagueNameChars = 10;
     public const DateFormat = 'd/m';
+    public const TimeFormat = 'H:s';
     protected NameService $nameService;
     protected RangeCalculator $rangeCalculator;
     protected GameRoundPeriodCalculator $gameRoundPeriodCalculator;
@@ -48,7 +49,8 @@ final class DrawHelper
     ): void {
         $coordinate = $this->drawTitle($title, $origin);
         $coordinate = $this->drawPeriodNames($competitionConfig, $coordinate);
-        $coordinate = $this->drawPeriodDates($competitionConfig, $coordinate);
+        $coordinate = $this->drawPeriodDateTimes($competitionConfig, $coordinate, self::DateFormat);
+        $coordinate = $this->drawPeriodDateTimes($competitionConfig, $coordinate, self::TimeFormat);
         $coordinate = $this->drawBorderRow($coordinate);
         $this->drawGameRoundNumbers($competitionConfig, $againstGames, $coordinate);
     }
@@ -103,39 +105,39 @@ final class DrawHelper
         return $this->drawer->drawToRight($coordinate, '|')->incrementX();
     }
 
-    public function drawPeriodDates(CompetitionConfig $competitionConfig, Coordinate $origin): Coordinate
+    public function drawPeriodDateTimes(CompetitionConfig $competitionConfig, Coordinate $origin, string $format): Coordinate
     {
         $coordinate = $this->drawer->drawCellToRight(
             $origin,
-            $competitionConfig->getCreateAndJoinPeriod()->getPeriod()->toIso80000(self::DateFormat),
+            $competitionConfig->getCreateAndJoinPeriod()->getPeriod()->toIso80000($format),
             $this->rangeCalculator->getCreateAndJoinWidth(),
             Align::Center
         )->incrementX();
         $coordinate = $this->drawBorder($coordinate);
         $coordinate = $this->drawer->drawCellToRight(
             $coordinate,
-            $competitionConfig->getAssemblePeriod()->getPeriod()->toIso80000(self::DateFormat),
+            $competitionConfig->getAssemblePeriod()->getPeriod()->toIso80000($format),
             $this->rangeCalculator->getMaxAssemblePeriodWidth(),
             Align::Center
         )->incrementX();
         $coordinate = $this->drawBorder($coordinate);
         $coordinate = $this->drawer->drawCellToRight(
             $coordinate,
-            $competitionConfig->getAssemblePeriod()->getViewPeriod()->getPeriod()->toIso80000(self::DateFormat),
+            $competitionConfig->getAssemblePeriod()->getViewPeriod()->getPeriod()->toIso80000($format),
             $this->rangeCalculator->getAssembleViewPeriodWidth(),
             Align::Center
         )->incrementX();
         $coordinate = $this->drawBorder($coordinate);
         $coordinate = $this->drawer->drawCellToRight(
             $coordinate,
-            $competitionConfig->getTransferPeriod()->getPeriod()->toIso80000(self::DateFormat),
+            $competitionConfig->getTransferPeriod()->getPeriod()->toIso80000($format),
             $this->rangeCalculator->getMaxTransferPeriodWidth(),
             Align::Center
         )->incrementX();
         $coordinate = $this->drawBorder($coordinate);
         $this->drawer->drawCellToRight(
             $coordinate,
-            $competitionConfig->getTransferPeriod()->getViewPeriod()->getPeriod()->toIso80000(self::DateFormat),
+            $competitionConfig->getTransferPeriod()->getViewPeriod()->getPeriod()->toIso80000($format),
             $this->rangeCalculator->getTransferViewPeriodWidth(),
             Align::Center
         );
