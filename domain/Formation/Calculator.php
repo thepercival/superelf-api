@@ -172,12 +172,14 @@ final class Calculator
 
             if( FootballLine::from($line->getNumber()) === $lineNumber ) {
                 $places = $currentLine->getStartingPlaces();
+                $deltaForSubstitute = 1;
             } else {
                 $places = $currentLine->getPlaces();
+                $deltaForSubstitute = 0;
             }
             foreach( $places as $currentPlace) {
                 new S11FormationPlace($line, $currentPlace->getPlayer(),
-                    $currentPlace->getNumber(), $currentPlace->getMarketValue());
+                    $currentPlace->getNumber() - $deltaForSubstitute, $currentPlace->getMarketValue());
             }
         }
         return $newFormation;
