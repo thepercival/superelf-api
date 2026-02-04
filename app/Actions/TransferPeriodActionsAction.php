@@ -241,7 +241,7 @@ final class TransferPeriodActionsAction extends Action
             );
 
             // 3 check if new action creates valid formation
-            $this->formationValidator->validateTransferActions( $poolUser );
+            $this->formationValidator->validateTransferActions( $poolUser, true );
 
             // 4 add to substitutions
             $this->substitutionRepos->save($substitution, true);
