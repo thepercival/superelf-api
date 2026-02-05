@@ -117,9 +117,13 @@ final class Calculator
         $newFormation = new S11Formation($viewPeriod);
         foreach( $currentFormation->getLines() as $currentLine) {
             $line = new S11FormationLine($newFormation, $currentLine->getNumber());
+            $delta = 0;
+            if($line->getNumber() === $playerLineNumber && $asSubstitute && $currentLine->hasSubstitute() ) {
+                $delta++;
+            }
             foreach( $currentLine->getPlaces() as $currentPlace) {
                 new S11FormationPlace(
-                    $line, $currentPlace->getPlayer(), $currentPlace->getNumber(), $currentPlace->getMarketValue()
+                    $line, $currentPlace->getPlayer(), $currentPlace->getNumber() + $delta, $currentPlace->getMarketValue()
                 );
             }
             if( $line->getNumber() === $playerLineNumber) {
@@ -169,6 +173,7 @@ final class Calculator
         $newFormation = new S11Formation($viewPeriod);
         foreach( $currentFormation->getLines() as $currentLine) {
             $line = new S11FormationLine($newFormation, $currentLine->getNumber());
+
 
             if( FootballLine::from($line->getNumber()) === $lineNumber ) {
                 $places = $currentLine->getStartingPlaces();

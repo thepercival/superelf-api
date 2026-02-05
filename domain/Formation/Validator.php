@@ -78,7 +78,8 @@ final class Validator
                         E_ERROR
                     );
                 }
-                $nrOfPersons += $formationLine->getNrOfPersons();
+                $nrOfPersonsTmp = $formationLine->getNrOfPersons();
+                $nrOfPersons += $nrOfPersonsTmp;
             }
             if ($nrOfPersons !== 11) {
                 throw new \Exception('het aantal teamleden moet 11 zijn', E_ERROR);
@@ -120,8 +121,13 @@ final class Validator
             array_values($transfers),
             $ignoreMultiplePlayersSameTeam );
 
+        $test1 = $newFormation->convertToBase();
+
         $newFormation = $this->validateSubstitutions($newFormation, $substitutions);
+
+        $test2 = $newFormation->convertToBase();
         $this->validate($newFormation->convertToBase());
+        $test3 = $newFormation->convertToBase();
         return $newFormation;
     }
 

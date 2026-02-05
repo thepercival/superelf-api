@@ -93,6 +93,15 @@ class Line extends Identifiable
         return $this->getPlace(self::SUBSTITUTE_NUMBER);
     }
 
+    public function hasSubstitute(): bool
+    {
+        $filtered = $this->places->filter(function (FormationPlace $formationPlace): bool {
+            return $formationPlace->getNumber() === self::SUBSTITUTE_NUMBER;
+        });
+        $firstPlace = $filtered->first();
+        return $firstPlace !== false;
+    }
+
     /**
      * @return list<Person>
      */
