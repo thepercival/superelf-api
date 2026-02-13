@@ -4,23 +4,25 @@ namespace App\Commands;
 
 use App\Command;
 use App\Commands\PoolUser\Action as PoolUserAction;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Selective\Config\Configuration;
 use Sports\Season;
 use SuperElf\Achievement\BadgeCategory;
-use SuperElf\Points;
-use SuperElf\Pool;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
-use SuperElf\User\Repository as UserRepository;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Output as FormationOutput;
-
+use SuperElf\Points;
+use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
+use SuperElf\Repositories\PoolCollectionRepository;
+use SuperElf\Repositories\PoolRepository;
+use SuperElf\User;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
 
 /**
  * php bin/console.php app:pooluser --season=2022/2023 --pool='kamp duim' --user='boy' --loglevel=200
@@ -36,16 +38,19 @@ final class PoolUserCommand extends Command
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdministrator;
     protected PoolCollectionRepository $poolCollectionRepos;
-    protected UserRepository $userRepos;
+    /** @var EntityRepository<User>  */
+    protected EntityRepository $userRepos;
 //    protected S11FormationRepository $s11FormationRepos;
 //    protected S11PlayerSyncer $s11PlayerSyncer;
 
     public function __construct(ContainerInterface $container)
     {
-//        /** @var CompetitionConfigRepository $competitionConfigRepos */
-//        $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
-//        $this->competitionConfigRepos = $competitionConfigRepos;
-//
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $this->config = $config;
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
 
         /** @var PoolAdministrator $poolAdministrator */
         $poolAdministrator = $container->get(PoolAdministrator::class);
@@ -59,9 +64,7 @@ final class PoolUserCommand extends Command
         $poolCollectionRepository = $container->get(PoolCollectionRepository::class);
         $this->poolCollectionRepos = $poolCollectionRepository;
 
-        /** @var UserRepository $userRepos */
-        $userRepos = $container->get(UserRepository::class);
-        $this->userRepos = $userRepos;
+        $this->userRepos = $entityManager->getRepository(User::class);
 //
 //        /** @var S11FormationRepository $s11FormationRepos */
 //        $s11FormationRepos = $container->get(S11FormationRepository::class);

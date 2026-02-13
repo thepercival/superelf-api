@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\TestHelpers;
 
 use DateTimeImmutable;
-use League\Period\Period;
+use League\Period\Period as LeaguePeriod;
 use Sports\Association;
 use Sports\Competition;
 use Sports\League;
@@ -48,30 +48,32 @@ trait Creator
 
     ): CompetitionConfig {
         if( $createAndJoinPeriod === null ) {
-            $createAndJoinPeriod = new ViewPeriod(new Period((new DateTimeImmutable())->modify("-2 days"), new DateTimeImmutable()));
+            $createAndJoinPeriod = new ViewPeriod(LeaguePeriod::fromDate(
+                (new DateTimeImmutable())->modify("-2 days"), new DateTimeImmutable())
+            );
         }
         if( $assemblePeriod === null ) {
-            $assemblePeriod = new Period(
+            $assemblePeriod = LeaguePeriod::fromDate(
                 $createAndJoinPeriod->getStartDateTime()->add(new \DateInterval('P1D')),
                 $createAndJoinPeriod->getEndDateTime());
             $assemblePeriod = new AssemblePeriod(
                 $assemblePeriod,
                 new ViewPeriod(
-                    new Period(
-                        $assemblePeriod->getEndDate(),
-                        $assemblePeriod->getEndDate()->add(new \DateInterval('P1D'))))
+                    LeaguePeriod::fromDate(
+                        $assemblePeriod->endDate,
+                        $assemblePeriod->endDate->add(new \DateInterval('P1D'))))
             );
         }
         if( $transferPeriod === null ) {
-            $transferPeriod = new Period(
+            $transferPeriod = LeaguePeriod::fromDate(
                 $assemblePeriod->getViewPeriod()->getEndDateTime(),
                 $assemblePeriod->getViewPeriod()->getEndDateTime()->add(new \DateInterval('P1D')));
             $transferPeriod = new TransferPeriod(
                 $transferPeriod,
                 new ViewPeriod(
-                    new Period(
-                        $transferPeriod->getEndDate(),
-                        $transferPeriod->getEndDate()->add(new \DateInterval('P1D')))),
+                    LeaguePeriod::fromDate(
+                        $transferPeriod->endDate,
+                        $transferPeriod->endDate->add(new \DateInterval('P1D')))),
                 2
             );
         }

@@ -8,7 +8,7 @@ SuperElf\Formation\Line:
     places:
       type: ArrayCollection<SuperElf\Formation\Place>
     substitute:
-      type: SuperElf\Player
+      type: SuperElf\S11Player
   virtual_properties:
     getSubstituteAppearancesAsRoundNumbers:
       type: array<int>

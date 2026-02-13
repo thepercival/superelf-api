@@ -6,34 +6,40 @@ namespace App\Actions;
 
 use App\Response\ErrorResponse;
 use App\Response\ForbiddenResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Competitor\StartLocationMap;
 use Sports\Place;
-use SuperElf\League as S11League;
 use Sports\Poule;
-use Sports\Poule\Repository as PouleRepository;
 use stdClass;
-use SuperElf\ChatMessage;
-use SuperElf\ChatMessage\Repository as ChatMessageRepository;
-use SuperElf\ChatMessage\Unread\Repository as UnreadChatMessageRepository;
-use SuperElf\Pool;
+use SuperElf\ChatMessages\ChatMessage;
 use SuperElf\Competitor as PoolCompetitor;
+use SuperElf\League as S11League;
+use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\Repositories\ChatMessageRepository;
+use SuperElf\Repositories\ChatMessageUnreadRepository;
 use SuperElf\User;
 
 final class ChatMessageAction extends Action
 {
+    /** @var EntityRepository<Poule>  */
+    protected EntityRepository $pouleRepos;
+
     public function __construct(
-        protected PouleRepository $pouleRepos,
         protected ChatMessageRepository $chatMessageRepos,
-        protected UnreadChatMessageRepository $unreadChatMessageRepos,
+        protected ChatMessageUnreadRepository $unreadChatMessageRepos,
         LoggerInterface $logger,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        protected EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
+
+        $this->pouleRepos = $this->entityManager->getRepository(Poule::class);
     }
 
     /**
@@ -139,7 +145,8 @@ final class ChatMessageAction extends Action
 
             $chatMessage = new ChatMessage($poule, $poolUser, $message);
 
-            $this->chatMessageRepos->save($chatMessage);
+            $this->entityManager->persist($chatMessage);
+            $this->entityManager->flush();
 
             $poolUsers = $this->getPoolUsers($poule, $chatMessage->getPoolUser());
             $this->unreadChatMessageRepos->saveUnreadMessages($chatMessage, $poolUsers);

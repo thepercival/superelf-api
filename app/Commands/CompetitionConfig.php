@@ -4,16 +4,18 @@ namespace App\Commands;
 
 use App\Command;
 use App\Commands\CompetitionConfig\Action as CompetitionConfigAction;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
-use SuperElf\CompetitionConfig\Administrator;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\TeamPlayerRepository;
 use SuperElf\CompetitionConfig as CompetitionConfigBase;
+use SuperElf\CompetitionConfig\Administrator;
 use SuperElf\CompetitionConfig\Output as CompetitionConfigOutput;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
 use SuperElf\Totals\TotalsSyncer;
@@ -56,12 +58,15 @@ final class CompetitionConfig extends Command
     protected StatisticsSyncer $statisticsSyncer;
     protected AppearanceSyncer $appearanceSyncer;
     protected TotalsSyncer $totalsSyncer;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var AgainstGameRepository $againstGameRepos */
-        $againstGameRepos = $container->get(AgainstGameRepository::class);
-        $this->againstGameRepos = $againstGameRepos;
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
+        /** @var AgainstGameRepository againstGameRepos */
+        $this->againstGameRepos = $container->get(AgainstGameRepository::class);
 
         /** @var TeamPlayerRepository $teamPlayerRepos */
         $teamPlayerRepos = $container->get(TeamPlayerRepository::class);
@@ -165,7 +170,8 @@ final class CompetitionConfig extends Command
             $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
             $this->againstGameRepos->getCompetitionGames($competition)
         );
-        $this->competitionConfigRepos->save($competitionConfig);
+        $this->entityManager->persist($competitionConfig);
+        $this->entityManager->flush();
         $this->getLogger()->info('competitionConfig created and saved');
         // throw new \Exception('implement', E_ERROR);
         return 0;
@@ -189,7 +195,8 @@ final class CompetitionConfig extends Command
             $this->inputHelper->getPeriodFromInput($input, 'assemblePeriod'),
             $this->againstGameRepos->getCompetitionGames($competition)
         );
-        $this->competitionConfigRepos->save($competitionConfig);
+        $this->entityManager->persist($competitionConfig);
+        $this->entityManager->flush();
         $this->getLogger()->info('competitionConfig updated and saved assemblePeriod');
 
         $this->syncGameRoundNumbers($competition, $competitionConfig);
@@ -210,7 +217,8 @@ final class CompetitionConfig extends Command
             $this->inputHelper->getPeriodFromInput($input, 'transferPeriod'),
             $this->againstGameRepos->getCompetitionGames($competition)
         );
-        $this->competitionConfigRepos->save($competitionConfig);
+        $this->entityManager->persist($competitionConfig);
+        $this->entityManager->flush();
         $this->getLogger()->info('competitionConfig updated and saved transferPeriod');
 
         $this->syncGameRoundNumbers($competition, $competitionConfig);
@@ -243,7 +251,7 @@ final class CompetitionConfig extends Command
     {
         $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
-        $output = new CompetitionConfigOutput($this->logger);
+        $output = new CompetitionConfigOutput($this->getLogger());
         $againstGames = $this->againstGameRepos->getCompetitionGames($competitionConfig->getSourceCompetition());
         $output->output($competitionConfig, $againstGames);
         return 0;
@@ -259,7 +267,8 @@ final class CompetitionConfig extends Command
         $competitionConfigs = $this->competitionConfigRepos->findBy(['sourceCompetition' => $sourceCompetition]);
         $nrOfCompetitionConfigs = count($competitionConfigs);
         while( $competitionConfig = array_shift($competitionConfigs ) ) {
-            $this->competitionConfigRepos->remove($competitionConfig);
+            $this->entityManager->remove($competitionConfig);
+            $this->entityManager->flush();
         }
 
         $this->getLogger()->info( $nrOfCompetitionConfigs . ' competitionConfigs removed');

@@ -2,36 +2,38 @@
 
 namespace App\Commands;
 
+use Doctrine\ORM\EntityRepository;
 use App\Commands\CompetitionConfig as CompetitionConfigCommand;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
-use Sports\Association\Repository as AssociationRepository;
 use Sports\Competition;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Repositories\CompetitionRepository;
 use Sports\League;
-use Sports\League\Repository as LeagueRepository;
 use Sports\Person;
-use Sports\Person\Repository as PersonRepository;
+use Sports\Repositories\PersonRepository;
 use Sports\Season;
-use Sports\Season\Repository as SeasonRepository;
+use Sports\Repositories\SeasonRepository;
 use Sports\Sport;
-use Sports\Sport\Repository as SportRepository;
+use Sports\Repositories\SportRepository;
 use Sports\Team;
-use Sports\Team\Repository as TeamRepository;
 use SportsHelpers\SportRange;
 use SuperElf\CompetitionConfig;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Repositories\CompetitionConfigRepository;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class InputHelper
 {
     protected SportRepository $sportRepos;
-    protected AssociationRepository $associationRepos;
-    protected LeagueRepository $leagueRepos;
-    protected TeamRepository $teamRepos;
+    /** @var EntityRepository<Association>  */
+    protected EntityRepository $associationRepos;
+    /** @var EntityRepository<League>  */
+    protected EntityRepository $leagueRepos;
+    /** @var EntityRepository<Team>  */
+    protected EntityRepository $teamRepos;
     protected PersonRepository $personRepos;
     protected SeasonRepository $seasonRepos;
     protected CompetitionRepository $competitionRepos;
@@ -40,17 +42,17 @@ final class InputHelper
 
     public function __construct(ContainerInterface $container)
     {
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+
         /** @var SportRepository $sportRepos */
         $sportRepos = $container->get(SportRepository::class);
         $this->sportRepos = $sportRepos;
 
-        /** @var AssociationRepository $associationRepos */
-        $associationRepos = $container->get(AssociationRepository::class);
-        $this->associationRepos = $associationRepos;
-
-        /** @var LeagueRepository $leagueRepos */
-        $leagueRepos = $container->get(LeagueRepository::class);
-        $this->leagueRepos = $leagueRepos;
+        $this->associationRepos = $entityManager->getRepository(Association::class);
+        $this->leagueRepos = $entityManager->getRepository(League::class);
+        $this->teamRepos = $entityManager->getRepository(Team::class);
 
         /** @var SeasonRepository $seasonRepos */
         $seasonRepos = $container->get(SeasonRepository::class);
@@ -63,10 +65,6 @@ final class InputHelper
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
-
-        /** @var TeamRepository $teamRepos */
-        $teamRepos = $container->get(TeamRepository::class);
-        $this->teamRepos = $teamRepos;
 
         /** @var PersonRepository $personRepos */
         $personRepos = $container->get(PersonRepository::class);
@@ -239,7 +237,7 @@ final class InputHelper
         if ($start->getTimestamp() > $end->getTimestamp()) {
             throw new Exception('invalid "' . $optionName . '" given', E_ERROR);
         }
-        return new Period($start, $end);
+        return Period::fromDate($start, $end);
     }
 
     public function getCompetitionConfigFromInput(InputInterface $input): CompetitionConfig

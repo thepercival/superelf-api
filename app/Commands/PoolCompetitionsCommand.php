@@ -6,20 +6,23 @@ namespace App\Commands;
 
 use App\Command;
 use App\QueueService;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
-use Sports\Season;
-use Sports\Structure\Repository as StructureRepository;
+use Selective\Config\Configuration;
+use Sports\Association;
+use Sports\Repositories\StructureRepository;
 use SportsImport\Importer;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Competitor\Repository as CompetitorRepository;
+use SuperElf\CompetitionConfig as CompetitionConfigBase;
+use SuperElf\Competitor;
 use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\League;
-use SuperElf\CompetitionConfig as CompetitionConfigBase;
 use SuperElf\League as S11League;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Repositories\CompetitionConfigRepository;
+use SuperElf\Repositories\PoolRepository;
+use SuperElf\Pool\User as PoolUser;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,22 +31,28 @@ final class PoolCompetitionsCommand extends Command
 {
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdmin;
-    protected CompetitorRepository $competitorRepos;
+    /** @var EntityRepository<Competitor>  */
+    protected EntityRepository $competitorRepos;
     protected StructureRepository $structureRepos;
-    protected PoolUserRepository $poolUserRepos;
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected FormationEditor $formationEditor;
     protected Importer $importer;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $this->config = $config;
+
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
         /** @var PoolRepository $poolRepos */
         $poolRepos = $container->get(PoolRepository::class);
         $this->poolRepos = $poolRepos;
-
-        /** @var PoolUserRepository $poolUserRepos */
-        $poolUserRepos = $container->get(PoolUserRepository::class);
-        $this->poolUserRepos = $poolUserRepos;
 
         /** @var PoolAdministrator $poolAdmin */
         $poolAdmin = $container->get(PoolAdministrator::class);
@@ -53,9 +62,8 @@ final class PoolCompetitionsCommand extends Command
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
 
-        /** @var CompetitorRepository $competitorRepos */
-        $competitorRepos = $container->get(CompetitorRepository::class);
-        $this->competitorRepos = $competitorRepos;
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
+        $this->competitorRepos = $this->entityManager->getRepository(Competitor::class);
 
         /** @var StructureRepository $structureRepos */
         $structureRepos = $container->get(StructureRepository::class);
@@ -188,7 +196,8 @@ final class PoolCompetitionsCommand extends Command
         foreach( $poolUsers as $poolUser ) {
             if( !$poolUser->canCompete()) {
                 $pool->getUsers()->removeElement($poolUser);
-                $this->poolUserRepos->remove($poolUser);
+                $this->entityManager->remove($poolUser);
+                $this->entityManager->flush();
                 $this->getLogger()->info(
                     '   removing invalid poolUser "' . $poolUser->getUser()->getName() . '"'
                 );

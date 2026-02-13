@@ -4,40 +4,43 @@ declare(strict_types=1);
 
 namespace SuperElf\Achievement;
 
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Sports\Competition;
 use Sports\Game\State;
 use Sports\Structure;
-use Sports\Structure\Repository as StructureRepository;
+use Sports\Repositories\StructureRepository;
 use SuperElf\Achievement;
-use SuperElf\Achievement\Badge\Repository as BadgeRepository;
+use SuperElf\Achievement\Badge\Calculator as BadgeCalculator;
 use SuperElf\Achievement\Trophy\Calculator as TrophyCalculator;
-use SuperElf\Achievement\Trophy\Repository as TrophyRepository;
-use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
 use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
-use SuperElf\Achievement\Unviewed\Trophy\Repository as UnviewedTrophyRepository;
-use SuperElf\Achievement\Unviewed\Badge\Repository as UnviewedBadgeRepository;
+use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
 use SuperElf\CompetitionConfig;
 use SuperElf\League;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Achievement\Badge\Calculator as BadgeCalculator;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Repositories\BadgeRepository;
+use SuperElf\Repositories\BadgeUnviewedRepository;
+use SuperElf\Repositories\PoolRepository;
+use SuperElf\Repositories\TrophyRepository;
+use SuperElf\Repositories\TrophyUnviewedRepository;
+use SuperElf\Repositories\ViewPeriodRepository;
 
 final class Syncer
 {
     public function __construct(
-        protected PoolRepository $poolRepos,
-        protected StructureRepository $structureRepos,
-        protected TrophyRepository $trophyRepos,
-        protected BadgeRepository $badgeRepos,
-        protected UnviewedBadgeRepository $unviewedBadgeRepos,
-        protected UnviewedTrophyRepository $unviewedTrophyRepos,
-        protected ViewPeriodRepository $viewPeriodRepos,
-        protected PointsCreator $pointsCreator,
-        protected LoggerInterface $logger
+        protected PoolRepository           $poolRepos,
+        protected StructureRepository      $structureRepos,
+        protected TrophyRepository         $trophyRepos,
+        protected BadgeRepository          $badgeRepos,
+        protected BadgeUnviewedRepository  $unviewedBadgeRepos,
+        protected TrophyUnviewedRepository $unviewedTrophyRepos,
+        protected ViewPeriodRepository     $viewPeriodRepos,
+        protected EntityManagerInterface   $entityManager,
+        protected PointsCreator            $pointsCreator,
+        protected LoggerInterface          $logger
     ) {
     }
 
@@ -83,15 +86,18 @@ final class Syncer
         $createDateTime = $this->getCreateDateTime($trophies);
         foreach( $trophies as $trophy) {
             $this->logger->info('   trophy remove : ' . $trophy->showDescription());
-            $this->trophyRepos->remove($trophy, true);
+            $this->entityManager->remove($trophy);
+            $this->entityManager->flush();
         }
         $poolUsers = $trophyCalculator->getPoolUsersByRank($pool, $poolCompetition, $rank, $structure);
         foreach( $poolUsers as $poolUser) {
             $trophy = new Trophy($poolCompetition, $poolUser, $createDateTime);
             $this->logger->info('   trophy add : ' . $trophy->showDescription());
-            $this->trophyRepos->save($trophy, true);
-            foreach( $pool->getUsers() as $poolUser) {
-                $this->unviewedTrophyRepos->save(new UnviewedTrophy($poolUser, $trophy), true);
+            $this->entityManager->persist($trophy);
+            $this->entityManager->flush();
+            foreach( $pool->getUsers() as $poolUserIt) {
+                $this->entityManager->persist(new UnviewedTrophy($poolUserIt, $trophy));
+                $this->entityManager->flush();
             }
         }
     }
@@ -116,16 +122,20 @@ final class Syncer
             }
             foreach( $badges as $badge) {
                 $this->logger->info('   badge remove : ' . $badge->showDescription());
-                $this->badgeRepos->remove($badge, true);
+                $this->entityManager->remove($badge);
+                $this->entityManager->flush();
             }
             $poolUsers = array_values( $pool->getUsers()->toArray() );
             $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
             foreach( $bestPoolUsers as $aBestPoolUser) {
                 $badge = new Badge($badgeCategory, $pool, $competitionConfig, $aBestPoolUser, $createDateTime);
                 $this->logger->info('   badge add : ' . $badge->showDescription());
-                $this->badgeRepos->save($badge, true);
+                $this->entityManager->persist($badge);
+                $this->entityManager->flush();
+
                 foreach( $pool->getUsers() as $poolUser) {
-                    $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);
+                    $this->entityManager->persist(new UnviewedBadge($poolUser, $badge));
+                    $this->entityManager->flush();
                 }
             }
         }
@@ -145,13 +155,15 @@ final class Syncer
             }
             foreach( $badges as $badge) {
                 $this->logger->info('   badge remove : ' . $badge->showDescription());
-                $this->badgeRepos->remove($badge, true);
+                $this->entityManager->remove($badge);
+                $this->entityManager->flush();
             }
             $bestPoolUsers = $badgeCalculator->getBestPoolUsers($poolUsers, $points, $badgeCategory);
             foreach( $bestPoolUsers as $aBestPoolUser) {
                 $badge = new Badge($badgeCategory, null, $competitionConfig, $aBestPoolUser, $createDateTime);
                 $this->logger->info('   badge add : ' . $badge->showDescription());
-                $this->badgeRepos->save($badge, true);
+                $this->entityManager->persist($badge);
+                $this->entityManager->flush();
                 // season badges have no unviewed
 //                foreach( $pool->getUsers() as $poolUser) {
 //                    $this->unviewedBadgeRepos->save(new UnviewedBadge($poolUser, $badge), true);

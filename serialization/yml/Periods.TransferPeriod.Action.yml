@@ -1,4 +1,4 @@
-SuperElf\Periods\TransferPeriod\Action:
+SuperElf\Periods\TransferPeriodAction:
   exclusion_policy: ALL
   exclude: false
   properties:

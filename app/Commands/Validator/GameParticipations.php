@@ -6,11 +6,11 @@ use App\Command;
 use Psr\Container\ContainerInterface;
 use Sports\Competitor\StartLocationMap;
 use Sports\Competitor\Team as TeamCompetitor;
-use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Output\Game\Against as AgainstGameOutput;
 use Sports\Output\Team\Player as TeamPlayerOutput;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
-use SportsHelpers\Against\Side;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\TeamPlayerRepository;
+use SportsHelpers\Against\AgainstSide;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -70,7 +70,7 @@ final class GameParticipations extends Command
 
             foreach ($games as $game) {
                 $againstGameOutput->output($game, 'validating ');
-                foreach ([Side::Home, Side::Away] as $side) {
+                foreach ([AgainstSide::Home, AgainstSide::Away] as $side) {
                     foreach ($game->getSidePlaces($side) as $gamePlace) {
                         $startLocation = $gamePlace->getPlace()->getStartLocation();
                         if ($startLocation === null) {

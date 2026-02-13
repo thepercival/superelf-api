@@ -9,12 +9,12 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\Game\State;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use Sports\Competition\Repository as CompetitionRepository;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use Selective\Config\Configuration;
+use Sports\Game\State;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\CompetitionRepository;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class GameRoundAction extends Action
 {

@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace SuperElf\Formation;
 
 use Psr\Log\LoggerInterface;
-use Sports\Game\Against as AgainstGame;
 use Sports\Output\Coordinate;
 use Sports\Output\Grid;
 use Sports\Output\Grid\Drawer as GridDrawer;
-use SportsHelpers\Output as OutputBase;
+use SportsHelpers\Output\OutputAbstract;
 use SuperElf\Achievement\BadgeCategory;
-use SuperElf\CompetitionConfig as CompetitionConfig;
 use SuperElf\Formation\Output\DrawHelper;
 use SuperElf\Formation\Output\RangeCalculator;
 use SuperElf\Formation;
 use SuperElf\Points;
 
-final class Output extends OutputBase
+final class Output extends OutputAbstract
 {
     protected RangeCalculator $rangeCalculator;
     /**
@@ -25,7 +23,7 @@ final class Output extends OutputBase
      */
     protected array $outputLines = [];
 
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(LoggerInterface $logger)
     {
         parent::__construct($logger);
         $this->rangeCalculator = new RangeCalculator();
@@ -56,6 +54,10 @@ final class Output extends OutputBase
     protected function getGrid(Formation $formation): Grid
     {
         $rangeCalculator = new RangeCalculator();
-        return new Grid($rangeCalculator->getHeight(), $rangeCalculator->getWidth($formation->getViewPeriod()));
+        return new Grid(
+            $rangeCalculator->getHeight(),
+            $rangeCalculator->getWidth($formation->getViewPeriod()),
+            $this->logger
+        );
     }
 }

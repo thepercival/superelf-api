@@ -374,7 +374,7 @@ final class Get extends ExternalSourceCommand
         if ($againstGame === null) {
             throw new \Exception('no externalid could be found', E_ERROR);
         }
-        $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource, $againstGame);
+        $externalId = $this->againstGameAttacherRepos->findOneByImportable($externalSource, $againstGame)?->getExternalId();
         if ($externalId === null) {
             throw new \Exception('no externalid could be found', E_ERROR);
         }

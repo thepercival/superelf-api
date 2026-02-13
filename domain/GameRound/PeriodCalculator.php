@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\GameRound;
 
-use League\Period\Period;
+use League\Period\Period as LeaguePeriod;
 use Sports\Game\Against as AgainstGame;
 use SuperElf\GameRound;
 
@@ -17,10 +17,9 @@ final class PeriodCalculator
     /**
      * @param GameRound $gameRound
      * @param list<AgainstGame> $againstGames
-     * @return Period|null
-     * @throws \League\Period\Exception
+     * @return LeaguePeriod|null
      */
-    public function getGameRoundPeriod(GameRound $gameRound, array $againstGames): Period|null
+    public function getGameRoundPeriod(GameRound $gameRound, array $againstGames): LeaguePeriod|null
     {
         $start = null;
         $end = null;
@@ -44,6 +43,6 @@ final class PeriodCalculator
         if ($start === null || $end === null) {
             return null;
         }
-        return new Period($start, $end);
+        return LeaguePeriod::fromDate($start, $end);
     }
 }

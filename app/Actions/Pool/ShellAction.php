@@ -6,14 +6,13 @@ namespace App\Actions\Pool;
 
 use App\Actions\Action;
 use App\Response\ErrorResponse;
-use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Season\Repository as S11SeasonRepository;
 use SuperElf\Pool\Shell;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Repositories\SeasonRepository as S11SeasonRepository;
 use SuperElf\User;
 
 final class ShellAction extends Action

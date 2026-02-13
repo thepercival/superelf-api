@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SuperElf\Totals;
 
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use JMS\Serializer\SerializerInterface;
 use Memcached;
@@ -19,13 +21,13 @@ use Sports\Team;
 use SuperElf\CacheService;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Points;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Totals;
 use SuperElf\Totals\Calculator as TotalsCalculator;
-use SuperElf\Totals\Repository as TotalsRepository;
 
 /**
  * @psalm-api
@@ -35,17 +37,21 @@ final class TotalsSyncer
     // protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;
     protected CacheService $cacheService;
+    /** @var EntityRepository<Totals>  */
+    protected EntityRepository $totalsRepos;
+
 
     public function __construct(
         protected S11PlayerRepository $s11PlayerRepos,
         protected PoolRepository $poolRepos,
-        protected TotalsRepository $totalsRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
+        protected EntityManagerInterface $entityManager,
         Configuration $config,
         Memcached $memcached,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
     ) {
         $this->cacheService = new CacheService($serializer, $memcached, $config->getString('namespace'));
+        $this->totalsRepos = $entityManager->getRepository(Totals::class);
     }
 
     public function syncTotals(
@@ -125,10 +131,12 @@ final class TotalsSyncer
 
             $playerStats = array_values($s11Player->getStatistics()->toArray());
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
-            $this->totalsRepos->save($s11Player->getTotals(), true);
+            $this->entityManager->persist($s11Player->getTotals());
+            $this->entityManager->flush();
 
             $totalsCalculator->updateTotalPoints($s11Player, $points);
-            $this->s11PlayerRepos->save($s11Player, true);
+            $this->entityManager->persist($s11Player);
+            $this->entityManager->flush();
 
             $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
             $this->updateFormationPlacesTotals($totalsCalculator, $points, $formationPlaces);
@@ -149,9 +157,11 @@ final class TotalsSyncer
         array $formationPlaces): void {
         foreach ($formationPlaces as $formationPlace) {
             $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
-            $this->totalsRepos->save($formationPlace->getTotals(), true);
+            $this->entityManager->persist($formationPlace->getTotals());
+            $this->entityManager->flush();
             $totalsCalculator->updateTotalPoints($formationPlace, $points);
-            $this->formationPlaceRepos->save($formationPlace, true);
+            $this->entityManager->persist($formationPlace);
+            $this->entityManager->flush();
         }
     }
 

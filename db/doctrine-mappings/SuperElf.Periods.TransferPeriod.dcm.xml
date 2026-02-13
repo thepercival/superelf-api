@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Periods\TransferPeriod" table="transferPeriods"
-          repository-class="SuperElf\Periods\TransferPeriod\Repository">
+  <entity name="SuperElf\Periods\TransferPeriod" table="transferPeriods">
       <field name="maxNrOfTransfers" column="maxNrOfTransfers" type="smallint" nullable="false" unique="false"/>
       <one-to-one field="viewPeriod" target-entity="SuperElf\Periods\ViewPeriod" fetch="EAGER">
           <cascade>

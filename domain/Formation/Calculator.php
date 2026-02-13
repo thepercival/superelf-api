@@ -11,7 +11,7 @@ use SuperElf\Pool\User as PoolUser;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Line as S11FormationLine;
 use SuperElf\Formation\Place as S11FormationPlace;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 use SuperElf\Replacement;
 use SuperElf\Substitution;
 use SuperElf\Transfer;

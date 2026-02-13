@@ -4,6 +4,6 @@ SuperElf\ScoutedPlayer:
   access_type: public_property
   properties:
     s11Player:
-      type: SuperElf\Player
+      type: SuperElf\S11Player
     nrOfStars:
       type: integer

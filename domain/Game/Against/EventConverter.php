@@ -5,10 +5,8 @@ namespace SuperElf\Game\Against;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game\Event\Goal as GoalEvent;
 use Sports\Game\Event\Card as CardEvent;
-use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
-
+use Sports\Repositories\TeamPlayerRepository;
 use Sports\Competitor\Team as TeamCompetitor;
 use SuperElf\FootballScore;
 use SuperElf\Game\Against\GoalEvent as AgainstGameGoalEvent;

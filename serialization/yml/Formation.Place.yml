@@ -8,7 +8,7 @@ SuperElf\Formation\Place:
     penaltyPoints:
       type: integer
     player:
-      type: SuperElf\Player
+      type: SuperElf\S11Player
     totals:
       type: SuperElf\Totals
       read_only: true

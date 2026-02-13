@@ -5,25 +5,33 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Player\Repository as PlayerRepository;
-use SuperElf\Statistics\Repository as StatisticsRepository;
-use SuperElf\Formation\Repository as S11FormationRepository;
+use SuperElf\Formation as S11Formation;
+use SuperElf\Repositories\S11PlayerRepository as PlayerRepository;
+use SuperElf\Repositories\StatisticsRepository as StatisticsRepository;
 
 final class StatisticsAction extends Action
 {
+    /** @var EntityRepository<S11Formation>  */
+    protected EntityRepository $formationRepos;
+
     public function __construct(
         protected PlayerRepository $playerRepos,
         protected StatisticsRepository $statisticsRepos,
-        protected S11FormationRepository $formationRepos,
         LoggerInterface $logger,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager,
     ) {
         parent::__construct($logger, $serializer);
+
+        $this->formationRepos = $entityManager->getRepository(S11Formation::class);
     }
 
     /**

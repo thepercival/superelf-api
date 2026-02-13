@@ -19,12 +19,10 @@
     "ext-gmp": "*",
     "ext-json": "*",
     "ext-memcached": "*",
-    "doctrine/orm": "^2.7",
-    "doctrine/cache": "^2.0",
     "endroid/qr-code": "^4.0",
     "jms/serializer": "^3.7",
     "middlewares/negotiation": "^2.0",
-    "monolog/monolog": "^2.0",
+    "monolog/monolog": "^3.0",
     "phpmailer/phpmailer": "^6.1",
     "php-di/php-di": "^7.0",
     "selective/config": "^1.1",
@@ -35,9 +33,9 @@
     "symfony/property-access": "^6.0",
     "symfony/console": "^6.0",
     "thepercival/php-sports": "^1.0",
-    "thepercival/php-sports-planning": "1.0.184",
     "thepercival/php-sports-import": "^1.0",
-    "thepercival/php-sports-helpers": "1.2.57",
+    "thepercival/php-sports-planning": "^1.0",
+    "thepercival/php-sports-helpers": "^1.0",
     "tuupola/base62": "^2.0",
     "tuupola/slim-basic-auth": "^3.2",
     "jimtools/jwt-auth": "^1.0",
@@ -45,20 +43,16 @@
     "thepercival/zend-pdf": "^1.0",
     "slim/twig-view": "^3.1",
     "enqueue/amqp-lib": "^0.10",
-    "symfony/cache": "^6.0"
+    "symfony/cache": "^6.0",
+    "doctrine/orm": "^3.6",
+    "doctrine/dbal": "^4.4"
   },
   "require-dev": {
     "composer/composer": "^2.2",
     "phpunit/phpunit": "^12.0",
-    "phpstan/phpstan": "^2.0",
-    "phpstan/phpstan-doctrine": "^2.0",
-    "phpstan/extension-installer": "^1.0",
-    "phpstan/phpstan-phpunit": "^2.0",
-    "phpstan/phpstan-strict-rules": "^2.0",
     "friendsofphp/php-cs-fixer": "^3.2",
     "vimeo/psalm": "^6.0",
-    "psalm/plugin-phpunit": "^0.19",
-    "weirdan/doctrine-psalm-plugin": "^2.0"
+    "psalm/plugin-phpunit": "^0.19"
   },
   "autoload": {
     "psr-4": {
@@ -87,16 +81,15 @@
     "psalm": "XDEBUG_MODE=off vendor/bin/psalm --output-format=phpstorm --show-info=true --no-diff",
     "doctrine-validate": "XDEBUG_MODE=off vendor/bin/doctrine orm:validate-schema",
     "doctrine-clearcache": [
-      "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:query --flush",
-      "XDEBUG_MODE=off vendor/bin/doctrine orm:clear-cache:metadata"
+      "XDEBUG_MODE=off php bin/doctrine.php orm:clear-cache:metadata",
+      "XDEBUG_MODE=off php bin/doctrine.php orm:clear-cache:query"
     ],
     "doctrine-try": [
-      "composer run doctrine-clearcache",
-      "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --dump-sql --complete"
+      "XDEBUG_MODE=off php bin/doctrine.php orm:schema-tool:update --dump-sql"
     ],
     "doctrine-update": [
       "composer run doctrine-clearcache",
-      "XDEBUG_MODE=off vendor/bin/doctrine orm:schema-tool:update --force --complete"
+      "XDEBUG_MODE=off php bin/doctrine.php orm:schema-tool:update --dump-sql --force"
     ],
     "post-install-cmd": [
       "App\\Handlers\\ComposerPostInstall::execute",

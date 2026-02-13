@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
-use Sports\Competition\Sport as CompetitionSport;
+use Sports\Competition\CompetitionSport;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Round;
 use Sports\Sport;
 use Sports\Structure;
-use SportsHelpers\Against\Side;
+use SportsHelpers\Against\AgainstSide;
 use SportsHelpers\Sport\PersistVariant;
 use SuperElf\League as S11League;
 use SuperElf\Pool;
@@ -125,8 +125,8 @@ final class SuperCupCreator extends BaseCreator
                 $competitionSport,
                 $gameRound->getNumber()
             );
-            new AgainstGamePlace($game, $homePlace, Side::Home);
-            new AgainstGamePlace($game, $awayPlace, Side::Away);
+            new AgainstGamePlace($game, $homePlace, AgainstSide::Home);
+            new AgainstGamePlace($game, $awayPlace, AgainstSide::Away);
         }
     }
 

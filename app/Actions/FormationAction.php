@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use App\Response\ForbiddenResponse;
-use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -14,41 +14,49 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
 use Sports\Person;
-use Sports\Person\Repository as PersonRepository;
-use SuperElf\Formation;
+use Sports\Repositories\PersonRepository;
+use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Editor as FormationEditor;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\Formation\Repository as FormationRepository;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player as S11Player;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\S11Player as S11Player;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class FormationAction extends Action
 {
     protected OneTeamSimultaneous $oneTeamSimultaneous;
     protected FormationEditor $formationEditor;
 
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+
+    /** @var EntityRepository<S11Formation>  */
+    protected EntityRepository $formationRepos;
+
+
     public function __construct(
-        protected PoolUserRepository $poolUserRepos,
-        protected FormationRepository $formationRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PersonRepository $personRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected S11PlayerSyncer $s11PlayerSyncer,
         protected Configuration $config,
+        protected EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
     ) {
         parent::__construct($logger, $serializer);
         $this->oneTeamSimultaneous = new OneTeamSimultaneous();
         $this->formationEditor = new FormationEditor($this->config, false);
+
+        $this->poolUserRepos = $entityManager->getRepository(PoolUser::class);
+
+        $this->formationRepos = $entityManager->getRepository(S11Formation::class);
     }
 
     /**
@@ -160,7 +168,8 @@ final class FormationAction extends Action
                 $this->editAssemable($assembleFormation, $newSportsFormation);
             }
 
-            $this->poolUserRepos->save($poolUser);
+            $this->entityManager->persist($poolUser);
+            $this->entityManager->flush();
 
             return $this->respondWithJson($response, $this->serializer->serialize($assembleFormation, 'json'));
         } catch (\Exception $e) {
@@ -168,21 +177,24 @@ final class FormationAction extends Action
         }
     }
 
-    protected function editAssemable(Formation $formation, SportsFormation $newSportsFormation): void
+    protected function editAssemable(S11Formation $formation, SportsFormation $newSportsFormation): void
     {
         $formationPlaceRemovals = $this->formationEditor->removeAssemble($formation, $newSportsFormation);
         /* SAVE REMOVED FORMATIONPLACES TO DATABASE */
         foreach ($formationPlaceRemovals as $formationPlaceRemoval) {
             $formationPlace = $formationPlaceRemoval->getFormationPlace();
             $formationLine = $formationPlace->getFormationLine();
-            $this->formationPlaceRepos->remove($formationPlace, true);
+            $this->entityManager->remove($formationPlace);
+            $this->entityManager->flush();
 
             $playerWithoutPlace = $formationPlaceRemoval->getPlayer();
             if ($playerWithoutPlace !== null) {
                 $lastPlaceWithoutPlayer = $this->formationEditor->getLastStartingPlaceWithoutPlayer($formationLine);
                 if ($lastPlaceWithoutPlayer !== null) {
                     $lastPlaceWithoutPlayer->setPlayer($playerWithoutPlace);
-                    $this->s11PlayerRepos->save($playerWithoutPlace, true);
+                    $this->entityManager->persist($playerWithoutPlace);
+                    $this->entityManager->flush();
+
                 }
             }
         }
@@ -190,7 +202,8 @@ final class FormationAction extends Action
         $addedFormationPlaces = $this->formationEditor->addAssemble($formation, $newSportsFormation);
         /* SAVE ADDED FORMATIONPLACES TO DATABASE */
         foreach ($addedFormationPlaces as $addedFormationPlace) {
-            $this->formationPlaceRepos->save($addedFormationPlace);
+            $this->entityManager->persist($addedFormationPlace);
+            $this->entityManager->flush();
         }
     }
 
@@ -288,7 +301,8 @@ final class FormationAction extends Action
             }
             $formationPlace->setPlayer($s11Player);
 
-            $this->formationPlaceRepos->save($formationPlace);
+            $this->entityManager->persist($formationPlace);
+            $this->entityManager->flush();
 
             if ($s11Player === null) {
                 return $response->withStatus(200);
@@ -366,7 +380,8 @@ final class FormationAction extends Action
             }
             $formationPlace->setPlayer($s11Player);
 
-            $this->formationPlaceRepos->save($formationPlace);
+            $this->entityManager->persist($formationPlace);
+            $this->entityManager->flush();
 
             if ($s11Player === null) {
                 return $response->withStatus(200);

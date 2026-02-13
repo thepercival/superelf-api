@@ -17,7 +17,7 @@ use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation\Line;
 use SuperElf\Formation\Place;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 
 /**
  * @psalm-suppress ClassMustBeFinal
@@ -103,7 +103,7 @@ class Formation extends Identifiable
         return $persons;
     }
 
-    public function getPerson(Team $team, \DateTimeImmutable $date = null): ?Person
+    public function getPerson(Team $team, \DateTimeImmutable|null $date = null): Person|null
     {
         if ($date === null) {
             $date = new \DateTimeImmutable();
@@ -115,7 +115,7 @@ class Formation extends Identifiable
         return $firstPerson === false ? null : $firstPerson;
     }
 
-    public function getPlayer(Person $person, \DateTimeImmutable $dateTime = null): ?Player
+    public function getPlayer(Person $person, \DateTimeImmutable|null $dateTime = null): Player|null
     {
         $checkDateTime = $dateTime !== null ? $dateTime : new \DateTimeImmutable();
         $filtered = $person->getPlayers()->filter(function (Player $player) use ($checkDateTime): bool {

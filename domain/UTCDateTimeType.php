@@ -33,17 +33,14 @@ final class UTCDateTimeType extends DateTimeImmutableType
     }
 
     #[\Override]
-    public function convertToPHPValue( $value, AbstractPlatform $platform): \DateTimeImmutable|null
+    public function convertToPHPValue($value, AbstractPlatform $platform): \DateTimeImmutable|null
     {
         if (null === $value || $value instanceof DateTimeImmutable) {
             return $value;
         }
-        if (!is_string($value)) {
-            throw ConversionException::conversionFailedFormat(
-                $value,
-                $this->getName(),
-                $platform->getDateTimeFormatString()
-            );
+
+        if (!(is_string($value))) {
+            throw new ConversionException(' could not be converted to UTC, no string');
         }
 
         $converted = DateTimeImmutable::createFromFormat(
@@ -53,11 +50,7 @@ final class UTCDateTimeType extends DateTimeImmutableType
         );
 
         if (!$converted) {
-            throw ConversionException::conversionFailedFormat(
-                $value,
-                $this->getName(),
-                $platform->getDateTimeFormatString()
-            );
+            throw new ConversionException(' could not be converted to UTC');
         }
 
         return $converted;

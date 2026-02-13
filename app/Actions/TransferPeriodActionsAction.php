@@ -5,51 +5,69 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Sports\Person\Repository as PersonRepository;
-use Sports\Team\Player\Repository as PlayerRepository;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\Formation\Repository as FormationRepository;
+use Sports\Repositories\PersonRepository;
+use Sports\Repositories\TeamPlayerRepository;
+use SuperElf\Formation;
+use SuperElf\Formation\Validator as FormationValidator;
+use SuperElf\OneTeamSimultaneous;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
+use SuperElf\Pool\User as PoolUser;
+use SuperElf\Replacement;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
-use SuperElf\Transfer\Repository as TransferRepository;
-use SuperElf\OneTeamSimultaneous;
-use SuperElf\Replacement\Repository as ReplacementRepository;
-use SuperElf\Substitution\Repository as SubstitutionRepository;
-use SuperElf\Formation\Validator as FormationValidator;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
-use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\Replacement;
 
 final class TransferPeriodActionsAction extends Action
 {
     protected FormationValidator $formationValidator;
     protected OneTeamSimultaneous $oneTeamSimultaneous;
 
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+
+    /** @var EntityRepository<Formation>  */
+    protected EntityRepository $formationRepos;
+
+    /** @var EntityRepository<Replacement>  */
+    protected EntityRepository $replacementRepos;
+
+    /** @var EntityRepository<Transfer>  */
+    protected EntityRepository $transferRepos;
+
+    /** @var EntityRepository<Substitution>  */
+    protected EntityRepository $substitutionRepos;
+
+
     public function __construct(
-        protected PoolUserRepository $poolUserRepos,
-        protected FormationRepository $formationRepos,
+
         protected FormationPlaceRepository $formationPlaceRepos,
-        protected ReplacementRepository $replacementRepos,
         protected PersonRepository $personRepos,
-        protected PlayerRepository $playerRepos,
-        protected TransferRepository $transferRepos,
-        protected SubstitutionRepository $substitutionRepos,
+        protected TeamPlayerRepository $playerRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected S11PlayerSyncer $s11PlayerSyncer,
         protected Configuration $config,
         LoggerInterface $logger,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        protected EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
         $this->formationValidator = new FormationValidator($config);
         $this->oneTeamSimultaneous = new OneTeamSimultaneous();
+
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
+        $this->formationRepos = $this->entityManager->getRepository(Formation::class);
+        $this->replacementRepos = $this->entityManager->getRepository(Replacement::class);
+        $this->transferRepos = $this->entityManager->getRepository(Transfer::class);
+        $this->substitutionRepos = $this->entityManager->getRepository(Substitution::class);
     }
 
     /**
@@ -111,7 +129,8 @@ final class TransferPeriodActionsAction extends Action
             $this->formationValidator->validateTransferActions( $poolUser );
 
             // 4 add to replacements
-            $this->replacementRepos->save($replacement, true);
+            $this->entityManager->persist($replacement);
+            $this->entityManager->flush();
 
             $json = $this->serializer->serialize($replacement, 'json', $this->getSerializationContext(['person']));
             return $this->respondWithJson($response, $json);
@@ -183,7 +202,8 @@ final class TransferPeriodActionsAction extends Action
             $this->formationValidator->validateTransferActions( $poolUser );
 
             // 4 add to replacements
-            $this->transferRepos->save($transfer, true);
+            $this->entityManager->persist($transfer);
+            $this->entityManager->flush();
 
             $json = $this->serializer->serialize($transfer, 'json', $this->getSerializationContext(['person']));
             return $this->respondWithJson($response, $json);
@@ -244,7 +264,8 @@ final class TransferPeriodActionsAction extends Action
             $this->formationValidator->validateTransferActions( $poolUser, true );
 
             // 4 add to substitutions
-            $this->substitutionRepos->save($substitution, true);
+            $this->entityManager->persist($substitution);
+            $this->entityManager->flush();
 
             $json = $this->serializer->serialize($substitution, 'json');
             return $this->respondWithJson($response, $json);
@@ -275,7 +296,8 @@ final class TransferPeriodActionsAction extends Action
             }
 
             $poolUser->getReplacements()->removeElement($replacement);
-            $this->replacementRepos->remove($replacement);
+            $this->entityManager->remove($replacement);
+            $this->entityManager->flush();
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -304,7 +326,8 @@ final class TransferPeriodActionsAction extends Action
             }
 
             $poolUser->getTransfers()->removeElement($transfer);
-            $this->transferRepos->remove($transfer);
+            $this->entityManager->remove($transfer);
+            $this->entityManager->flush();
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);
@@ -333,7 +356,8 @@ final class TransferPeriodActionsAction extends Action
             }
 
             $poolUser->getSubstitutions()->removeElement($substitution);
-            $this->substitutionRepos->remove($substitution);
+            $this->entityManager->remove($substitution);
+            $this->entityManager->flush();
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422);

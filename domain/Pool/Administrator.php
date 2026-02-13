@@ -4,37 +4,35 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\Competition;
-use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use SuperElf\Formation\Editor as FormationEditor;
+use Sports\Game\Against as AgainstGame;
 use Sports\Game\State;
 use Sports\Game\Together as TogetherGame;
-use Sports\Game\Together\Repository as TogetherGameRepository;
 use Sports\League;
-use Sports\League\Repository as LeagueRepository;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\TogetherGameRepository;
 use Sports\Round;
-use Sports\Season;
-use Sports\Structure\Repository as StructureRepository;
+use Sports\Repositories\StructureRepository;
 use SportsHelpers\Sport\Variant\Against\GamesPerPlace as AgainstGpp;
 use SportsHelpers\Sport\Variant\Against\H2h as AgainstH2h;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\CompetitionConfig;
 use SuperElf\CompetitionsCreator;
-use SuperElf\Competitor\Repository as CompetitorRepository;
-use SuperElf\Competitor\Repository as PoolCompetitorRepsitory;
+use SuperElf\Competitor as PoolCompetitor;
+use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\League as S11League;
 use SuperElf\Periods\Administrator as PeriodAdministrator;
-use SuperElf\Points\Repository as PointsRepository;
+use SuperElf\Points;
 use SuperElf\Pool;
-use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\PoolCollection;
-use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
+use SuperElf\Repositories\PoolCollectionRepository as PoolCollectionRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
 use SuperElf\Sport\Administrator as SportAdministrator;
 use SuperElf\User;
 
@@ -42,27 +40,38 @@ final class Administrator
 {
     protected CompetitionsCreator $competitionsCreator;
     protected FormationEditor $formationEditor;
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+    /** @var EntityRepository<PoolCompetitor>  */
+    protected EntityRepository $poolCompetitorRepos;
+    /** @var EntityRepository<League>  */
+    protected EntityRepository $leagueRepos;
+    /** @var EntityRepository<Competition>  */
+    protected EntityRepository $competitionRepos;
+    /** @var EntityRepository<Points>  */
+    protected EntityRepository $pointsRepos;
 
     public function __construct(
         protected PoolRepository $poolRepos,
-        protected PoolUserRepository $poolUserRepos,
-        protected PointsRepository $pointsRepository,
         protected PeriodAdministrator $periodAdministrator,
         protected SportAdministrator $sportAdministrator,
         protected PoolCollectionRepository $poolCollectionRepos,
-        protected PoolCompetitorRepsitory $poolCompetitorRepos,
-        protected LeagueRepository $leagueRepos,
-        protected CompetitionRepository $competitionRepos,
-        protected CompetitorRepository $competitorRepos,
-        protected StructureRepository $structureRepos,
         protected AgainstGameRepository $againstGameRepos,
         protected TogetherGameRepository $togetherGameRepos,
+        protected StructureRepository $structureRepos,
         protected ActiveConfigService $activeConfigService,
         protected Configuration $config,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected EntityManagerInterface $entityManager
     ) {
         $this->competitionsCreator = new CompetitionsCreator($poolRepos, $structureRepos);
         $this->formationEditor = new FormationEditor($this->config, false);
+
+        $this->poolUserRepos = $entityManager->getRepository(PoolUser::class);
+        $this->poolCompetitorRepos = $entityManager->getRepository(PoolCompetitor::class);
+        $this->leagueRepos = $entityManager->getRepository(League::class);
+        $this->competitionRepos = $entityManager->getRepository(Competition::class);
+        $this->pointsRepos = $entityManager->getRepository(Points::class);
     }
 
     /**
@@ -77,11 +86,13 @@ final class Administrator
         if ($poolCollection === null) {
             $association = new Association($name);
             $poolCollection = new PoolCollection($association);
-            $this->poolCollectionRepos->save($poolCollection);
+            $this->entityManager->persist($poolCollection);
+            $this->entityManager->flush();
 
             foreach ($s11Leagues as $s11League) {
                 $league = new League($association, $s11League->name);
-                $this->leagueRepos->save($league, true);
+                $this->entityManager->persist($league);
+                $this->entityManager->flush();
             }
         }
         return $poolCollection;
@@ -101,7 +112,8 @@ final class Administrator
         if( $user !== null ) {
             $this->addUser($pool, $user, true);
         }
-        $this->poolRepos->save($pool, true);
+        $this->entityManager->persist($pool);
+        $this->entityManager->flush();
 
         // $this->createPoolCompetitions($pool);
 
@@ -144,11 +156,13 @@ final class Administrator
 
             $poolCompetitors = $creator->createCompetitors($competition, $validPoolUsers, $newStructure);
             foreach ($poolCompetitors as $poolCompetitor) {
-                $this->poolCompetitorRepos->save($poolCompetitor, true);
+                $this->entityManager->persist($poolCompetitor);
+                $this->entityManager->flush();
             }
             $this->logger->info('       ' . count($poolCompetitors) . ' competitors created');
         }
-        $this->poolRepos->save($pool);
+        $this->entityManager->persist($pool);
+        $this->entityManager->flush();
     }
 
     /**
@@ -178,7 +192,8 @@ final class Administrator
         if ($competition === null) {
             return null;
         }
-        $this->competitionRepos->save($competition, true);
+        $this->entityManager->persist($competition);
+        $this->entityManager->flush();
         return $competition;
     }
 
@@ -269,10 +284,12 @@ final class Administrator
             }
 
             // competition and competitors
-            $this->competitionRepos->remove($competition);
+            $this->entityManager->remove($competition);
+            $this->entityManager->flush();
             // structure and games
             if ($this->structureRepos->hasStructure($competition)) {
-                $this->structureRepos->remove($competition);
+                $this->entityManager->remove($competition);
+                $this->entityManager->flush();
             }
         }
     }
@@ -293,7 +310,8 @@ final class Administrator
         $poolUsers = array_values($worldCupPool->getUsers()->toArray());
         while ($poolUser = array_pop($poolUsers)) {
             $worldCupPool->getUsers()->removeElement($poolUser);
-            $this->poolUserRepos->remove($poolUser);
+            $this->entityManager->remove($poolUser);
+            $this->entityManager->flush();
         }
     }
 
@@ -308,14 +326,16 @@ final class Administrator
         // copy
         foreach( $originalWorldCupPoolUsers as $originalWorldCupPoolUser ) {
             $poolUser = new PoolUser( $worldCupPool, $originalWorldCupPoolUser->getUser());
-            $this->poolUserRepos->save($poolUser);
+            $this->entityManager->persist($poolUser);
+            $this->entityManager->flush();
             $originalWorldCupFormation = $originalWorldCupPoolUser->getAssembleFormation();
             if( $originalWorldCupFormation !== null ) {
                 $newFormation = $this->formationEditor->copyFormation($originalWorldCupFormation);
                 // $this->poolUserRepos->save($poolUser);
                 $poolUser->setAssembleFormation($newFormation);
             }
-            $this->poolUserRepos->save($poolUser);
+            $this->entityManager->persist($poolUser);
+            $this->entityManager->flush();
         }
     }
 
@@ -336,7 +356,8 @@ final class Administrator
         $formationEditor = new FormationEditor($this->config, false);
         $toFormation = $formationEditor->copyFormation($fromFormation);
         $toPoolUser->setAssembleFormation($toFormation);
-        $this->poolUserRepos->save($toPoolUser);
+        $this->entityManager->persist($toPoolUser);
+        $this->entityManager->flush();
     }
 
 

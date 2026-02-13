@@ -3,12 +3,10 @@
 namespace SuperElf\Totals;
 
 use Exception;
-use SportsHelpers\Against\Result;
-use SuperElf\CompetitionConfig;
+use SportsHelpers\Against\AgainstResult;
 use SuperElf\Formation;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\GameRound\TotalsCalculator;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 use SuperElf\Points;
 use SuperElf\Statistics;
 use SuperElf\Totals;
@@ -43,10 +41,10 @@ final class Calculator
     {
         $totals->reset();
         foreach ($stats as $statistics) {
-            if ($statistics->getResult() === Result::Win) {
+            if ($statistics->getResult() === AgainstResult::Win) {
                 $totals->incrementNrOfWins();
             }
-            if ($statistics->getResult() === Result::Draw) {
+            if ($statistics->getResult() === AgainstResult::Draw) {
                 $totals->incrementNrOfDraws();
             }
             if ($statistics->hasStarted()) {

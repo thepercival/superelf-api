@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\ScoutedPlayer" table="scoutedPlayers" repository-class="SuperElf\ScoutedPlayer\Repository">
+  <entity name="SuperElf\ScoutedPlayer" table="scoutedPlayers" repository-class="SuperElf\Repositories\ScoutedPlayerRepository">
     <field name="nrOfStars" column="nrOfStars" type="smallint" nullable="false" unique="false"/>
     <many-to-one field="user" target-entity="SuperElf\User">
       <join-columns>
         <join-column name="userId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
       </join-columns>
     </many-to-one>
-    <many-to-one field="s11Player" target-entity="SuperElf\Player">
+    <many-to-one field="s11Player" target-entity="SuperElf\S11Player">
       <join-columns>
         <join-column name="s11PlayerId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
       </join-columns>

@@ -4,28 +4,27 @@ namespace App\Commands\Migration;
 
 use App\Command;
 use Doctrine\DBAL\Connection as DBConnection;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
 use Sports\Formation as SportsFormation;
 use Sports\Person;
-use Sports\Person\Repository as PersonRepository;
+use Sports\Repositories\PersonRepository;
 use Sports\Sport\FootballLine;
-use SportsImport\Attacher\Person\Repository as PersonAttacherRepository;
+use SportsImport\Attachers\PersonAttacher;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\SofaScore;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SportsImport\Repositories\AttacherRepository;
 use SuperElf\Formation;
 use SuperElf\Formation\Editor as FormationEditor;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
-use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -38,13 +37,16 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Pools extends Command
 {
-    protected UserRepository $userRepos;
+    /** @var EntityRepository<User>  */
+    protected EntityRepository $userRepos;
     protected PoolRepository $poolRepos;
-    protected PoolUserRepository $poolUserRepos;
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
     protected FormationPlaceRepository $formationPlaceRepos;
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected PersonRepository $personRepos;
-    protected PersonAttacherRepository $personAttacherRepos;
+    /** @var AttacherRepository<PersonAttacher>  */
+    protected AttacherRepository $personAttacherRepos;
     protected PoolAdministrator $poolAdministrator;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected S11PlayerRepository $s11PlayerRepos;
@@ -53,17 +55,15 @@ class Pools extends Command
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var UserRepository $userRepos */
-        $userRepos = $container->get(UserRepository::class);
-        $this->userRepos = $userRepos;
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
 
-        /** @var PoolRepository $poolRepos */
-        $poolRepos = $container->get(PoolRepository::class);
-        $this->poolRepos = $poolRepos;
+        $this->userRepos = $entityManager->getRepository(User::class);
 
-        /** @var PoolUserRepository $poolUserRepos */
-        $poolUserRepos = $container->get(PoolUserRepository::class);
-        $this->poolUserRepos = $poolUserRepos;
+        $this->poolRepos = $container->get(PoolRepository::class);
+
+        $this->poolUserRepos = $entityManager->getRepository(PoolUser::class);
+
 
         /** @var FormationPlaceRepository $formationPlaceRepos */
         $formationPlaceRepos = $container->get(FormationPlaceRepository::class);
@@ -77,9 +77,8 @@ class Pools extends Command
         $personRepos = $container->get(PersonRepository::class);
         $this->personRepos = $personRepos;
 
-        /** @var PersonAttacherRepository $personAttacherRepos */
-        $personAttacherRepos = $container->get(PersonAttacherRepository::class);
-        $this->personAttacherRepos = $personAttacherRepos;
+        $metadata = $entityManager->getClassMetadata(PersonAttacher::class);
+        $this->personAttacherRepos = new AttacherRepository($entityManager, $metadata);
 
         /** @var S11PlayerRepository $s11PlayerRepos */
         $s11PlayerRepos = $container->get(S11PlayerRepository::class);
@@ -129,7 +128,8 @@ class Pools extends Command
             // -------- REMOVE ----------- //
             $pools = $this->poolRepos->findBy(['competitionConfig' => $compConfig]);
             while ($pool = array_pop($pools)) {
-                $this->poolRepos->remove($pool);
+                $this->entityManager->remove($pool);
+                $this->entityManager->flush();
             }
 
             // -------- CREATE ----------- //
@@ -194,7 +194,8 @@ class Pools extends Command
                 $newPoolUser = $pool->getUser($user);
             } else {
                 $newPoolUser = $this->poolAdministrator->addUser($pool, $user, false);
-                $this->poolUserRepos->save($newPoolUser);
+                $this->entityManager->persist($newPoolUser);
+                $this->entityManager->flush();
                 $this->getLogger()->info('  pooluser "' . $newPoolUser->getUser()->getName() . '" created');
             }
 
@@ -233,7 +234,8 @@ class Pools extends Command
 
         $formation = (new FormationEditor($this->config, !$new))->createAssemble($poolUser, $sportsFormation);
         $poolUser->setAssembleFormation($formation);
-        $this->poolUserRepos->save($poolUser);
+        $this->entityManager->persist($poolUser);
+        $this->entityManager->flush();
         $this->getLogger()->info('      assembleformation "' . $sportsFormation->getName() . '" created');
         if( $new ) {
             $this->setFormationPlaces($formation, $betRows);
@@ -276,7 +278,8 @@ class Pools extends Command
 
             $formationPlace->setPlayer($s11Player);
 
-            $this->formationPlaceRepos->save($formationPlace);
+            $this->entityManager->persist($formationPlace);
+            $this->entityManager->flush();
 
             $placeMsg = FootballLine::getFirstChar(FootballLine::from($formationLine->getNumber()));
             $placeMsg .= ' ' . $number . ' ' . $person->getName();
@@ -360,7 +363,8 @@ class Pools extends Command
         $sportsFormation = $this->createSportsFormation($betRows);
         $formation = (new FormationEditor($this->config, !$new))->createTransfer($poolUser, $sportsFormation);
         $poolUser->setTransferFormation($formation);
-        $this->poolUserRepos->save($poolUser);
+        $this->entityManager->persist($poolUser);
+        $this->entityManager->flush();
         $this->getLogger()->info('      transferformation "' . $sportsFormation->getName() . '" created');
         if( $new ) {
             $this->setFormationPlaces($formation, $betRows);

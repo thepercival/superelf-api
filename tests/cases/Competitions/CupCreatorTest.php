@@ -3,7 +3,7 @@
 namespace SuperElf\Tests\Competitions;
 
 use DateTimeImmutable;
-use League\Period\Period;
+use League\Period\Period as LeaguePeriod;
 use Sports\Association;
 use Sports\Competition;
 use Sports\Output\StructureOutput;
@@ -126,7 +126,7 @@ final class CupCreatorTest extends TestCase
 
         $season = new Season(
             "20/21",
-            new Period(new DateTimeImmutable(), (new DateTimeImmutable())->modify("+1 year"))
+            LeaguePeriod::fromDate(new DateTimeImmutable(), (new DateTimeImmutable())->modify("+1 year"))
         );
 
         $competitionConfig = $this->createCompetitionConfig($this->createSourceCompetition($season));

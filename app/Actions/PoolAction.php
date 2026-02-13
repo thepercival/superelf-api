@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
@@ -14,29 +17,34 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use stdClass;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\League as S11League;
 use SuperElf\Pool;
 use SuperElf\Pool\Administrator as PoolAdministrator;
 use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Pool\User as PoolUser;
 use SuperElf\User;
-use SuperElf\League as S11League;
 
 final class PoolAction extends Action
 {
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
         protected PoolRepository $poolRepos,
-        protected PoolUserRepository $poolUserRepos,
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected PoolAvailabilityChecker $poolAvailabilityChecker,
         protected PoolAdministrator $poolAdministrator,
         protected ActiveConfigService $activeConfigService,
-        protected Configuration $config
+        protected Configuration $config,
+        protected EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
+
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
     }
 
     /**
@@ -164,7 +172,8 @@ final class PoolAction extends Action
             }
             $poolUser = $this->poolAdministrator->addUser($pool, $user, false);
 
-            $this->poolUserRepos->save($poolUser, true);
+            $this->entityManager->persist($poolUser);
+            $this->entityManager->flush();
 
             return $response->withStatus(200);
         } catch (\Exception $e) {

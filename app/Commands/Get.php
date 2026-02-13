@@ -5,25 +5,28 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Repositories\CompetitionRepository;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Repositories\AgainstGameRepository;
 use Sports\Game\Together as TogetherGame;
 use Sports\League;
 use Sports\Output\ConsoleTable;
 use Sports\Season;
 use Sports\Structure\NameService as StructureNameService;
-use Sports\Structure\Repository as StructureRepository;
-use Sports\Team\Repository as TeamRepository;
+use Sports\Repositories\StructureRepository;
+use Sports\Team;
 use SportsHelpers\SportRange;
-use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
+use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\Entity;
-use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
 use SportsImport\ExternalSource\SofaScore;
+use SportsImport\ExternalSource;
+use SportsImport\Repositories\AttacherRepository;
 use stdClass;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,12 +44,19 @@ final class Get extends Command
     protected CompetitionRepository $competitionRepos;
     protected StructureRepository $structureRepos;
     protected AgainstGameRepository $againstGameRepos;
-    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
-    protected ExternalSourceRepository $externalSourceRepos;
-    protected TeamRepository $teamRepos;
+    /** @var AttacherRepository<AgainstGameAttacher>  */
+    protected AttacherRepository $againstGameAttacherRepos;
+    /** @var EntityRepository<ExternalSource>  */
+    protected EntityRepository $externalSourceRepos;
+    /** @var EntityRepository<Team>  */
+    protected EntityRepository $teamRepos;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
         /** @var CompetitionRepository $competitionRepos */
         $competitionRepos = $container->get(CompetitionRepository::class);
         $this->competitionRepos = $competitionRepos;
@@ -55,21 +65,16 @@ final class Get extends Command
         $againstGameRepos = $container->get(AgainstGameRepository::class);
         $this->againstGameRepos = $againstGameRepos;
 
-        /** @var AgainstGameAttacherRepository $againstGameAttacherRepos */
-        $againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
-        $this->againstGameAttacherRepos = $againstGameAttacherRepos;
+        $metadata = $this->entityManager->getClassMetadata(AgainstGameAttacher::class);
+        $this->againstGameAttacherRepos = new AttacherRepository($this->entityManager, $metadata);
 
-        /** @var ExternalSourceRepository $externalSourceRepos */
-        $externalSourceRepos = $container->get(ExternalSourceRepository::class);
-        $this->externalSourceRepos = $externalSourceRepos;
+        $this->externalSourceRepos = $this->entityManager->getRepository(ExternalSource::class);
 
         /** @var StructureRepository $structureRepos */
         $structureRepos = $container->get(StructureRepository::class);
         $this->structureRepos = $structureRepos;
 
-        /** @var TeamRepository $teamRepos */
-        $teamRepos = $container->get(TeamRepository::class);
-        $this->teamRepos = $teamRepos;
+        $this->teamRepos = $this->entityManager->getRepository(Team::class);
 
         parent::__construct($container);
     }
@@ -295,7 +300,7 @@ final class Get extends Command
 
         $externalSources = $this->externalSourceRepos->findAll();
         foreach ($externalSources as $externalSource) {
-            $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource, $againstGame);
+            $externalId = $this->againstGameAttacherRepos->findOneByImportable($externalSource, $againstGame)?->getExternalId();
             if ($externalId !== null) {
                 $this->getLogger()->info('externalSource "' . $externalSource->getName() . '" => ' . $externalId);
             }

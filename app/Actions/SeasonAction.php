@@ -9,8 +9,7 @@ use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Season\Repository as S11SeasonRepository;
-use SuperElf\Pool\Shell;
+use SuperElf\Repositories\SeasonRepository as S11SeasonRepository;
 
 final class SeasonAction extends Action
 {

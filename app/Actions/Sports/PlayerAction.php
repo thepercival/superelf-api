@@ -5,25 +5,27 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
-use Sports\Team\Player\Repository as PlayerRepository;
-use Sports\Team\Repository as TeamRepository;
+use Sports\Repositories\TeamPlayerRepository;
+use Sports\Team;
 
 final class PlayerAction extends Action
 {
-    protected PlayerRepository $playerRepos;
-    protected TeamRepository $teamRepos;
+    /** @var EntityRepository<Team>  */
+    protected EntityRepository $teamRepos;
 
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        PlayerRepository $playerRepos,
-        TeamRepository $teamRepos
+        protected TeamPlayerRepository $teamPlayerRepos,
+        EntityManagerInterface $entityManager,
     ) {
         parent::__construct($logger, $serializer);
-        $this->playerRepos = $playerRepos;
-        $this->teamRepos = $teamRepos;
+        $this->teamRepos = $entityManager->getRepository(Team::class);
     }
 
     // findByExt needs Period, so convert $personFilter->getSourceCompetitionId to Period if needed

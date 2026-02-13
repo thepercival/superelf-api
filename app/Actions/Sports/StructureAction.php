@@ -11,8 +11,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Competition;
-use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Structure\Repository as StructureRepository;
+use Sports\Repositories\CompetitionRepository;
+use Sports\Repositories\StructureRepository;
 use SuperElf\Sport\Administrator as SportAdministrator;
 
 final class StructureAction extends Action

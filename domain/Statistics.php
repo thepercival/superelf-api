@@ -6,10 +6,10 @@ namespace SuperElf;
 
 use Sports\Person;
 use Sports\Sport\FootballLine;
-use SportsHelpers\Against\Result;
+use SportsHelpers\Against\AgainstResult;
 use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 
 /**
  * @psalm-suppress ClassMustBeFinal
@@ -19,7 +19,7 @@ class Statistics extends Identifiable
     public function __construct(
         protected S11Player $player,
         protected GameRound $gameRound,
-        protected Result $result,
+        protected AgainstResult $result,
         protected int $beginMinute,
         protected int $endMinute,
         protected int $nrOfFieldGoals,
@@ -48,12 +48,12 @@ class Statistics extends Identifiable
     }
 
 
-    public function getResult(): Result
+    public function getResult(): AgainstResult
     {
         return $this->result;
     }
 
-    public function isResult(Result $result): bool
+    public function isResult(AgainstResult $result): bool
     {
         return $this->result === $result;
     }
@@ -169,7 +169,7 @@ class Statistics extends Identifiable
 
     public function getPoints(FootballLine $line, Points $points, BadgeCategory|null $badgeCategory): int
     {
-        $result = $this->result === Result::Win ? $points->getResultWin() : ($this->result === Result::Draw ? $points->getResultDraw() : 0);
+        $result = $this->result === AgainstResult::Win ? $points->getResultWin() : ($this->result === AgainstResult::Draw ? $points->getResultDraw() : 0);
         $goals = $this->getNrOfFieldGoals() * $points->getLineScorePointsAsValue($line, FootballScore::Goal)
             + $this->getNrOfPenalties() * $points->getScorePointsAsValue(FootballScore::PenaltyGoal)
             + $this->getNrOfOwnGoals() * $points->getScorePointsAsValue(FootballScore::OwnGoal);

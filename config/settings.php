@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Monolog\Logger;
+use Monolog\Level;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
@@ -31,7 +31,7 @@ return [
     // Monolog settings
     'logger' => [
         'path' => __DIR__ . '/../logs/',
-        'level' => ($_ENV['ENVIRONMENT'] === "development" ? Logger::DEBUG : Logger::ERROR),
+        'level' => ($_ENV['ENVIRONMENT'] === "development" ? Level::Debug : Level::Error),
     ],
     'router' => [
         'cache_file' => __DIR__ . '/../cache/router',

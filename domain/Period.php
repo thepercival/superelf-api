@@ -17,8 +17,8 @@ class Period extends Identifiable
 
     public function __construct(LeaguePeriod $period)
     {
-        $this->startDateTime = $period->getStartDate();
-        $this->endDateTime = $period->getEndDate();
+        $this->startDateTime = $period->startDate;
+        $this->endDateTime = $period->endDate;
     }
 
     public function getStartDateTime(): DateTimeImmutable
@@ -43,7 +43,7 @@ class Period extends Identifiable
 
     public function getPeriod(): LeaguePeriod
     {
-        return new LeaguePeriod($this->getStartDateTime(), $this->getEndDateTime());
+        return LeaguePeriod::fromDate($this->getStartDateTime(), $this->getEndDateTime());
     }
 
     public function contains(DateTimeImmutable $date = null): bool

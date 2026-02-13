@@ -4,27 +4,29 @@ declare(strict_types=1);
 
 namespace SuperElf\Game;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Log\LoggerInterface;
 use Sports\Competition;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\Phase as GamePhase;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\Place\Together as TogetherGamePlace;
 use Sports\Game\State;
 use Sports\Game\Together as TogetherGame;
-use Sports\Game\Together\Repository as TogetherGameRepository;
+use Sports\Place;
 use Sports\Poule;
-use Sports\Place\Repository as PlaceRepository;
 use Sports\Qualify\Service as QualifyService;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\AgainstScoreRepository;
+use Sports\Repositories\TogetherGameRepository;
+use Sports\Repositories\TogetherScoreRepository;
 use Sports\Round;
 use Sports\Score\Against as AgainstScore;
-use Sports\Score\Against\Repository as AgainstScoreRepository;
 use Sports\Score\Together as TogetherScore;
-use Sports\Score\Together\Repository as TogetherScoreRepository;
-use Sports\Structure\Repository as StructureRepository;
-use SportsHelpers\Against\Side;
+use Sports\Repositories\StructureRepository;
+use SportsHelpers\Against\AgainstSide;
 use SportsHelpers\Sport\Variant\AllInOneGame;
 use SportsHelpers\Sport\Variant\Single;
 use SuperElf\CompetitionConfig;
@@ -32,15 +34,18 @@ use SuperElf\Competitor as PoolCompetitor;
 use SuperElf\Formation;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points;
 use SuperElf\Points\Creator as PointsCreator;
 use SuperElf\Pool;
-use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class Syncer
 {
+    /** @var EntityRepository<Place> */
+    protected EntityRepository $placeRepos;
+
     public function __construct(
         protected PoolRepository $poolRepos,
         protected StructureRepository $structureRepos,
@@ -48,12 +53,13 @@ final class Syncer
         protected TogetherGameRepository $togetherGameRepos,
         protected AgainstScoreRepository $againstScoreRepos,
         protected TogetherScoreRepository $togetherScoreRepos,
-        protected PlaceRepository $placeRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected PointsCreator $pointsCreator,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected EntityManagerInterface $entityManager
     ) {
+        $this->placeRepos = $entityManager->getRepository(Place::class);
     }
 
     // voor alle poolusers
@@ -154,7 +160,8 @@ final class Syncer
             $sourceGameRoundState = $this->againstGameRepos->getGameRoundState($competition, $gameRoundNumber);
             if ($sourceGameRoundState !== $togetherGame->getState()) {
                 $togetherGame->setState($sourceGameRoundState);
-                $this->togetherGameRepos->save($togetherGame, true);
+                $this->entityManager->persist($togetherGame);
+                $this->entityManager->flush();
                 $this->logger->info(
                     'update gameRound ' . $gameRoundNumber . ' to state "' . $sourceGameRoundState->name
                 );
@@ -200,7 +207,8 @@ final class Syncer
             $points,
             GamePhase::RegularTime
         );
-        $this->togetherScoreRepos->save($score, true);
+        $this->entityManager->persist($score);
+        $this->entityManager->flush();
     }
 
 
@@ -235,7 +243,8 @@ final class Syncer
             $sourceGameRoundState = $this->againstGameRepos->getGameRoundState($competition, $gameRoundNumber);
             if ($sourceGameRoundState === State::Finished) {
                 $againstGame->setState(State::Finished);
-                $this->againstGameRepos->save($againstGame, true);
+                $this->entityManager->persist($againstGame);
+                $this->entityManager->flush();
                 $this->logger->info(
                     '   update poolGameState to "' . State::Finished->name .'" for poule');
 
@@ -267,9 +276,9 @@ final class Syncer
         StartLocationMap $startLocationMap,
         Points $s11Points
     ): void {
-        $homeGamePlaces = $game->getSidePlaces(Side::Home);
+        $homeGamePlaces = $game->getSidePlaces(AgainstSide::Home);
         $homeGamePlace = array_shift($homeGamePlaces);
-        $awayGamePlaces = $game->getSidePlaces(Side::Away);
+        $awayGamePlaces = $game->getSidePlaces(AgainstSide::Away);
         $awayGamePlace = array_shift($awayGamePlaces);
         if ($homeGamePlace === null || $awayGamePlace === null) {
             return;
@@ -291,7 +300,8 @@ final class Syncer
             $awayFormation->getPoints($gameRound, $s11Points, null),
             GamePhase::RegularTime
         );
-        $this->againstScoreRepos->save($score, true);
+        $this->entityManager->persist($score);
+        $this->entityManager->flush();
     }
 
     protected function setQualifiedPlaces(Poule $poule): void {
@@ -303,7 +313,8 @@ final class Syncer
                 continue;
             }
             $this->logger->info('       set qualifyPlace for ' . $changedPlace->getStructureLocation()->__toString());
-            $this->placeRepos->save($changedPlace, true );
+            $this->entityManager->persist($changedPlace);
+            $this->entityManager->flush();
         }
     }
 

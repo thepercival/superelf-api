@@ -8,6 +8,8 @@ use App\Actions\Action;
 use App\Response\ErrorResponse;
 use App\Response\ForbiddenResponse;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -16,17 +18,21 @@ use Sports\Competitor\StartLocation;
 use SuperElf\Pool;
 use SuperElf\League as S11League;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
 use SuperElf\User;
 
 final class UserAction extends Action
 {
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+
     public function __construct(
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        protected PoolUserRepository $poolUserRepos
+        protected EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
+
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
     }
 
     /**
@@ -251,7 +257,8 @@ final class UserAction extends Action
                 return new ForbiddenResponse("de pool komt niet overeen met de pool van de deelnemer");
             }
 
-            $this->poolUserRepos->remove($poolUser);
+            $this->entityManager->remove($poolUser);
+            $this->entityManager->flush();
 
             return $response->withStatus(200);
         } catch (\Exception $e) {

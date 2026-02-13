@@ -7,6 +7,7 @@
         findUnusedCode="false"
 >
     <projectFiles>
+        <file name="cli-config.php"/>
         <directory name="app"/>
         <directory name="config/"/>
         <directory name="domain/"/>
@@ -17,8 +18,40 @@
             <directory name="app/Commands/Migration"/>
         </ignoreFiles>
     </projectFiles>
+
+    <issueHandlers>
+        <!-- suppress everything by default -->
+<!--                <PossiblyUnusedProperty errorLevel="suppress" />-->
+<!--                <PossiblyUnusedMethod errorLevel="suppress" />-->
+<!--                <PossiblyUnusedReturnValue errorLevel="suppress" />-->
+<!--                <PossiblyUnusedParam errorLevel="suppress" />-->
+<!--                <MixedArgumentTypeCoercion errorLevel="suppress" />-->
+<!--                <MixedArrayOffset errorLevel="suppress" />-->
+<!--                <PossiblyUndefinedArrayOffset errorLevel="suppress" />-->
+<!--                <MixedMethodCall errorLevel="suppress" />-->
+<!--                <MixedAssignment errorLevel="suppress" />-->
+<!--                <ImplicitToStringCast errorLevel="suppress" />-->
+<!--                <InvalidOperand errorLevel="suppress" />-->
+<!--                <MethodSignatureMismatch errorLevel="suppress" />-->
+<!--                <MixedReturnTypeCoercion errorLevel="suppress" />-->
+<!--                <MixedReturnStatement errorLevel="suppress" />-->
+<!--                <MethodSignatureMustProvideReturnType errorLevel="suppress" />-->
+<!--                <PossiblyNullReference errorLevel="suppress" />-->
+<!--                <UnusedClass errorLevel="suppress" />-->
+<!--                <UndefinedClass errorLevel="suppress" />-->
+<!--                <MissingPropertyType errorLevel="suppress" />-->
+<!--                <DeprecatedConstant errorLevel="suppress" />-->
+<!--                <UndefinedMethod errorLevel="suppress" />-->
+<!--                <MixedArgument errorLevel="suppress" />-->
+<!--                <InaccessibleMethod errorLevel="suppress" />-->
+<!--                <TooFewArguments errorLevel="suppress" />-->
+
+<!--                <MissingOverrideAttribute errorLevel="suppress" />-->
+<!--                <InvalidArgument errorLevel="suppress" />-->
+<!--                <UndefinedTrait errorLevel="suppress" />-->
+    </issueHandlers>
+
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
-        <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
     </plugins>
 </psalm>

@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
-use Sports\Competition\Sport as CompetitionSport;
+use Sports\Competition\CompetitionSport;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Qualify\Target;
+use Sports\Qualify\QualifyTarget;
 use Sports\Round;
 use Sports\Sport;
 use Sports\Structure;
-use SportsHelpers\Against\Side;
-use SportsHelpers\PouleStructure\Balanced as BalancedPouleStructure;
-use SportsHelpers\PouleStructure\BalancedCreator as BalancedPouleStructureCreator;
+use SportsHelpers\Against\AgainstSide;
+use SportsHelpers\PouleStructures\BalancedPouleStructure;
+use SportsHelpers\PouleStructures\BalancedPouleStructureCreator;
 use SportsHelpers\Sport\PersistVariant;
 use SuperElf\GameRound;
 use SuperElf\League as S11League;
@@ -49,7 +49,7 @@ final class CupCreator extends BaseCreator
         while ($nrOfQualifiers > 1) {
             $nextNrOfQualifiers = $this->getNrOfQualifiers($nrOfQualifiers);
             $pouleStructure = $this->createPouleStructure($nrOfQualifiers, $nextNrOfQualifiers);
-            $round = $this->structureEditor->addChildRound($round, Target::Winners, $pouleStructure->toArray());
+            $round = $this->structureEditor->addChildRound($round, QualifyTarget::Winners, $pouleStructure->toArray());
             $nrOfQualifiers = $nextNrOfQualifiers;
         }
         return $structure;
@@ -171,8 +171,8 @@ final class CupCreator extends BaseCreator
                     $competitionSport,
                     $gameRound->getNumber()
                 );
-                new AgainstGamePlace($game, $homePlace, Side::Home);
-                new AgainstGamePlace($game, $awayPlace, Side::Away);
+                new AgainstGamePlace($game, $homePlace, AgainstSide::Home);
+                new AgainstGamePlace($game, $awayPlace, AgainstSide::Away);
             }
         }
     }

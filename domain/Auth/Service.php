@@ -6,25 +6,28 @@ namespace SuperElf\Auth;
 
 use App\Mailer;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use Firebase\JWT\JWT;
 use Selective\Config\Configuration;
 use SuperElf\Auth\SyncService as AuthSyncService;
-use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
 use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
 use Tuupola\Base62;
 
 final class Service
 {
+    /** @var EntityRepository<User> $userRepos */
+    protected EntityRepository $userRepos;
+
     public function __construct(
-        protected UserRepository $userRepos,
         protected EntityManagerInterface $entityManager,
         protected PoolRepository $poolRepos,
         protected AuthSyncService $syncService,
         protected Configuration $config,
         protected Mailer $mailer
     ) {
+        $this->userRepos = $this->entityManager->getRepository(User::class);
     }
 
     public function register(string $emailaddress, string $name, string $password, string|null $referer): ?User
@@ -46,9 +49,10 @@ final class Service
         $salt = bin2hex(random_bytes(15));
         $password = password_hash($salt . $password, PASSWORD_DEFAULT);
         $user = new User($emailaddress, $name, $salt, $password);
-        $savedUser = $this->userRepos->save($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
         $this->sendRegisterEmail($emailaddress, $referer);
-        return $savedUser;
+        return $user;
     }
 
     protected function sendRegisterEmail(string $emailaddress, string|null $referer): void
@@ -89,7 +93,9 @@ EOT;
             throw new Exception("de gebruiker kan niet gevalideerd worden", E_ERROR);
         }
         $user->setValidated(true);
-        return $this->userRepos->save($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        return $user;
     }
 
     public function sendPasswordCode(string $emailAddress): bool
@@ -102,7 +108,8 @@ EOT;
         $conn->beginTransaction();
         try {
             $user->resetForgetpassword();
-            $this->userRepos->save($user);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
             $this->mailPasswordCode($user);
             $conn->commit();
         } catch (\Exception $e) {
@@ -179,6 +186,8 @@ EOT;
         // set password
         $user->setPassword(password_hash($user->getSalt() . $password, PASSWORD_DEFAULT));
         $user->setForgetpassword(null);
-        return $this->userRepos->save($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        return $user;
     }
 }

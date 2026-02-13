@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Substitute\Appearance" table="substituteAppearances" repository-class="SuperElf\Substitute\Appearance\Repository">
+  <entity name="SuperElf\Substitute\Appearance" table="substituteAppearances">
     <many-to-one field="formationLine" target-entity="SuperElf\Formation\Line" inversed-by="substituteAppearances">
       <join-columns>
         <join-column name="formationLineId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

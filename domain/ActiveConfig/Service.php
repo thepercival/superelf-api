@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace SuperElf\ActiveConfig;
 
-use Sports\Competition\Repository as CompetitionRepository;
-use Sports\Season\Repository as SeasonRepository;
-use Sports\Sport\Repository as SportRepository;
+use Sports\Repositories\CompetitionRepository;
+use Sports\Repositories\SeasonRepository;
+use Sports\Repositories\SportRepository;
 
 final class Service
 {

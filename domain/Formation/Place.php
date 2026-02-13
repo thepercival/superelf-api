@@ -9,7 +9,7 @@ use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 use SuperElf\Points;
 use SuperElf\Statistics;
 use SuperElf\Totals;

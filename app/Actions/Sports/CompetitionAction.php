@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Repositories\CompetitionRepository;
 
 final class CompetitionAction extends Action
 {

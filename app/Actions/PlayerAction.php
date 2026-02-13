@@ -5,25 +5,32 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Team\Repository as TeamRepository;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Filter as PlayerFilter;
-use SuperElf\Player\Repository as PlayerRepository;
+use Sports\Team;
+use SuperElf\S11Player\S11PlayerFilter;
+use SuperElf\Repositories\S11PlayerRepository as PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class PlayerAction extends Action
 {
+    /** @var EntityRepository<Team>  */
+    protected EntityRepository $teamRepos;
+
     public function __construct(
         protected PlayerRepository $playerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected TeamRepository $teamRepos,
         LoggerInterface $logger,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
+
+        $this->teamRepos = $entityManager->getRepository(Team::class);
     }
 
     /**
@@ -57,8 +64,8 @@ final class PlayerAction extends Action
     public function fetch(Request $request, Response $response, array $args): Response
     {
         try {
-            /** @var PlayerFilter $playerFilter */
-            $playerFilter = $this->serializer->deserialize($this->getRawData(), PlayerFilter::class, 'json');
+            /** @var S11PlayerFilter $playerFilter */
+            $playerFilter = $this->serializer->deserialize($this->getRawData(), S11PlayerFilter::class, 'json');
 
             $viewPeriod = $this->viewPeriodRepos->find($playerFilter->getViewPeriodId());
             if ($viewPeriod === null) {

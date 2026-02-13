@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SuperElf\Statistics;
 
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Competitor\StartLocationMap;
@@ -16,33 +18,38 @@ use Sports\Person;
 use Sports\Score\Config\Service as ScoreConfigService;
 use Sports\Team;
 use SuperElf\CompetitionConfig;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\GameRound\Repository as GameRoundRepository;
+use SuperElf\GameRound;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player as S11Player;
-use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\S11Player as S11Player;
 use SuperElf\Points\Creator as PointsCreator;
-use SuperElf\Statistics\Repository as StatisticsRepository;
-use SuperElf\Totals\Repository as TotalsRepository;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Repositories\StatisticsRepository as StatisticsRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
+use SuperElf\Totals;
 
 final class Syncer
 {
     // protected PlayerTotalsCalculator $playerTotalsCalculator;
     protected LoggerInterface|null $logger = null;
+    /** @var EntityRepository<GameRound>  */
+    protected EntityRepository $gameRoundRepos;
+    /** @var EntityRepository<Totals>  */
+    protected EntityRepository $totalsRepos;
 
     public function __construct(
-        protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
-        protected TotalsRepository $totalsRepos,
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
         protected FormationPlaceRepository $formationPlaceRepos,
         protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
-        protected Converter $converter
+        protected Converter $converter,
+        protected EntityManagerInterface $entityManager
     ) {
+        $this->gameRoundRepos = $entityManager->getRepository(GameRound::class);
+        $this->totalsRepos = $entityManager->getRepository(Totals::class);
     }
 
     public function syncStatistics(CompetitionConfig $competitionConfig, AgainstGame $game): void
@@ -118,7 +125,8 @@ final class Syncer
 
             if ($oldStatistics !== null) {
                 $s11Player->getStatistics()->removeElement($oldStatistics);
-                $this->statisticsRepos->remove($oldStatistics, true);
+                $this->entityManager->remove($oldStatistics);
+                $this->entityManager->flush();
             }
 
             $statistics = $this->converter->convert(
@@ -127,7 +135,8 @@ final class Syncer
                 $gamePlace->getGame(),
                 $gameParticipation
             );
-            $this->statisticsRepos->save($statistics, true);
+            $this->entityManager->persist($statistics);
+            $this->entityManager->flush();
         }
     }
 

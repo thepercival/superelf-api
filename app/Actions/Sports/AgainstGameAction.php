@@ -5,24 +5,26 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use Doctrine\ORM\EntityManagerInterface;
 use Sports\Competitor\Team as TeamCompetitor;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Competition\Repository as CompetitionRepository;
+use Sports\Repositories\CompetitionRepository;
 use Sports\Competitor;
 use Sports\Competitor\StartLocationMap;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use SportsImport\Attacher\Game\Against\Repository as AttacherGameRepository;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\TeamPlayerRepository;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\State;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
-use SportsHelpers\Against\Side as AgainstSide;
+use SportsHelpers\Against\AgainstSide;
+use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\SofaScore;
+use SportsImport\Repositories\AttacherRepository;
 use SuperElf\Game\Against\EventConverter;
 use SuperElf\LineupItem;
 
@@ -30,11 +32,13 @@ final class AgainstGameAction extends Action
 {
     protected LineupItem\Converter $lineupConverter;
     protected EventConverter $eventConverter;
+    /** @var AttacherRepository<AgainstGameAttacher>  */
+    protected AttacherRepository $againstGameAttacherRepos;
 
     public function __construct(
         protected CompetitionRepository $competitionRepos,
         protected AgainstGameRepository $againstGameRepos,
-        protected AttacherGameRepository $againstGameAttacherRepos,
+        protected EntityManagerInterface $entityManager,
         protected TeamPlayerRepository $teamPlayerRepository,
         protected ExternalSourceFactory $externalSourceFactory,
         LoggerInterface $logger,
@@ -43,6 +47,9 @@ final class AgainstGameAction extends Action
         parent::__construct($logger, $serializer);
         $this->lineupConverter = new LineupItem\Converter($this->teamPlayerRepository);
         $this->eventConverter = new EventConverter($this->teamPlayerRepository);
+
+        $metadata = $this->entityManager->getClassMetadata(AgainstGameAttacher::class);
+        $this->againstGameAttacherRepos = new AttacherRepository($this->entityManager, $metadata);
     }
 
     /**
@@ -199,7 +206,7 @@ final class AgainstGameAction extends Action
             if( $externalSource === null ) {
                 throw new \Exception('kan de externalSource niet vinden', E_ERROR);
             }
-            $externalId = $this->againstGameAttacherRepos->findExternalId($externalSource->getExternalSource(), $game);
+            $externalId = $this->againstGameAttacherRepos->findOneByImportable($externalSource->getExternalSource(), $game)?->getExternalId();
             if( $externalId === null || strlen($externalId) === 0 ) {
                 throw new \Exception('kan de externalId niet vinden', E_ERROR);
             }

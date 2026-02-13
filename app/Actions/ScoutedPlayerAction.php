@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Repositories\ScoutedPlayerRepository as ScoutedPlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use SuperElf\ScoutedPlayer;
-use SuperElf\ScoutedPlayer\Repository as ScoutedPlayerRepository;
 use SuperElf\User;
 
 final class ScoutedPlayerAction extends Action
@@ -22,11 +24,12 @@ final class ScoutedPlayerAction extends Action
     private S11PlayerRepository $s11PlayerRepos;
 
     public function __construct(
+        protected EntityManagerInterface $entityManager,
         LoggerInterface $logger,
         ScoutedPlayerRepository $scoutedPlayerRepos,
         ViewPeriodRepository $viewPeriodRepos,
         S11PlayerRepository $s11PlayerRepos,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
     ) {
         parent::__construct($logger, $serializer);
         $this->scoutedPlayerRepos = $scoutedPlayerRepos;
@@ -101,7 +104,8 @@ final class ScoutedPlayerAction extends Action
             }
             $scoutedPlayer = new ScoutedPlayer($user, $s11Player, $serScoutedPlayer->getNrOfStars());
 
-            $this->scoutedPlayerRepos->save($scoutedPlayer);
+            $this->entityManager->persist($scoutedPlayer);
+            $this->entityManager->flush();
             $json = $this->serializer->serialize($scoutedPlayer, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
@@ -168,7 +172,8 @@ final class ScoutedPlayerAction extends Action
                 throw new \Exception("de gescoute speler is niet van de gebruiker", E_ERROR);
             }
 
-            $this->scoutedPlayerRepos->remove($scoutedPlayer);
+            $this->entityManager->remove($scoutedPlayer);
+            $this->entityManager->flush();
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);

@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace SuperElf\Auth;
 
 use App\Mailer;
-use DateTimeImmutable;
-use SuperElf\Role;
-use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
 use SuperElf\Pool;
 use Selective\Config\Configuration;
+use SuperElf\User;
 
 final class SyncService
 {
@@ -21,7 +18,7 @@ final class SyncService
     ) {
     }
 
-    public function add(Pool $pool, int $roles, string $emailaddress = null, bool $sendMail = false): void
+    public function add(Pool $pool, int $roles, string|null $emailaddress = null, bool $sendMail = false): void
     {
 //        if (strlen($emailaddress) === 0) {
 //            return;
@@ -61,7 +58,7 @@ final class SyncService
 //        return $invitation;
     }
 
-    public function remove(Pool $pool, int $roles, string $emailaddress = null): void
+    public function remove(Pool $pool, int $roles, string|null $emailaddress = null): void
     {
 //        if (strlen($emailaddress) === 0) {
 //            return;

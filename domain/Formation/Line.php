@@ -12,7 +12,7 @@ use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
 use SuperElf\Formation as FormationBase;
 use SuperElf\Formation\Place as FormationPlace;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 use SuperElf\GameRound;
 use SuperElf\Points;
 use SuperElf\Substitute\Appearance;
@@ -32,7 +32,7 @@ class Line extends Identifiable
      */
     protected Collection $substituteAppearances;
 
-    private const SUBSTITUTE_NUMBER = 0;
+    private const int SUBSTITUTE_NUMBER = 0;
 
     public function __construct(protected FormationBase $formation, protected  int $number)
     {

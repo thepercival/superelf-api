@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use SportsHelpers\Identifiable;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 
 /**
  * @psalm-suppress ClassMustBeFinal

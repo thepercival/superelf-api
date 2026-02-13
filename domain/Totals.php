@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use Sports\Sport\FootballLine;
-use SportsHelpers\Against\Result;
+use SportsHelpers\Against\AgainstResult;
 use SportsHelpers\Identifiable;
 use SuperElf\Achievement\BadgeCategory;
 
@@ -257,8 +257,8 @@ class Totals extends Identifiable
     protected function addStatistics(Statistics $stats): self
     {
         return new self(
-            $this->getNrOfWins() + ($stats->isResult(Result::Win) ? 1 : 0),
-            $this->getNrOfDraws() + ($stats->isResult(Result::Draw) ? 1 : 0),
+            $this->getNrOfWins() + ($stats->isResult(AgainstResult::Win) ? 1 : 0),
+            $this->getNrOfDraws() + ($stats->isResult(AgainstResult::Draw) ? 1 : 0),
             $this->getNrOfTimesStarted() + ($stats->hasStarted() ? 1 : 0),
             $this->getNrOfTimesSubstituted() + ($stats->hasBeenSubstituted() ? 1 : 0),
             $this->getNrOfTimesSubstitute() + ($stats->hasBeenSubstitute() ? 1 : 0),

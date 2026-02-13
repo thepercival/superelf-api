@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -12,28 +15,28 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use SuperElf\Auth\SyncService as AuthSyncService;
 use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
 
 final class UserAction extends Action
 {
     /**
-     * @var UserRepository
-     */
-    private $userRepos;
-    /**
      * @var AuthSyncService
      */
     protected $syncService;
+    /**
+     * @var EntityRepository<User>
+     */
+    protected EntityRepository $userRepos;
+
 
 
     public function __construct(
         LoggerInterface $logger,
-        UserRepository $userRepository,
         AuthSyncService $syncService,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        protected EntityManagerInterface $entityManager,
     ) {
         parent::__construct($logger, $serializer);
-        $this->userRepos = $userRepository;
+        $this->userRepos = $this->entityManager->getRepository(User::class);
         $this->syncService = $syncService;
         $this->serializer = $serializer;
     }
@@ -91,7 +94,8 @@ final class UserAction extends Action
             }
 
             $userAuth->setEmailaddress(strtolower(trim($userSer->getEmailaddress())));
-            $this->userRepos->save($userAuth);
+            $this->entityManager->persist($userAuth);
+            $this->entityManager->flush();
             return $this->respondWithJson(
                 $response,
                 $this->serializer->serialize(
@@ -127,7 +131,8 @@ final class UserAction extends Action
 
             $this->syncService->revertPoolUsers($userAuth);
 
-            $this->userRepos->remove($user);
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
             return $response->withStatus(200);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);

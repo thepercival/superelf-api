@@ -5,7 +5,7 @@ namespace SuperElf\LineupItem;
 use Sports\Game\Participation;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
+use Sports\Repositories\TeamPlayerRepository;
 use SuperElf\LineupItem;
 
 final class Converter

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Mailer;
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
@@ -13,6 +12,7 @@ use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\SerializerInterface;
 use Monolog\Handler\StreamHandler;
+use Monolog\Level;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
@@ -20,9 +20,8 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Slim\App;
 use Slim\Factory\AppFactory;
-use SportsImport\CacheItemDb\Repository as CacheItemDbRepository;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\ExternalSource\Repository as ExternalSourceRepository;
+use SportsImport\Repositories\CacheItemDbRepository;
 use SuperElf\UTCDateTimeType;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 
@@ -57,7 +56,11 @@ return [
 
         $loggerPath = $config->getString('logger.path') . $name . '.log';
         $path = $config->getString('environment') === 'development' ? 'php://stdout' : $loggerPath;
-        $handler = new StreamHandler($path, $loggerSettings['level']);
+
+        /** @var Level $loggerSettingLevel */
+        $loggerSettingLevel = $loggerSettings['level'];
+
+        $handler = new StreamHandler($path, $loggerSettingLevel);
         $logger->pushHandler($handler);
 
         return $logger;
@@ -98,36 +101,36 @@ return [
 
         /** @var array{driver: string, host: string, dbname: string, user: string, password: string, charset: string, driverOptions: array<int, string>} $doctrineConnectionConfig */
         $doctrineConnectionConfig = $doctrineAppConfig['connection'];
-        $connection = DriverManager::getConnection($doctrineConnectionConfig, $docConfig, new EventManager());
+        $connection = DriverManager::getConnection($doctrineConnectionConfig, $docConfig);
         $em = new Doctrine\ORM\EntityManager($connection, $docConfig);
 
-        Type::addType('enum_AgainstSide', SportsHelpers\Against\SideType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstSide');
-        Type::addType('enum_AgainstResult', SportsHelpers\Against\ResultType::class);
+        Type::addType('enum_AgainstSide', SportsHelpers\DbEnums\AgainstSideType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_AgainstSide');
+        Type::addType('enum_AgainstResult', SportsHelpers\DbEnums\AgainstResultType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_AgainstResult');
         Type::addType('enum_GameMode', SportsHelpers\GameModeType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameMode');
-        Type::addType('enum_Distribution', Sports\Qualify\DistributionType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_GameMode');
+        Type::addType('enum_Distribution', Sports\DbEnums\QualifyDistributionType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_Distribution');
-        Type::addType('enum_SelfReferee', SportsHelpers\SelfRefereeType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_SelfReferee');
-        Type::addType('enum_EditMode', Sports\Planning\EditModeType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_EditMode');
-        Type::addType('enum_QualifyTarget', Sports\Qualify\TargetType::class);
+        Type::addType('enum_SelfReferee', SportsHelpers\DbEnums\SelfRefereeType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_SelfReferee');
+        Type::addType('enum_EditMode', Sports\DbEnums\PlanningEditModeType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_EditMode');
+        Type::addType('enum_QualifyTarget', Sports\DbEnums\QualifyTargetType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_QualifyTarget');
-        Type::addType('enum_AgainstRuleSet', Sports\Ranking\AgainstRuleSetType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_AgainstRuleSet');
-        Type::addType('enum_PointsCalculation', Sports\Ranking\PointsCalculationType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PointsCalculation');
+        Type::addType('enum_AgainstRuleSet', Sports\DbEnums\RankingAgainstRuleSetType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_AgainstRuleSet');
+        Type::addType('enum_PointsCalculation', Sports\DbEnums\RankingPointsCalculationType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_PointsCalculation');
         Type::addType('enum_PlanningState', SportsPlanning\Planning\StateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_PlanningState');
         Type::addType('enum_PlanningTimeoutState', SportsPlanning\Planning\TimeoutStateType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_PlanningTimeoutState');
-        Type::addType('enum_GameState', Sports\Game\StateType::class);
-        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('int', 'enum_GameState');
-        Type::addType('enum_BadgeCategory', SuperElf\Achievement\BadgeCategoryType::class);
+        Type::addType('enum_GameState', Sports\DbEnums\GameStateType::class);
+        $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_GameState');
+        Type::addType('enum_BadgeCategory', \SuperElf\DbEnums\BadgeCategoryType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_BadgeCategory');
-        Type::addType('enum_FootballLine', Sports\Sport\FootballLineType::class);
+        Type::addType('enum_FootballLine', Sports\DbEnums\FootballLineType::class);
         $em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('string', 'enum_FootballLine');
 
         Type::overrideType('datetime_immutable', UTCDateTimeType::class);
@@ -208,13 +211,13 @@ return [
         );
     },
     ExternalSourceFactory::class => function (ContainerInterface $container): ExternalSourceFactory {
-        /** @var ExternalSourceRepository $externalSourceRepos */
-        $externalSourceRepos = $container->get(ExternalSourceRepository::class);
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
         /** @var CacheItemDbRepository $cacheItemDbRepos */
         $cacheItemDbRepos = $container->get(CacheItemDbRepository::class);
         /** @var LoggerInterface $logger */
         $logger = $container->get(LoggerInterface::class);
-        $externalSourceFactory = new ExternalSourceFactory($externalSourceRepos, $cacheItemDbRepos, $logger);
+        $externalSourceFactory = new ExternalSourceFactory($entityManager, $cacheItemDbRepos, $logger);
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
         /** @var array<string, string> $proxyConfig */

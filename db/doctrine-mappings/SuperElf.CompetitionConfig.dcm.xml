@@ -3,7 +3,7 @@
                   xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="SuperElf\CompetitionConfig" table="competitionConfigs"
-            repository-class="SuperElf\CompetitionConfig\Repository">
+            repository-class="SuperElf\Repositories\CompetitionConfigRepository">
         <many-to-one field="sourceCompetition" target-entity="Sports\Competition">
             <cascade>
                 <cascade-persist/>

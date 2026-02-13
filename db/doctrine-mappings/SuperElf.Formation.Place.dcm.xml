@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
   <entity name="SuperElf\Formation\Place" table="formationPlaces"
-          repository-class="SuperElf\Formation\Place\Repository">
+          repository-class="SuperElf\Repositories\FormationPlaceRepository">
       <field name="number" column="number" type="smallint" nullable="false" unique="false"/>
       <field name="penaltyPoints" column="penaltyPoints" type="smallint" nullable="false" unique="false"/>
       <field name="totalPoints" column="totalPoints" type="smallint" nullable="false" unique="false"/>
@@ -20,7 +20,7 @@
               <join-column name="totalsId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
           </join-columns>
       </one-to-one>
-      <many-to-one field="player" target-entity="SuperElf\Player">
+      <many-to-one field="player" target-entity="SuperElf\S11Player">
           <join-columns>
               <join-column name="playerId" referenced-column-name="id" nullable="true" on-delete="RESTRICT"/>
           </join-columns>

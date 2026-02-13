@@ -9,15 +9,15 @@ use Sports\Game\State;
 use Sports\Ranking\Calculator\End as EndRankingCalculator;
 use Sports\Ranking\PointsCalculation;
 use Sports\Sport;
-use Sports\Structure\Repository as StructureRepository;
+use Sports\Repositories\StructureRepository;
 use SuperElf\Competitions\BaseCreator;
 use SuperElf\Competitions\CompetitionCreator;
 use SuperElf\Competitions\CupCreator;
 use SuperElf\Competitions\SuperCupCreator;
 use SuperElf\Competitions\WorldCupCreator;
 use SuperElf\League as S11League;
-use SuperElf\Pool\Repository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
 
 final class CompetitionsCreator
 {

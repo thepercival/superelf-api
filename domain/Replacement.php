@@ -7,14 +7,14 @@ namespace SuperElf;
 use Sports\Person;
 use Sports\Sport\FootballLine;
 use Sports\Team\Player;
-use SuperElf\Periods\TransferPeriod as TransferPeriod;
-use SuperElf\Periods\TransferPeriod\Action;
+use SuperElf\Periods\TransferPeriod;
+use SuperElf\Periods\TransferPeriodAction;
 use SuperElf\Pool\User as PoolUser;
 
 /**
  * @psalm-suppress ClassMustBeFinal
  */
-class Replacement extends Action
+class Replacement extends TransferPeriodAction
 {
     public function __construct(
         PoolUser $poolUser,

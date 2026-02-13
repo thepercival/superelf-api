@@ -4,27 +4,28 @@ namespace App\Commands;
 
 use App\Command;
 use App\Commands\Person\Action as PersonAction;
-use App\MailHandler;
 use DateTimeInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use League\Period\Period;
-use Monolog\Logger;
 use Psr\Container\ContainerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use Selective\Config\Configuration;
 use Sports\Person;
-use Sports\Person\Repository as PersonRepository;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\PersonRepository;
 use Sports\Sport\FootballLine;
-use Sports\Team\Player\Repository as PlayerRepository;
-use Sports\Team\Repository as TeamRepository;
+use Sports\Team;
+use Sports\Team\Player;
 use Sports\Team\Role\Editor as RoleEditor;
 use SuperElf\CompetitionConfig;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
 use SuperElf\GameRound;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Totals;
 use SuperElf\Totals\Calculator as TotalsCalculator;
-use SuperElf\Totals\Repository as TotalsRepository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -45,15 +46,27 @@ final class PersonCommand extends Command
     protected S11PlayerSyncer $s11PlayerSyncer;
     protected AgainstGameRepository $againstGameRepos;
     protected S11PlayerRepository $s11PlayerRepos;
-    protected PlayerRepository $playerRepos;
+    /** @var EntityRepository<Player>  */
+    protected EntityRepository $playerRepos;
     protected FormationPlaceRepository $formationPlaceRepos;
-    protected TotalsRepository $totalsRepos;
-    protected TeamRepository $teamRepos;
+    /** @var EntityRepository<Totals>  */
+    protected EntityRepository $totalsRepos;
+    /** @var EntityRepository<Team>  */
+    protected EntityRepository $teamRepos;
+
     protected PersonRepository $personRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $this->config = $config;
+
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
         /** @var S11PlayerSyncer $s11PlayerSyncer */
         $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
         $this->s11PlayerSyncer = $s11PlayerSyncer;
@@ -74,17 +87,9 @@ final class PersonCommand extends Command
         $personRepos = $container->get(PersonRepository::class);
         $this->personRepos = $personRepos;
 
-        /** @var PlayerRepository $playerRepos */
-        $playerRepos = $container->get(PlayerRepository::class);
-        $this->playerRepos = $playerRepos;
-
-        /** @var TotalsRepository $totalsRepos */
-        $totalsRepos = $container->get(TotalsRepository::class);
-        $this->totalsRepos = $totalsRepos;
-
-        /** @var TeamRepository $teamRepos */
-        $teamRepos = $container->get(TeamRepository::class);
-        $this->teamRepos = $teamRepos;
+        $this->playerRepos = $this->entityManager->getRepository(Player::class);
+        $this->totalsRepos = $this->entityManager->getRepository(Totals::class);
+        $this->teamRepos = $this->entityManager->getRepository(Team::class);
 
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
@@ -282,7 +287,8 @@ final class PersonCommand extends Command
         };
         $person = new Person($firstName, $nameInsertion, $lastName);
         $person->setDateOfBirth($dateOfBirth);
-        $this->personRepos->save($person);
+        $this->entityManager->persist($person);
+        $this->entityManager->flush();
 
         $this->syncPerson($person, $competitionConfig);
 
@@ -321,7 +327,8 @@ final class PersonCommand extends Command
         $roleEditor = new RoleEditor($this->getLogger());
         $roleEditor->update($season, $person, $newAt, $newTeam, $newLine, $newMarketValue);
 
-        $this->personRepos->save($person);
+        $this->entityManager->persist($person);
+        $this->entityManager->flush();
 
         $this->syncPerson($person, $competitionConfig);
         $this->syncS11PlayerTotals($person, $competitionConfig);
@@ -366,7 +373,8 @@ final class PersonCommand extends Command
 //        $roleEditor = new RoleEditor();
 //        $roleEditor->update($season, $person, $newAt, $newTeam, $newLine);
 
-        $this->personRepos->save($person);
+        $this->entityManager->persist($person);
+        $this->entityManager->flush();
 
         $this->syncPerson($person, $competitionConfig);
 
@@ -412,7 +420,8 @@ final class PersonCommand extends Command
         }
 
         $player->setEndDateTime($stopAt);
-        $this->playerRepos->save($player);
+        $this->entityManager->persist($player);
+        $this->entityManager->flush();
 //        foreach ($viewPeriods as $viewPeriod) {
 //            $s11Player = new S11PlayerBase($viewPeriod, $person);
 //            $this->s11PlayerRepos->save($s11Player);
@@ -452,18 +461,22 @@ final class PersonCommand extends Command
 
             $playerStats = array_values($s11Player->getStatistics()->toArray());
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
-            $this->totalsRepos->save($s11Player->getTotals(), true);
+            $this->entityManager->persist($s11Player->getTotals());
+            $this->entityManager->flush();
 
             $totalsCalculator->updateTotalPoints($s11Player, $points);
-            $this->s11PlayerRepos->save($s11Player, true);
+            $this->entityManager->persist($s11Player);
+            $this->entityManager->flush();
 
             $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
             foreach ($formationPlaces as $formationPlace) {
                 $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
-                $this->totalsRepos->save($s11Player->getTotals(), true);
+                $this->entityManager->persist($s11Player->getTotals());
+                $this->entityManager->flush();
 
                 $totalsCalculator->updateTotalPoints($formationPlace, $points);
-                $this->formationPlaceRepos->save($formationPlace, true);
+                $this->entityManager->persist($formationPlace);
+                $this->entityManager->flush();
             }
         }
     }

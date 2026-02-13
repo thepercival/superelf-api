@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\User" table="users" repository-class="SuperElf\User\Repository">
+  <entity name="SuperElf\User" table="users">
     <field name="emailaddress" column="emailaddress" type="string" length="100" nullable="false" unique="false"/>
     <field name="salt" column="salt" type="string" length="50" nullable="false" unique="false"/>
     <field name="password" column="password" type="string" length="256" nullable="false" unique="false"/>

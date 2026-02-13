@@ -1,0 +1,12 @@
+SuperElf\S11Player\S11PlayerFilter:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+
+  properties:
+    viewPeriodId:
+      type: integer
+    teamId:
+      type: integer
+    line:
+      type: integer

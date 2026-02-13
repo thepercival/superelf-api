@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -14,25 +16,25 @@ use stdClass;
 use SuperElf\Auth\Item as AuthItem;
 use SuperElf\Auth\Service as AuthService;
 use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
 
 final class AuthAction extends Action
 {
     protected AuthService $authService;
-    protected UserRepository $userRepos;
     protected Configuration $config;
+    /** @var EntityRepository<User>  */
+    protected EntityRepository $userRepos;
 
     public function __construct(
         AuthService $authService,
-        UserRepository $userRepository,
         LoggerInterface $logger,
         SerializerInterface $serializer,
-        Configuration $config
+        Configuration $config,
+        EntityManagerInterface $entityManager
     ) {
         parent::__construct($logger, $serializer);
         $this->authService = $authService;
-        $this->userRepos = $userRepository;
         $this->config = $config;
+        $this->userRepos = $entityManager->getRepository(User::class);
     }
 
     /**

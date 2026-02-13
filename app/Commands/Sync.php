@@ -5,37 +5,35 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
-use App\MailHandler;
 use App\QueueService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Interop\Queue\Consumer;
 use Interop\Queue\Message;
-use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Sports\Competition;
 use Sports\Game;
 use Sports\Game\Against as AgainstGame;
-use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\Game\State as GameState;
-use Sports\Person\Repository as PersonRepository;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\PersonRepository;
 use SportsHelpers\SportRange;
 use SportsImport\Event\Action\Game as GameEventAction;
 use SportsImport\Event\Action\Person as PersonEventAction;
 use SportsImport\Event\Game as GameEvent;
 use SportsImport\Event\Person as PersonEvent;
 use stdClass;
+use SuperElf\Achievement\Syncer as AchievementsSyncer;
 use SuperElf\CompetitionConfig;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
 use SuperElf\Game\Syncer as PoolGameSyncer;
 use SuperElf\GameRound\Syncer as GameRoundSyncer;
-use SuperElf\Player\Repository as S11PlayerRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
 use SuperElf\Statistics\Syncer as StatisticsSyncer;
 use SuperElf\Substitute\Appearance\Syncer as AppearanceSyncer;
 use SuperElf\Totals\TotalsSyncer as TotalsSyncer;
-use SuperElf\Achievement\Syncer as AchievementsSyncer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -301,7 +299,8 @@ final class Sync extends Command
 //                    continue;
 //                }
                 $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $event->getPerson());
-                $this->s11PlayerRepos->save($s11Player);
+                $this->entityManager->persist($s11Player);
+                $this->entityManager->flush();
                 // $this->statisticsSyncer->sync($competitionConfig, $game);
             }
         }

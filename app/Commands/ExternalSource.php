@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use SportsImport\Attacher\Game\Against\Repository as AgainstGameAttacherRepository;
+use Sports\Repositories\AgainstGameRepository;
+use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;
+use SportsImport\Repositories\AttacherRepository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,7 +22,8 @@ abstract class ExternalSource extends Command
 
     protected ExternalSourceFactory $externalSourceFactory;
     protected AgainstGameRepository $againstGameRepos;
-    protected AgainstGameAttacherRepository $againstGameAttacherRepos;
+    /** @var AttacherRepository<AgainstGameAttacher>  */
+    protected AttacherRepository $againstGameAttacherRepos;
 
     public function __construct(ContainerInterface $container)
     {
@@ -32,9 +35,11 @@ abstract class ExternalSource extends Command
         $againstGameRepos = $container->get(AgainstGameRepository::class);
         $this->againstGameRepos = $againstGameRepos;
 
-        /** @var AgainstGameAttacherRepository $againstGameAttacherRepos */
-        $againstGameAttacherRepos = $container->get(AgainstGameAttacherRepository::class);
-        $this->againstGameAttacherRepos = $againstGameAttacherRepos;
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+
+        $metadata = $entityManager->getClassMetadata(AgainstGameAttacher::class);
+        $this->againstGameAttacherRepos = new AttacherRepository($entityManager, $metadata);
 
         parent::__construct($container);
     }

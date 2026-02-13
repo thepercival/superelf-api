@@ -88,10 +88,10 @@ class CompetitionConfig extends Identifiable
 
     public function updateAssemblePeriod(Period $period): void
     {
-        $this->createAndJoinPeriod->setEndDateTime($period->getEndDate());
-        $this->assemblePeriod->setStartDateTime($period->getStartDate());
-        $this->assemblePeriod->setEndDateTime($period->getEndDate());
-        $this->assemblePeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
+        $this->createAndJoinPeriod->setEndDateTime($period->endDate);
+        $this->assemblePeriod->setStartDateTime($period->startDate);
+        $this->assemblePeriod->setEndDateTime($period->endDate);
+        $this->assemblePeriod->getViewPeriod()->setStartDateTime($period->endDate);
     }
 
     public function getTransferPeriod(): TransferPeriod
@@ -101,10 +101,10 @@ class CompetitionConfig extends Identifiable
 
     public function updateTransferPeriod(Period $period): void
     {
-        $this->assemblePeriod->getViewPeriod()->setEndDateTime($period->getStartDate());
-        $this->transferPeriod->setStartDateTime($period->getStartDate());
-        $this->transferPeriod->setEndDateTime($period->getEndDate());
-        $this->transferPeriod->getViewPeriod()->setStartDateTime($period->getEndDate());
+        $this->assemblePeriod->getViewPeriod()->setEndDateTime($period->startDate);
+        $this->transferPeriod->setStartDateTime($period->startDate);
+        $this->transferPeriod->setEndDateTime($period->endDate);
+        $this->transferPeriod->getViewPeriod()->setStartDateTime($period->endDate);
     }
 
     /**

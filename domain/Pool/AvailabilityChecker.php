@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 namespace SuperElf\Pool;
 
-use Sports\Association\Repository as AssociationRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Sports\Association;
 use Sports\Season;
-use SuperElf\PoolCollection\Repository as PoolCollectionRepository;
+use SuperElf\Repositories\PoolCollectionRepository as PoolCollectionRepository;
 use SuperElf\User;
 
 final class AvailabilityChecker
 {
-    protected PoolCollectionRepository $poolCollectionRepos;
-    protected AssociationRepository $associationRepos;
+
+    /** @var EntityRepository<Association>  */
+    protected EntityRepository $associationRepos;
 
     public function __construct(
-        AssociationRepository $associationRepos,
-        PoolCollectionRepository $poolCollectionRepos
-    )
-    {
-        $this->associationRepos = $associationRepos;
-        $this->poolCollectionRepos = $poolCollectionRepos;
+        protected PoolCollectionRepository $poolCollectionRepos,
+        EntityManagerInterface $entityManager
+    ) {
+        $this->associationRepos = $entityManager->getRepository(Association::class);
     }
 
     public function check(Season $season, string $name, User $user): void

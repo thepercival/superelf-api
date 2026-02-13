@@ -8,12 +8,12 @@ use DateTimeInterface;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Score\Config\Service as ScoreConfigService;
-use SportsHelpers\Against\Result as AgainstResult;
+use SportsHelpers\Against\AgainstResult;
 use SuperElf\Defaults;
 use SuperElf\GameRound;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
 use SuperElf\Sheet;
 use SuperElf\Statistics;
 

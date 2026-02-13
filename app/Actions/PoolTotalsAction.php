@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
-use SuperElf\CacheService;
 use JMS\Serializer\SerializerInterface;
+use Memcached;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
 use Selective\Config\Configuration;
-use Memcached;
+use Sports\Repositories\AgainstGameRepository;
+use SuperElf\CacheService;
 use SuperElf\Pool;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class PoolTotalsAction extends Action
 {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\Pool\User" table="poolUsers" repository-class="SuperElf\Pool\User\Repository">
+  <entity name="SuperElf\Pool\User" table="poolUsers">
     <field name="admin" column="admin" type="boolean" nullable="false" unique="false"/>
     <many-to-one field="pool" target-entity="SuperElf\Pool" inversed-by="users">
       <join-columns>
@@ -52,12 +52,12 @@
               <cascade-remove/>
           </cascade>
       </one-to-many>
-      <one-to-many field="chatMessages" target-entity="SuperElf\ChatMessage" mapped-by="poolUser">
+      <one-to-many field="chatMessages" target-entity="SuperElf\ChatMessages\ChatMessage" mapped-by="poolUser">
           <cascade>
               <cascade-remove/>
           </cascade>
       </one-to-many>
-      <one-to-many field="unreadChatMessages" target-entity="SuperElf\ChatMessage\Unread" mapped-by="poolUser">
+      <one-to-many field="unreadChatMessages" target-entity="SuperElf\ChatMessages\UnreadChatMessage" mapped-by="poolUser">
           <cascade>
               <cascade-remove/>
           </cascade>

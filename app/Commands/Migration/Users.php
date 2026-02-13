@@ -4,9 +4,10 @@ namespace App\Commands\Migration;
 
 use App\Command;
 use Doctrine\DBAL\Connection as DBConnection;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
 use SuperElf\User;
-use SuperElf\User\Repository as UserRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -15,14 +16,17 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Users extends Command
 {
-    protected UserRepository $userRepos;
+    /** @var EntityRepository<<User>  */
+    protected EntityRepository $userRepos;
     protected DBConnection $migrationConn;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var UserRepository $userRepos */
-        $userRepos = $container->get(UserRepository::class);
-        $this->userRepos = $userRepos;
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
+        $this->userRepos = $this->entityManager->getRepository(User::class);
 
         /** @var DBConnection $migrationConn */
         $migrationConn = $container->get(DBConnection::class);
@@ -69,7 +73,8 @@ class Users extends Command
                     $row['Password'],
                 );
                 $newUser->setValidated(true);
-                $this->userRepos->save($newUser);
+                $this->entityManager->persist($newUser);
+                $this->entityManager->flush();
             }
         } catch (\Exception $e) {
             if ($this->logger !== null) {

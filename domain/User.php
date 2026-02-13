@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf;
 
 use DateTimeImmutable;
-use Sports\Competition\Referee;
+use Sports\Competition\CompetitionReferee;
 use SportsHelpers\Identifiable;
 
 /**
@@ -18,8 +18,8 @@ class User extends Identifiable
     private string|null $forgetpassword = null;
     private bool $validated;
 
-    public const int MIN_LENGTH_EMAIL = Referee::MIN_LENGTH_EMAIL;
-    public const int MAX_LENGTH_EMAIL = Referee::MAX_LENGTH_EMAIL;
+    public const int MIN_LENGTH_EMAIL = CompetitionReferee::MIN_LENGTH_EMAIL;
+    public const int MAX_LENGTH_EMAIL = CompetitionReferee::MAX_LENGTH_EMAIL;
     public const int MIN_LENGTH_PASSWORD = 3;
     public const int MAX_LENGTH_PASSWORD = 50;
     public const int MIN_LENGTH_NAME = 2;

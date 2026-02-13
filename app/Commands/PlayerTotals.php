@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
-use SuperElf\Formation\Place\Repository as FormationPlaceRepository;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
+use Selective\Config\Configuration;
 use SuperElf\Points\Creator as PointsCreator;
+use SuperElf\Repositories\CompetitionConfigRepository;
+use SuperElf\Repositories\FormationPlaceRepository;
+use SuperElf\Repositories\S11PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository;
+use SuperElf\Totals;
 use SuperElf\Totals\Calculator as TotalsCalculator;
-use SuperElf\Totals\Repository as TotalsRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -21,13 +24,22 @@ final class PlayerTotals extends Command
     protected ViewPeriodRepository $viewPeriodRepos;
     protected S11PlayerRepository $s11PlayerRepos;
     protected FormationPlaceRepository $formationPlaceRepos;
-    protected TotalsRepository $totalsRepos;
+    /** @var EntityRepository<Totals>  */
+    protected EntityRepository $totalsRepos;
     protected PointsCreator $pointsCreator;
     protected CompetitionConfigRepository $competitionConfigRepos;
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
         parent::__construct($container);
+
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        $this->config = $config;
+
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
 
         /** @var ViewPeriodRepository $viewPeriodRepos */
         $viewPeriodRepos = $container->get(ViewPeriodRepository::class);
@@ -41,9 +53,7 @@ final class PlayerTotals extends Command
         $formationPlaceRepos = $container->get(FormationPlaceRepository::class);
         $this->formationPlaceRepos = $formationPlaceRepos;
 
-        /** @var TotalsRepository $totalsRepos */
-        $totalsRepos = $container->get(TotalsRepository::class);
-        $this->totalsRepos = $totalsRepos;
+        $this->totalsRepos = $this->entityManager->getRepository(Totals::class);
 
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
@@ -90,18 +100,22 @@ final class PlayerTotals extends Command
                 foreach ($s11Players as $s11Player) {
                     $playerStats = array_values($s11Player->getStatistics()->toArray());
                     $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
-                    $this->totalsRepos->save($s11Player->getTotals(), true);
+                    $this->entityManager->persist($s11Player->getTotals());
+                    $this->entityManager->flush();
 
                     $totalsCalculator->updateTotalPoints($s11Player, $points);
-                    $this->s11PlayerRepos->save($s11Player, true);
+                    $this->entityManager->persist($s11Player);
+                    $this->entityManager->flush();
 
                     $formationPlaces = $this->formationPlaceRepos->findByPlayer($s11Player);
                     foreach ($formationPlaces as $formationPlace) {
                         $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
-                        $this->totalsRepos->save($s11Player->getTotals(), true);
+                        $this->entityManager->persist($s11Player->getTotals());
+                        $this->entityManager->flush();
 
                         $totalsCalculator->updateTotalPoints($formationPlace, $points);
-                        $this->formationPlaceRepos->save($formationPlace, true);
+                        $this->entityManager->persist($formationPlace);
+                        $this->entityManager->flush();
                     }
 
                     $this->getLogger()->info(

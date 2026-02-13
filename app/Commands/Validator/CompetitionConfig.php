@@ -4,9 +4,9 @@ namespace App\Commands\Validator;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Repositories\AgainstGameRepository;
 use SportsImport\Getter as ImportGetter;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;

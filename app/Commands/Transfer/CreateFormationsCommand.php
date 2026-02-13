@@ -3,23 +3,21 @@
 namespace App\Commands\Transfer;
 
 use App\Command;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Sports\Person;
 use Sports\Team\Player;
-use SuperElf\CompetitionConfig\Repository as CompetitionConfigRepository;
+use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Calculator;
 use SuperElf\Formation\Validator as FormationValidator;
-use SuperElf\Formation as S11Formation;
-use SuperElf\Formation\Repository as S11FormationRepository;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Player as S11Player;
+use SuperElf\S11Player as S11Player;
+use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
-use SuperElf\Player\Syncer as S11PlayerSyncer;
-
-use Symfony\Component\Console\Input\InputArgument;
+use SuperElf\Repositories\CompetitionConfigRepository;
+use SuperElf\Repositories\PoolRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,12 +31,20 @@ final class CreateFormationsCommand extends Command
 
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected PoolRepository $poolRepos;
-    protected PoolUserRepository $poolUserRepos;
-    protected S11FormationRepository $s11FormationRepos;
+
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
+    /** @var EntityRepository<S11Formation>  */
+    protected EntityRepository $s11FormationRepos;
     protected S11PlayerSyncer $s11PlayerSyncer;
+    /** @var EntityManagerInterface $entityManager */
+    protected EntityManagerInterface $entityManager;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var EntityManagerInterface entityManager */
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
@@ -47,13 +53,8 @@ final class CreateFormationsCommand extends Command
         $poolRepository = $container->get(PoolRepository::class);
         $this->poolRepos = $poolRepository;
 
-        /** @var PoolUserRepository $poolUserRepos */
-        $poolUserRepos = $container->get(PoolUserRepository::class);
-        $this->poolUserRepos = $poolUserRepos;
-
-        /** @var S11FormationRepository $s11FormationRepos */
-        $s11FormationRepos = $container->get(S11FormationRepository::class);
-        $this->s11FormationRepos = $s11FormationRepos;
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
+        $this->s11FormationRepos = $this->entityManager->getRepository(S11Formation::class);
 
         /** @var S11PlayerSyncer $s11PlayerSyncer */
         $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
@@ -156,7 +157,8 @@ final class CreateFormationsCommand extends Command
                 //            if( $oldTransferFormation !== null ) {
                 //                $this->s11FormationRepos->remove($oldTransferFormation, true);
                 //            }
-                $this->poolUserRepos->save($poolUser, true);
+                $this->entityManager->persist($poolUser);
+                $this->entityManager->flush();
             }
 
         } catch (\Exception $e) {

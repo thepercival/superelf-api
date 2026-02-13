@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
-use SuperElf\User\Repository as UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use SuperElf\Auth\Token as AuthToken;
 use SuperElf\User;
-use App\Response\ForbiddenResponse as ForbiddenResponse;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -15,8 +15,13 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 final class UserMiddleware implements MiddlewareInterface
 {
-    public function __construct(protected UserRepository $userRepos)
+    /** @var EntityRepository<User>  */
+    protected EntityRepository $userRepos;
+
+    public function __construct(
+        protected EntityManagerInterface $entityManager)
     {
+        $this->userRepos = $this->entityManager->getRepository(User::class);
     }
 
     #[\Override]

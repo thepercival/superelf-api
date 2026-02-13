@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\Sport;
 
 use Sports\Sport;
-use Sports\Sport\Repository as SportRepository;
+use Sports\Repositories\SportRepository;
 
 final class Administrator
 {

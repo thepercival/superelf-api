@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity name="SuperElf\GameRound" table="gameRounds" repository-class="SuperElf\GameRound\Repository">
+  <entity name="SuperElf\GameRound" table="gameRounds">
     <field name="number" column="number" type="smallint" nullable="false" unique="false"/>
     <many-to-one field="viewPeriod" target-entity="SuperElf\Periods\ViewPeriod" inversed-by="gameRounds">
         <join-columns>

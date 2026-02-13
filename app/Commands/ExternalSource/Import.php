@@ -10,8 +10,8 @@ use DateTimeImmutable;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
-use Sports\Game\Against\Repository as AgainstGameRepository;
 use Sports\League;
+use Sports\Repositories\AgainstGameRepository;
 use Sports\Season;
 use Sports\Sport;
 use SportsImport\Entity;
@@ -341,7 +341,7 @@ final class Import extends ExternalSourceCommand
         foreach ($minutesAfterStart as $nrOfMinutesAfterStart) {
             $startDateTime = $currentDateTime->sub(new \DateInterval('PT' . $nrOfMinutesAfterStart . 'M'));
             $periodStart = $startDateTime->sub(new \DateInterval('PT1S'));
-            $period = new Period($periodStart, $startDateTime->add(new \DateInterval('PT1S')));
+            $period = Period::fromDate($periodStart, $startDateTime->add(new \DateInterval('PT1S')));
 
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
             $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after ' . $startDateTime->format(
@@ -349,7 +349,7 @@ final class Import extends ExternalSourceCommand
                 ) . ' there were ' . count($games) . ' games found';
             $this->getLogger()->info($msg);
             foreach ($games as $game) {
-                $externalGameId = $this->againstGameAttacherRepos->findExternalId($externalSource, $game);
+                $externalGameId = $this->againstGameAttacherRepos->findOneByImportable($externalSource, $game)?->getExternalId();
                 if ($externalGameId === null) {
                     $this->getLogger()->error(
                         'no attacher find for gameId "' . (string)$game->getId() . '" is not finished'

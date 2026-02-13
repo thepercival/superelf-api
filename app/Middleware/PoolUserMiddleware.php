@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Slim\Routing\RouteContext;
-use SuperElf\Pool\User\Repository as PoolUserRepository;
 use App\Response\ForbiddenResponse as ForbiddenResponse;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use SuperElf\Pool\User as PoolUser;
 
 final class PoolUserMiddleware implements MiddlewareInterface
 {
-    protected PoolUserRepository $poolUserRepos;
+    /** @var EntityRepository<PoolUser>  */
+    protected EntityRepository $poolUserRepos;
 
     public function __construct(
-        PoolUserRepository $poolUserRepos
-    ) {
-        $this->poolUserRepos = $poolUserRepos;
+        protected EntityManagerInterface $entityManager)
+    {
+        $this->poolUserRepos = $this->entityManager->getRepository(PoolUser::class);
     }
 
     #[\Override]

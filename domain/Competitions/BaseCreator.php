@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace SuperElf\Competitions;
 
 use Sports\Competition;
-use Sports\Competition\Sport as CompetitionSport;
-use Sports\Competition\Sport\Editor as CompetitionSportEditor;
+use Sports\Competition\CompetitionSport;
+use Sports\Competition\CompetitionSportEditor;
 use Sports\Competitor\StartLocation;
 use Sports\Planning\Config\Service as PlanningConfigService;
 use Sports\Ranking\PointsCalculation;
@@ -21,7 +21,7 @@ use SuperElf\Pool\User as PoolUser;
 
 abstract class BaseCreator
 {
-    public const NrOfAgainstGamesPerRound = 3;
+    public const int NrOfAgainstGamesPerRound = 3;
     protected StructureEditor $structureEditor;
 
     public function __construct(protected S11League $s11League)

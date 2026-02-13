@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SuperElf\CompetitionConfig;
 
 use DateTimeImmutable;
-use League\Period\Period;
+use League\Period\Period as LeaguePeriod;
 use Sports\Competition;
 use Sports\Game\Against as AgainstGame;
 use SuperElf\CompetitionConfig;
@@ -28,17 +28,16 @@ final class Administrator
     /**
      * @param Competition $sourceCompetition
      * @param DateTimeImmutable $createAndJoinStart
-     * @param Period $assemblePeriodInput
-     * @param Period $transferPeriodInput
+     * @param LeaguePeriod $assemblePeriodInput
+     * @param LeaguePeriod $transferPeriodInput
      * @param list<AgainstGame> $sourceCompetitionGames
      * @return CompetitionConfig
-     * @throws \League\Period\Exception
      */
     public function create(
         Competition $sourceCompetition,
         DateTimeImmutable $createAndJoinStart,
-        Period $assemblePeriodInput,
-        Period $transferPeriodInput,
+        LeaguePeriod $assemblePeriodInput,
+        LeaguePeriod $transferPeriodInput,
         array $sourceCompetitionGames
     ): CompetitionConfig {
         $this->validateNonexistance($sourceCompetition);
@@ -51,19 +50,19 @@ final class Administrator
             $sourceCompetitionGames
         );
         $season = $sourceCompetition->getSeason();
-        $seasonEnd = $season->getPeriod()->getEndDate();
+        $seasonEnd = $season->getPeriod()->endDate;
 
-        $assembleEnd = $assemblePeriodInput->getEndDate();
-        $assembleViewPeriod = new ViewPeriod(new Period($assembleEnd, $transferPeriodInput->getStartDate()));
+        $assembleEnd = $assemblePeriodInput->endDate;
+        $assembleViewPeriod = new ViewPeriod(LeaguePeriod::fromDate($assembleEnd, $transferPeriodInput->startDate));
         $assemblePeriod = new AssemblePeriod($assemblePeriodInput, $assembleViewPeriod);
-        $transferEnd = $transferPeriodInput->getEndDate();
-        $transferViewPeriod = new ViewPeriod(new Period($transferEnd, $seasonEnd));
+        $transferEnd = $transferPeriodInput->endDate;
+        $transferViewPeriod = new ViewPeriod(LeaguePeriod::fromDate($transferEnd, $seasonEnd));
         $transferPeriod = new TransferPeriod($transferPeriodInput, $transferViewPeriod, Defaults::MAXNROFTRANSFERS);
 
         $newCompetitionConfig = new CompetitionConfig(
             $sourceCompetition,
             (new PointsCreator())->createDefault($season),
-            new ViewPeriod(new Period($createAndJoinStart, $assembleEnd)),
+            new ViewPeriod(LeaguePeriod::fromDate($createAndJoinStart, $assembleEnd)),
             $assemblePeriod,
             $transferPeriod
         );
@@ -73,13 +72,12 @@ final class Administrator
 
     /**
      * @param Competition $sourceCompetition
-     * @param Period $assemblePeriodInput
+     * @param LeaguePeriod $assemblePeriodInput
      * @param list<AgainstGame> $sourceCompetitionGames
-     * @throws \League\Period\Exception
      */
     public function updateAssemblePeriod(
         Competition $sourceCompetition,
-        Period $assemblePeriodInput,
+        LeaguePeriod $assemblePeriodInput,
         array $sourceCompetitionGames
     ): CompetitionConfig {
         $competitionConfig = $this->getCompetitionConfig($sourceCompetition);
@@ -98,13 +96,12 @@ final class Administrator
 
     /**
      * @param Competition $sourceCompetition
-     * @param Period $transferPeriodInput
+     * @param LeaguePeriod $transferPeriodInput
      * @param list<AgainstGame> $sourceCompetitionGames
-     * @throws \League\Period\Exception
      */
     public function updateTransferPeriod(
         Competition $sourceCompetition,
-        Period $transferPeriodInput,
+        LeaguePeriod $transferPeriodInput,
         array $sourceCompetitionGames
     ): CompetitionConfig {
         $competitionConfig = $this->getCompetitionConfig($sourceCompetition);
@@ -123,33 +120,33 @@ final class Administrator
 
     /**
      * @param Competition $sourceCompetition
-     * @param Period $assemblePeriodInput
+     * @param LeaguePeriod $assemblePeriodInput
      * @param DateTimeImmutable $createAndJoinStart
-     * @param Period $transferPeriodInput
+     * @param LeaguePeriod $transferPeriodInput
      * @param list<AgainstGame> $sourceCompetitionGames
      * @return void
      * @throws \Exception
      */
     private function validatePeriods(
         Competition $sourceCompetition,
-        Period $assemblePeriodInput,
+        LeaguePeriod $assemblePeriodInput,
         DateTimeImmutable $createAndJoinStart,
-        Period $transferPeriodInput,
+        LeaguePeriod $transferPeriodInput,
         array $sourceCompetitionGames
     ): void {
-        $assembleStart = $assemblePeriodInput->getStartDate();
+        $assembleStart = $assemblePeriodInput->startDate;
         $season = $sourceCompetition->getSeason();
-        $seasonStart = $season->getPeriod()->getStartDate();
+        $seasonStart = $season->getPeriod()->startDate;
         $this->validateCreateAndJoinStart($createAndJoinStart, $seasonStart, $assembleStart);
-        $transferStart = $transferPeriodInput->getStartDate();
+        $transferStart = $transferPeriodInput->startDate;
         $this->validateAssemblePeriod(
             $assemblePeriodInput,
             $createAndJoinStart,
             $transferStart,
             $sourceCompetitionGames
         );
-        $assembleEnd = $assemblePeriodInput->getEndDate();
-        $seasonEnd = $season->getPeriod()->getEndDate();
+        $assembleEnd = $assemblePeriodInput->endDate;
+        $seasonEnd = $season->getPeriod()->endDate;
         $this->validateTransferPeriod($transferPeriodInput, $assembleEnd, $seasonEnd, $sourceCompetitionGames);
     }
 
@@ -192,25 +189,25 @@ final class Administrator
     }
 
     /**
-     * @param Period $assemblePeriod
+     * @param LeaguePeriod $assemblePeriod
      * @param DateTimeImmutable $createAndJoinStart
      * @param DateTimeImmutable $transferStart
      * @param list<AgainstGame> $sourceCompetitionGames
      * @throws \Exception
      */
     protected function validateAssemblePeriod(
-        Period $assemblePeriod,
+        LeaguePeriod $assemblePeriod,
         DateTimeImmutable $createAndJoinStart,
         DateTimeImmutable $transferStart,
         array $sourceCompetitionGames
     ): void {
-        if ($assemblePeriod->getStartDate() < $createAndJoinStart) {
-            $msg = 'assembleStart "' . $assemblePeriod->getStartDate()->format('Y-m-d H:i') . '" should be ';
+        if ($assemblePeriod->startDate < $createAndJoinStart) {
+            $msg = 'assembleStart "' . $assemblePeriod->startDate->format('Y-m-d H:i') . '" should be ';
             $msg .= 'after createAndJoinStart "' . $createAndJoinStart->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }
-        if ($assemblePeriod->getEndDate() > $transferStart) {
-            $msg = 'assembleEnd "' . $assemblePeriod->getEndDate()->format('Y-m-d H:i') . '" should be ';
+        if ($assemblePeriod->endDate > $transferStart) {
+            $msg = 'assembleEnd "' . $assemblePeriod->endDate->format('Y-m-d H:i') . '" should be ';
             $msg .= 'before transferStart "' . $transferStart->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }
@@ -225,25 +222,25 @@ final class Administrator
     }
 
     /**
-     * @param Period $transferPeriod
+     * @param LeaguePeriod $transferPeriod
      * @param DateTimeImmutable $assembleEnd
      * @param DateTimeImmutable $seasonEnd
      * @param list<AgainstGame> $sourceCompetitionGames
      * @throws \Exception
      */
     protected function validateTransferPeriod(
-        Period $transferPeriod,
+        LeaguePeriod $transferPeriod,
         DateTimeImmutable $assembleEnd,
         DateTimeImmutable $seasonEnd,
         array $sourceCompetitionGames
     ): void {
-        if ($transferPeriod->getStartDate() < $assembleEnd) {
-            $msg = 'transferStart "' . $transferPeriod->getStartDate()->format('Y-m-d H:i') . '" should be ';
+        if ($transferPeriod->startDate < $assembleEnd) {
+            $msg = 'transferStart "' . $transferPeriod->startDate->format('Y-m-d H:i') . '" should be ';
             $msg .= 'after assembleEnd "' . $assembleEnd->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }
-        if ($transferPeriod->getEndDate() > $seasonEnd) {
-            $msg = 'transferEnd "' . $transferPeriod->getEndDate()->format('Y-m-d H:i') . '" should be ';
+        if ($transferPeriod->endDate > $seasonEnd) {
+            $msg = 'transferEnd "' . $transferPeriod->endDate->format('Y-m-d H:i') . '" should be ';
             $msg .= 'before seasonEnd "' . $seasonEnd->format('Y-m-d H:i') . '"';
             throw new \Exception($msg, E_ERROR);
         }

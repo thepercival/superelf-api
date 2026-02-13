@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace SuperElf\GameRound;
 
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
+use Sports\Repositories\AgainstGameRepository;
 use SuperElf\CompetitionConfig;
 use SuperElf\GameRound;
-use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\Periods\ViewPeriod;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Repository as S11PlayerRepository;
 use SuperElf\Points\Creator as PointsCreator;
+use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class Syncer
 {
     protected LoggerInterface|null $logger = null;
+    /** @var EntityRepository<GameRound>  */
+    protected EntityRepository $gameRoundRepos;
 
     public function __construct(
         protected AgainstGameRepository $againstGameRepos,
-        protected GameRoundRepository $gameRoundRepos,
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected PointsCreator $pointsCreator
+        protected PointsCreator $pointsCreator,
+        protected EntityManagerInterface $entityManager
     ) {
+        $this->gameRoundRepos = $entityManager->getRepository(GameRound::class);
     }
 
     /**
@@ -54,7 +58,8 @@ final class Syncer
             foreach ($viewPeriodGameRoundNumbers as $viewPeriodGameRoundNumber) {
                 if ($viewPeriod->getGameRound($viewPeriodGameRoundNumber) === null) {
                     $newGameRound = new GameRound($viewPeriod, $viewPeriodGameRoundNumber);
-                    $this->gameRoundRepos->save($newGameRound, true);
+                    $this->entityManager->persist($newGameRound);
+                    $this->entityManager->flush();
                     $changedGameRoundNumbers[] = $newGameRound->getNumber();
                     $vpDescr = 'viewperiod "' . $viewPeriod->getPeriod()->toIso8601() . '"';
                     $this->logInfo('add gameround "' . $viewPeriodGameRoundNumber . '" for ' . $vpDescr);
@@ -66,7 +71,8 @@ final class Syncer
             foreach ($viewPeriodGameRounds as $viewPeriodGameRound) {
                 if (array_search($viewPeriodGameRound->getNumber(), $viewPeriodGameRoundNumbers) === false) {
                     $viewPeriodGameRounds->removeElement($viewPeriodGameRound);
-                    $this->gameRoundRepos->remove($viewPeriodGameRound);
+                    $this->entityManager->remove($viewPeriodGameRound);
+                    $this->entityManager->flush();
                     $changedGameRoundNumbers[] = $viewPeriodGameRound->getNumber();
                     $vpDescr = 'viewperiod "' . $viewPeriod->getPeriod()->toIso8601() . '"';
                     $this->logInfo('removed gameround "' . $viewPeriodGameRound->getNumber() . '" for ' . $vpDescr);

@@ -4,8 +4,8 @@ namespace App\Commands\Validator;
 
 use App\Command;
 use Psr\Container\ContainerInterface;
-use Sports\Game\Against\Repository as AgainstGameRepository;
-use Sports\Team\Player\Repository as TeamPlayerRepository;
+use Sports\Repositories\AgainstGameRepository;
+use Sports\Repositories\TeamPlayerRepository;
 use Sports\Team\Role\Validator as TeamRoleValidator;
 use SportsImport\Getter as ImportGetter;
 use Symfony\Component\Console\Input\InputInterface;

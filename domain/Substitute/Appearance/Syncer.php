@@ -5,39 +5,46 @@ declare(strict_types=1);
 namespace SuperElf\Substitute\Appearance;
 
 use DateTimeInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sports\Game\Against as AgainstGame;
-use Sports\Person;
 use Sports\Team;
 use Sports\Team\Calculator as TeamCalculator;
-use SportsHelpers\Against\Side;
+use SportsHelpers\Against\AgainstSide;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\GameRound;
-use SuperElf\GameRound\Repository as GameRoundRepository;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Player\Repository as PlayerRepository;
-use SuperElf\Pool\Repository as PoolRepository;
-use SuperElf\Totals\TotalsSyncer as TotalsSyncer;
+use SuperElf\Repositories\PoolRepository as PoolRepository;
+use SuperElf\Repositories\S11PlayerRepository as PlayerRepository;
+use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use SuperElf\Substitute\Appearance;
-use SuperElf\Substitute\Appearance\Repository as AppearanceRepository;
 use SuperElf\Totals\Calculator as TotalsCalculator;
+use SuperElf\Totals\TotalsSyncer as TotalsSyncer;
 
 final class Syncer
 {
     protected LoggerInterface|null $logger = null;
 
+    /** @var EntityRepository<GameRound>  */
+    protected EntityRepository $gameRoundRepos;
+
+    /** @var EntityRepository<Appearance>  */
+    protected EntityRepository $appearanceRepos;
+
+
     public function __construct(
-        protected GameRoundRepository $gameRoundRepos,
         protected PlayerRepository $playerRepos,
         protected PoolRepository $poolRepos,
-        protected AppearanceRepository $appearanceRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected TotalsSyncer $totalsSyncer
+        protected TotalsSyncer $totalsSyncer,
+        protected EntityManagerInterface $entityManager
     ) {
+        $this->gameRoundRepos = $entityManager->getRepository(GameRound::class);
+        $this->appearanceRepos = $entityManager->getRepository(Appearance::class);
     }
 
     public function syncSubstituteAppearances(CompetitionConfig $competitionConfig, AgainstGame $game): void
@@ -76,7 +83,7 @@ final class Syncer
                 if( $formation === null ) {
                     continue;
                 }
-                foreach ([Side::Home, Side::Away] as $side) {
+                foreach ([AgainstSide::Home, AgainstSide::Away] as $side) {
                     $team = $teamCalculator->getSingleTeam($game, $side);
                     $formationLines = $this->getFormationLinesForTeam($team, $game, $formation);
                     foreach( $formationLines as $formationLine ) {
@@ -86,13 +93,15 @@ final class Syncer
                             if ( $appearance === null ) {
                                 $newAppearance = new Appearance($formationLine, $gameRound);
                                 $formationLine->getSubstituteAppearances()->add($newAppearance);
-                                $this->appearanceRepos->save($newAppearance, true);
+                                $this->entityManager->persist($newAppearance);
+                                $this->entityManager->flush();
                                 $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, $points, [$formationLine->getSubstitute()]);
                             }
                         } else { // do not needsSubstituteAppearance
                             if ( $appearance !== null ) {
                                 $formationLine->getSubstituteAppearances()->removeElement($appearance);
-                                $this->appearanceRepos->remove($appearance, true);
+                                $this->entityManager->remove($appearance);
+                                $this->entityManager->flush();
                                 $this->totalsSyncer->updateFormationPlacesTotals($totalsCalculator, $points, [$formationLine->getSubstitute()]);
                             }
                         }

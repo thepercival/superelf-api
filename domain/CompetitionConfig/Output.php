@@ -9,12 +9,12 @@ use Sports\Game\Against as AgainstGame;
 use Sports\Output\Coordinate;
 use Sports\Output\Grid;
 use Sports\Output\Grid\Drawer as GridDrawer;
-use SportsHelpers\Output as OutputBase;
+use SportsHelpers\Output\OutputAbstract;
 use SuperElf\CompetitionConfig as CompetitionConfig;
 use SuperElf\CompetitionConfig\Output\DrawHelper;
 use SuperElf\CompetitionConfig\Output\RangeCalculator;
 
-final class Output extends OutputBase
+final class Output extends OutputAbstract
 {
     protected RangeCalculator $rangeCalculator;
     /**
@@ -22,7 +22,7 @@ final class Output extends OutputBase
      */
     protected array $outputLines = [];
 
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(LoggerInterface $logger)
     {
         parent::__construct($logger);
         $this->rangeCalculator = new RangeCalculator();
@@ -61,6 +61,6 @@ final class Output extends OutputBase
     {
         $width = $this->rangeCalculator->getMaxWidth($titleLength);
         $height = $this->rangeCalculator->getMaxHeight($competitionConfig);
-        return new Grid($height, $width);
+        return new Grid($height, $width, $this->logger);
     }
 }

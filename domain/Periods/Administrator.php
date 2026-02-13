@@ -4,23 +4,31 @@ declare(strict_types=1);
 
 namespace SuperElf\Periods;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Selective\Config\Configuration;
 use SuperElf\ActiveConfig\Service as ActiveConfigService;
-use SuperElf\Periods\AssemblePeriod\Repository as AssemblePeriodRepository;
-use SuperElf\Periods\TransferPeriod\Repository as TransferPeriodRepository;
-use SuperElf\Periods\ViewPeriod\Repository as ViewPeriodRepository;
-use SuperElf\Pool\Repository as PoolRepository;
+use SuperElf\Repositories\PoolRepository;
+use SuperElf\Repositories\ViewPeriodRepository;
 
 final class Administrator
 {
+    /** @var EntityRepository<AssemblePeriod>  */
+    protected EntityRepository $assemblePeriodRepos;
+
+    /** @var EntityRepository<TransferPeriod>  */
+    protected EntityRepository $transferPeriodRepos;
+
+
     public function __construct(
         protected PoolRepository $poolRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
-        protected AssemblePeriodRepository $assemblePeriodRepos,
-        protected TransferPeriodRepository $transferPeriodRepos,
         protected ActiveConfigService $activeConfigService,
-        protected Configuration $config
+        protected Configuration $config,
+        EntityManagerInterface $entityManager
     ) {
+        $this->assemblePeriodRepos = $entityManager->getRepository(AssemblePeriod::class);
+        $this->transferPeriodRepos = $entityManager->getRepository(TransferPeriod::class);
     }
 /*
     public function getCreateAndJoinPeriod(Competition $sourceCompetition): ViewPeriod
