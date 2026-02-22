@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\S11PlayerRepository as PlayerRepository;
+use App\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use App\Response\ErrorResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -13,8 +15,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Team;
 use SuperElf\S11Player\S11PlayerFilter;
-use SuperElf\Repositories\S11PlayerRepository as PlayerRepository;
-use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 
 final class PlayerAction extends Action
 {

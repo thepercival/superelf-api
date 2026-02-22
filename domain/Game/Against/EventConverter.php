@@ -6,7 +6,6 @@ use Sports\Competitor\StartLocationMap;
 use Sports\Game\Event\Goal as GoalEvent;
 use Sports\Game\Event\Card as CardEvent;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Repositories\TeamPlayerRepository;
 use Sports\Competitor\Team as TeamCompetitor;
 use SuperElf\FootballScore;
 use SuperElf\Game\Against\GoalEvent as AgainstGameGoalEvent;
@@ -14,7 +13,7 @@ use SuperElf\Game\Against\CardEvent as AgainstGameCardEvent;
 
 final class EventConverter
 {
-    public function __construct(protected TeamPlayerRepository $teamPlayerRepository)
+    public function __construct()
     {
     }
 

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use App\Repositories\Sports\AgainstGameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
-use Sports\Repositories\AgainstGameRepository;
 use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;

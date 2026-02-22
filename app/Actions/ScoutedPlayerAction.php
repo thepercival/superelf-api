@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\S11PlayerRepository as S11PlayerRepository;
+use App\Repositories\ScoutedPlayerRepository as ScoutedPlayerRepository;
+use App\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use App\Response\ErrorResponse;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
-use SuperElf\Repositories\ScoutedPlayerRepository as ScoutedPlayerRepository;
-use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use SuperElf\ScoutedPlayer;
 use SuperElf\User;
 

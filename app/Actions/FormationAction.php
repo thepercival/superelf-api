@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use App\Repositories\S11PlayerRepository as S11PlayerRepository;
+use App\Repositories\Sports\PersonRepository;
+use App\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use App\Response\ErrorResponse;
+use App\Syncers\S11PlayerSyncer as S11PlayerSyncer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
@@ -14,18 +19,13 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use Sports\Formation as SportsFormation;
 use Sports\Person;
-use Sports\Repositories\PersonRepository;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\OneTeamSimultaneous;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\S11Player as S11Player;
-use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
-use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
-use SuperElf\Repositories\ViewPeriodRepository as ViewPeriodRepository;
+use SuperElf\S11Player as S11Player;
 
 final class FormationAction extends Action
 {

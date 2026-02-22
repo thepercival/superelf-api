@@ -2,28 +2,43 @@
 
 declare(strict_types=1);
 
+use App\Repositories\BadgeRepository;
+use App\Repositories\BadgeUnviewedRepository;
+use App\Repositories\ChatMessageRepository;
+use App\Repositories\ChatMessageUnreadRepository;
+use App\Repositories\CompetitionConfigRepository;
+use App\Repositories\FormationLineRepository;
+use App\Repositories\FormationPlaceRepository;
+use App\Repositories\PoolCollectionRepository;
+use App\Repositories\PoolRepository;
+use App\Repositories\S11PlayerRepository;
+use App\Repositories\ScoutedPlayerRepository;
+use App\Repositories\SeasonRepository;
+use App\Repositories\Sports\AgainstGameRepository;
+use App\Repositories\Sports\AgainstScoreRepository;
+use App\Repositories\Sports\CompetitionRepository;
+use App\Repositories\Sports\PersonRepository;
+use App\Repositories\Sports\SportRepository;
+use App\Repositories\Sports\TeamPlayerRepository;
+use App\Repositories\Sports\TogetherGameRepository;
+use App\Repositories\Sports\TogetherScoreRepository;
+use App\Repositories\StatisticsRepository;
+use App\Repositories\TrophyRepository;
+use App\Repositories\TrophyUnviewedRepository;
+use App\Repositories\ViewPeriodRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
 use Sports\Game\Against as AgainstGame;
 use Sports\Game\Together as TogetherGame;
 use Sports\Person;
-use Sports\Repositories\AgainstGameRepository;
-use Sports\Repositories\AgainstScoreRepository;
-use Sports\Repositories\CompetitionRepository;
-use Sports\Repositories\PersonRepository;
-use Sports\Repositories\SeasonRepository;
-use Sports\Repositories\SportRepository;
-use Sports\Repositories\TogetherGameRepository;
-use Sports\Repositories\TeamPlayerRepository;
-use Sports\Repositories\TogetherScoreRepository;
 use Sports\Score\Against as AgainstScore;
 use Sports\Score\Together as TogetherScore;
-use Sports\Team\Player as TeamPlayer;
 use Sports\Season;
 use Sports\Sport;
-use SportsImport\Repositories\CacheItemDbRepository;
+use Sports\Team\Player as TeamPlayer;
 use SportsImport\CacheItemDb;
+use SportsImport\Repositories\CacheItemDbRepository;
 use SuperElf\Achievement\Badge;
 use SuperElf\Achievement\Trophy;
 use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
@@ -34,25 +49,9 @@ use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
-use SuperElf\Repositories\ChatMessageUnreadRepository;
-use SuperElf\S11Player as S11Player;
 use SuperElf\Pool;
 use SuperElf\PoolCollection;
-use SuperElf\Repositories\BadgeRepository;
-use SuperElf\Repositories\BadgeUnviewedRepository;
-use SuperElf\Repositories\ChatMessageRepository;
-use SuperElf\Repositories\CompetitionConfigRepository;
-use SuperElf\Repositories\FormationLineRepository;
-use SuperElf\Repositories\FormationPlaceRepository;
-use SuperElf\Repositories\PoolCollectionRepository;
-use SuperElf\Repositories\PoolRepository;
-use SuperElf\Repositories\S11PlayerRepository;
-use SuperElf\Repositories\ScoutedPlayerRepository;
-use SuperElf\Repositories\SeasonRepository as S11SeasonRepository;
-use SuperElf\Repositories\StatisticsRepository;
-use SuperElf\Repositories\TrophyRepository;
-use SuperElf\Repositories\TrophyUnviewedRepository;
-use SuperElf\Repositories\ViewPeriodRepository;
+use SuperElf\S11Player as S11Player;
 use SuperElf\ScoutedPlayer;
 use SuperElf\Statistics;
 
@@ -176,12 +175,6 @@ return [
         $entityManager = $container->get(EntityManagerInterface::class);
         $metaData = $entityManager->getClassMetadata(Person::class);
         return new PersonRepository($entityManager, $metaData);
-    },
-    S11SeasonRepository::class => function (ContainerInterface $container): S11SeasonRepository {
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $container->get(EntityManagerInterface::class);
-        $metaData = $entityManager->getClassMetadata(Season::class);
-        return new S11SeasonRepository($entityManager, $metaData);
     },
     TrophyRepository::class => function (ContainerInterface $container): TrophyRepository {
         /** @var EntityManagerInterface $entityManager */

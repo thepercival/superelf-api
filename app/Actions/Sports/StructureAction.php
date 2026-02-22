@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use App\Repositories\Sports\CompetitionRepository;
+use App\Repositories\Sports\StructureRepository;
 use App\Response\ErrorResponse;
+use App\Services\S11SportAdministrator as SportAdministrator;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Sports\Competition;
-use Sports\Repositories\CompetitionRepository;
-use Sports\Repositories\StructureRepository;
-use SuperElf\Sport\Administrator as SportAdministrator;
 
 final class StructureAction extends Action
 {

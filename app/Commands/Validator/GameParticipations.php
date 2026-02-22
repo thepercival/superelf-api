@@ -3,13 +3,13 @@
 namespace App\Commands\Validator;
 
 use App\Command;
+use App\Repositories\Sports\AgainstGameRepository;
+use App\Repositories\Sports\TeamPlayerRepository;
 use Psr\Container\ContainerInterface;
 use Sports\Competitor\StartLocationMap;
 use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Output\Game\Against as AgainstGameOutput;
 use Sports\Output\Team\Player as TeamPlayerOutput;
-use Sports\Repositories\AgainstGameRepository;
-use Sports\Repositories\TeamPlayerRepository;
 use SportsHelpers\Against\AgainstSide;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

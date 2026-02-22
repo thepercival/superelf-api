@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\BadgeRepository;
+use App\Repositories\BadgeUnviewedRepository as UnviewedBadgeRepository;
+use App\Repositories\PoolCollectionRepository;
+use App\Repositories\TrophyRepository as TrophyRepository;
+use App\Repositories\TrophyUnviewedRepository;
 use App\Response\ErrorResponse;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -17,11 +21,6 @@ use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;
 use SuperElf\Achievement\Unviewed\Trophy as UnviewedTrophy;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Repositories\BadgeRepository;
-use SuperElf\Repositories\BadgeUnviewedRepository as UnviewedBadgeRepository;
-use SuperElf\Repositories\PoolCollectionRepository;
-use SuperElf\Repositories\TrophyRepository as TrophyRepository;
-use SuperElf\Repositories\TrophyUnviewedRepository;
 use SuperElf\User;
 
 final class AchievementAction extends Action

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\SeasonRepository;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use SuperElf\Repositories\SeasonRepository as S11SeasonRepository;
 
 final class SeasonAction extends Action
 {
     public function __construct(
-        protected S11SeasonRepository $s11SeasonRepos,
+        protected SeasonRepository $seasonRepos,
         LoggerInterface $logger,
         SerializerInterface $serializer
     ) {
@@ -30,7 +30,7 @@ final class SeasonAction extends Action
     public function fetch(Request $request, Response $response, array $args): Response
     {
         try {
-            $seasons = $this->s11SeasonRepos->findExtWithCompetitionConfigs();
+            $seasons = $this->seasonRepos->findExtWithCompetitionConfigs();
             $json = $this->serializer->serialize($seasons, 'json');
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {

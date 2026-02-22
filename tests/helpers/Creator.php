@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\TestHelpers;
 
+use App\Services\S11SportAdministrator;
 use DateTimeImmutable;
 use League\Period\Period as LeaguePeriod;
 use Sports\Association;
@@ -14,12 +15,11 @@ use Sports\Sport;
 use SportsHelpers\GameMode;
 use SuperElf\CompetitionConfig;
 use SuperElf\Defaults;
+use SuperElf\League as S11League;
 use SuperElf\Periods\AssemblePeriod;
 use SuperElf\Periods\TransferPeriod;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Points;
-use SuperElf\League as S11League;
-use SuperElf\Sport\Administrator;
 
 trait Creator
 {
@@ -30,7 +30,7 @@ trait Creator
     {
         $gameMode = $s11League === S11League::Competition ? GameMode::AllInOneGame : GameMode::Against;
         return new Sport(
-            Administrator::SportName, $teamSport, $gameMode, 1
+            S11SportAdministrator::SportName, $teamSport, $gameMode, 1
         );
     }
 

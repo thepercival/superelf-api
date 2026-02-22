@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\AuthToken as AuthToken;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
-use SuperElf\Auth\Token as AuthToken;
-use SuperElf\User;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use SuperElf\User;
 
 final class UserMiddleware implements MiddlewareInterface
 {

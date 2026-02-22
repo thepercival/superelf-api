@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\FormationPlaceRepository as FormationPlaceRepository;
+use App\Repositories\S11PlayerRepository as S11PlayerRepository;
+use App\Repositories\Sports\PersonRepository;
+use App\Repositories\Sports\TeamPlayerRepository;
 use App\Response\ErrorResponse;
-use Doctrine\ORM\EntityManager;
+use App\Syncers\S11PlayerSyncer as S11PlayerSyncer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
@@ -13,16 +17,11 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Sports\Repositories\PersonRepository;
-use Sports\Repositories\TeamPlayerRepository;
 use SuperElf\Formation;
 use SuperElf\Formation\Validator as FormationValidator;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\Replacement;
-use SuperElf\Repositories\FormationPlaceRepository as FormationPlaceRepository;
-use SuperElf\Repositories\S11PlayerRepository as S11PlayerRepository;
 use SuperElf\Substitution;
 use SuperElf\Transfer;
 

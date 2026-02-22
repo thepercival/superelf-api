@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Actions\Pool;
 
 use App\Actions\Action;
+use App\Repositories\PoolRepository as PoolRepository;
+use App\Repositories\SeasonRepository;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use SuperElf\Pool\Shell;
-use SuperElf\Repositories\PoolRepository as PoolRepository;
-use SuperElf\Repositories\SeasonRepository as S11SeasonRepository;
 use SuperElf\User;
 
 final class ShellAction extends Action
@@ -20,7 +20,7 @@ final class ShellAction extends Action
     public function __construct(
         protected SerializerInterface $serializer,
         protected PoolRepository $poolRepos,
-        protected S11SeasonRepository $s11SeasonRepos,
+        protected SeasonRepository $seasonRepos,
         LoggerInterface $logger
     ) {
         parent::__construct($logger, $serializer);
@@ -54,7 +54,7 @@ final class ShellAction extends Action
                 $nrOfUsers = true;
                 $seasonIdParam = (string)$queryParams["seasonId"];
                 if (strlen($seasonIdParam) > 0) {
-                    $season = $this->s11SeasonRepos->find($seasonIdParam);
+                    $season = $this->seasonRepos->find($seasonIdParam);
                     if( $season !== null ) {
                         $startDateTime = $season->getStartDateTime();
                         $endDateTime = $season->getEndDateTime();

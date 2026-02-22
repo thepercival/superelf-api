@@ -3,7 +3,7 @@
                   xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="SuperElf\ChatMessages\ChatMessage" table="chatMessages"
-            repository-class="SuperElf\Repositories\ChatMessageRepository">
+            repository-class="App\Repositories\ChatMessageRepository">
         <field name="message" column="message" type="text" nullable="false" unique="false"/>
         <field name="dateTime" column="dateTime" type="datetime_immutable" nullable="false" unique="false"/>
         <many-to-one field="poule" target-entity="Sports\Poule">

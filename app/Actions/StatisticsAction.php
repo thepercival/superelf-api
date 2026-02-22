@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\S11PlayerRepository as PlayerRepository;
+use App\Repositories\StatisticsRepository as StatisticsRepository;
 use App\Response\ErrorResponse;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializationContext;
@@ -14,8 +15,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use SuperElf\Formation as S11Formation;
-use SuperElf\Repositories\S11PlayerRepository as PlayerRepository;
-use SuperElf\Repositories\StatisticsRepository as StatisticsRepository;
 
 final class StatisticsAction extends Action
 {

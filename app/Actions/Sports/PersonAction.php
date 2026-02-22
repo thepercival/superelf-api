@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use App\Repositories\Sports\PersonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
-use Sports\Repositories\PersonRepository;
 use Sports\Team;
 
 final class PersonAction extends Action

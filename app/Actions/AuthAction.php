@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Response\ErrorResponse;
+use App\Services\AuthService as AuthService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\SerializerInterface;
@@ -14,7 +15,6 @@ use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use stdClass;
 use SuperElf\Auth\Item as AuthItem;
-use SuperElf\Auth\Service as AuthService;
 use SuperElf\User;
 
 final class AuthAction extends Action

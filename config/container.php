@@ -2,11 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Handlers\JwtAuthBeforeHandler;
 use App\Mailer;
 use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
+use JimTools\JwtAuth\Decoder\DecoderInterface;
+use JimTools\JwtAuth\Middleware\JwtAuthentication;
+use JimTools\JwtAuth\Decoder\FirebaseDecoder;
+use JimTools\JwtAuth\Options;
+use JimTools\JwtAuth\Rules\RequestMethodRule;
+use JimTools\JwtAuth\Rules\RequestPathRule;
+use JimTools\JwtAuth\Secret;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
@@ -35,7 +43,7 @@ return [
         $app = AppFactory::create();
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
-        if ($config->getString("environment") === "production") {
+        if ($config->getString('environment') === 'production') {
             $routeCacheFile = $config->getString('router.cache_file');
             if (strlen($routeCacheFile) > 0) {
                 $app->getRouteCollector()->setCacheFile($routeCacheFile);
@@ -48,7 +56,7 @@ return [
         $config = $container->get(Configuration::class);
 
         $loggerSettings = $config->getArray('logger');
-        $name = "application";
+        $name = 'application';
         $logger = new Logger($name);
 
         $processor = new UidProcessor();
@@ -148,9 +156,9 @@ return [
     SerializerInterface::class => function (ContainerInterface $container): SerializerInterface {
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
-        $env = $config->getString("environment");
-        $builder = SerializerBuilder::create()->setDebug($env === "development");
-        if ($env === "production") {
+        $env = $config->getString('environment');
+        $builder = SerializerBuilder::create()->setDebug($env === 'development');
+        if ($env === 'production') {
             $builder = $builder->setCacheDir($config->getString('serializer.cache_dir'));
         }
         $builder->setPropertyNamingStrategy(
@@ -195,13 +203,38 @@ return [
 
         return $builder->build();
     },
+    DecoderInterface::class => function (ContainerInterface $container): DecoderInterface {
+        /** @var Configuration $config */
+        $config = $container->get(Configuration::class);
+        return new FirebaseDecoder(
+            new Secret(
+                $config->getString('auth.jwtsecret'),
+                $config->getString('auth.jwtalgorithm')
+            )
+        );
+    },
+    JwtAuthentication::class => function (ContainerInterface $container): JwtAuthentication {
+        /** @var DecoderInterface $decoder */
+        $decoder = $container->get(DecoderInterface::class);
+        return new JwtAuthentication(
+            new Options(before: new JwtAuthBeforeHandler()),
+            $decoder,
+            [
+                new RequestMethodRule(), new RequestPathRule(ignore: [
+                    '/public',
+                    '/shells',
+                    '/auth/register', '/auth/validate', '/auth/login', '/auth/passwordreset', '/auth/passwordchange'
+                ])
+            ],
+        );
+    },
     Mailer::class => function (ContainerInterface $container): Mailer {
         /** @var Configuration $config */
         $config = $container->get(Configuration::class);
         /** @var LoggerInterface $logger */
         $logger = $container->get(LoggerInterface::class);
         /** @var array<string, string|int>|null|null $smtpForDev */
-        $smtpForDev = $config->getString("environment") === "development" ? $config->getArray("email.mailtrap") : null;
+        $smtpForDev = $config->getString('environment') === 'development' ? $config->getArray('email.mailtrap') : null;
         return new Mailer(
             $logger,
             $config->getString('email.from'),

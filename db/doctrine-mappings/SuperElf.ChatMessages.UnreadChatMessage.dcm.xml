@@ -3,7 +3,7 @@
                   xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <entity name="SuperElf\ChatMessages\UnreadChatMessage" table="chatMessagesUnread"
-            repository-class="SuperElf\Repositories\ChatMessageUnreadRepository">
+            repository-class="App\Repositories\ChatMessageUnreadRepository">
         <many-to-one field="chatMessage" target-entity="SuperElf\ChatMessages\ChatMessage">
             <join-columns>
                 <join-column name="chatMessageId" referenced-column-name="id" nullable="false"

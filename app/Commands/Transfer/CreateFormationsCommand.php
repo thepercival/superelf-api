@@ -3,6 +3,9 @@
 namespace App\Commands\Transfer;
 
 use App\Command;
+use App\Repositories\CompetitionConfigRepository;
+use App\Repositories\PoolRepository;
+use App\Syncers\S11PlayerSyncer as S11PlayerSyncer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
@@ -13,11 +16,8 @@ use SuperElf\Formation as S11Formation;
 use SuperElf\Formation\Calculator;
 use SuperElf\Formation\Validator as FormationValidator;
 use SuperElf\OneTeamSimultaneous;
-use SuperElf\S11Player as S11Player;
-use SuperElf\S11Player\S11PlayerSyncer as S11PlayerSyncer;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Repositories\CompetitionConfigRepository;
-use SuperElf\Repositories\PoolRepository;
+use SuperElf\S11Player as S11Player;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;

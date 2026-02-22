@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
-use Doctrine\ORM\EntityManagerInterface;
-use Sports\Competitor\Team as TeamCompetitor;
+use App\Repositories\Sports\AgainstGameRepository;
+use App\Repositories\Sports\CompetitionRepository;
+use App\Repositories\Sports\TeamPlayerRepository;
 use App\Response\ErrorResponse;
+use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
-use Sports\Repositories\CompetitionRepository;
 use Sports\Competitor;
 use Sports\Competitor\StartLocationMap;
+use Sports\Competitor\Team as TeamCompetitor;
 use Sports\Game\Against as AgainstGame;
-use Sports\Repositories\AgainstGameRepository;
-use Sports\Repositories\TeamPlayerRepository;
 use Sports\Game\Place\Against as AgainstGamePlace;
 use Sports\Game\State;
 use SportsHelpers\Against\AgainstSide;
@@ -45,8 +45,8 @@ final class AgainstGameAction extends Action
         SerializerInterface $serializer
     ) {
         parent::__construct($logger, $serializer);
-        $this->lineupConverter = new LineupItem\Converter($this->teamPlayerRepository);
-        $this->eventConverter = new EventConverter($this->teamPlayerRepository);
+        $this->lineupConverter = new LineupItem\Converter();
+        $this->eventConverter = new EventConverter();
 
         $metadata = $this->entityManager->getClassMetadata(AgainstGameAttacher::class);
         $this->againstGameAttacherRepos = new AttacherRepository($this->entityManager, $metadata);

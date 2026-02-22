@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use App\Repositories\PoolRepository as PoolRepository;
 use App\Response\ErrorResponse;
-use Doctrine\ORM\EntityManager;
+use App\Services\PoolAdministrator as PoolAdministrator;
+use App\Services\PoolNameAvailabilityChecker as PoolAvailabilityChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JMS\Serializer\DeserializationContext;
@@ -16,13 +19,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
 use stdClass;
-use SuperElf\ActiveConfig\Service as ActiveConfigService;
 use SuperElf\League as S11League;
 use SuperElf\Pool;
-use SuperElf\Pool\Administrator as PoolAdministrator;
-use SuperElf\Pool\AvailabilityChecker as PoolAvailabilityChecker;
-use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
-use SuperElf\Repositories\PoolRepository as PoolRepository;
 use SuperElf\Pool\User as PoolUser;
 use SuperElf\User;
 
@@ -38,7 +36,6 @@ final class PoolAction extends Action
         protected CompetitionConfigRepository $competitionConfigRepos,
         protected PoolAvailabilityChecker $poolAvailabilityChecker,
         protected PoolAdministrator $poolAdministrator,
-        protected ActiveConfigService $activeConfigService,
         protected Configuration $config,
         protected EntityManagerInterface $entityManager
     ) {
@@ -187,7 +184,7 @@ final class PoolAction extends Action
         return hash("sha1", $this->config->getString("auth.validatesecret") . (string)$pool->getId());
     }
 
-    protected function getDeserializationContext(User $user = null): DeserializationContext
+    protected function getDeserializationContext(User|null $user = null): DeserializationContext
     {
         $serGroups = ['Default'];
 
@@ -197,7 +194,7 @@ final class PoolAction extends Action
         return DeserializationContext::create()->setGroups($serGroups);
     }
 
-    protected function getPoolSerializationContext(Pool $pool, User $user = null): SerializationContext
+    protected function getPoolSerializationContext(Pool $pool, User|null $user = null): SerializationContext
     {
         $serGroups = ['noReference', 'teamCompetitors'];
         if ($user !== null) {

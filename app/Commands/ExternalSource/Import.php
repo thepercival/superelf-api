@@ -6,12 +6,12 @@ namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
 use App\QueueService;
+use App\Repositories\Sports\AgainstGameRepository;
 use DateTimeImmutable;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
 use Sports\League;
-use Sports\Repositories\AgainstGameRepository;
 use Sports\Season;
 use Sports\Sport;
 use SportsImport\Entity;

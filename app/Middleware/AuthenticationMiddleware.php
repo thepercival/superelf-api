@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
-use Slim\Routing\RouteContext;
-use SuperElf\Auth\Token as AuthToken;
+use App\AuthToken as AuthToken;
 use App\Response\ForbiddenResponse as ForbiddenResponse;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 final class AuthenticationMiddleware implements MiddlewareInterface

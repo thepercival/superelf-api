@@ -2,27 +2,27 @@
 
 namespace App\Commands;
 
-use Doctrine\ORM\EntityRepository;
 use App\Commands\CompetitionConfig as CompetitionConfigCommand;
+use App\Repositories\CompetitionConfigRepository;
+use App\Repositories\SeasonRepository;
+use App\Repositories\Sports\CompetitionRepository;
+use App\Repositories\Sports\PersonRepository;
+use App\Repositories\Sports\SportRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use League\Period\Period;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
 use Sports\Competition;
-use Sports\Repositories\CompetitionRepository;
 use Sports\League;
 use Sports\Person;
-use Sports\Repositories\PersonRepository;
 use Sports\Season;
-use Sports\Repositories\SeasonRepository;
 use Sports\Sport;
-use Sports\Repositories\SportRepository;
 use Sports\Team;
 use SportsHelpers\SportRange;
 use SuperElf\CompetitionConfig;
-use SuperElf\Repositories\CompetitionConfigRepository;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class InputHelper
@@ -99,7 +99,7 @@ final class InputHelper
         return $association;
     }
 
-    public function getTeamFromInput(InputInterface $input, string $customOptionName = null): Team|null
+    public function getTeamFromInput(InputInterface $input, string|null $customOptionName = null): Team|null
     {
         $optionName = $customOptionName ?? 'teamAbbr';
         $optionValue = $input->getOption($optionName);
@@ -135,7 +135,7 @@ final class InputHelper
     public function getStringFromInput(
         InputInterface $input,
         string $optionName,
-        string $fallBackValue = null
+        string|null $fallBackValue = null
     ): string {
         /** @var string|null $optionValue */
         $optionValue = $input->getOption($optionName);
@@ -151,7 +151,7 @@ final class InputHelper
     public function getNumberFromInput(
         InputInterface $input,
         string $optionName,
-        int $fallBackValue = null
+        int|null $fallBackValue = null
     ): int {
         /** @var string|null $optionValue */
         $optionValue = $input->getOption($optionName);
@@ -165,7 +165,7 @@ final class InputHelper
     }
 
 
-    public function getIdFromInput(InputInterface $input, int|string|false $fallBackValue = null): int|string|false
+    public function getIdFromInput(InputInterface $input, int|string|false|null $fallBackValue = null): int|string|false
     {
         $idOption = $input->getOption("id");
         if (is_int($idOption)) {

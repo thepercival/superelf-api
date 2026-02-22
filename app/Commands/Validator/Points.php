@@ -3,16 +3,16 @@
 namespace App\Commands\Validator;
 
 use App\Command;
+use App\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
+use App\Repositories\PoolRepository as PoolRepository;
+use App\Repositories\Sports\AgainstGameRepository;
 use Psr\Container\ContainerInterface;
 use Sports\Competition;
 use Sports\Game\State;
-use Sports\Repositories\AgainstGameRepository;
 use SportsImport\Getter as ImportGetter;
 use SuperElf\Formation as S11Formation;
 use SuperElf\Points as S11Points;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
-use SuperElf\Repositories\PoolRepository as PoolRepository;
 use SuperElf\Substitute\Appearance;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Repositories\ChatMessageRepository;
+use App\Repositories\ChatMessageUnreadRepository;
 use App\Response\ErrorResponse;
 use App\Response\ForbiddenResponse;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,8 +23,6 @@ use SuperElf\Competitor as PoolCompetitor;
 use SuperElf\League as S11League;
 use SuperElf\Pool;
 use SuperElf\Pool\User as PoolUser;
-use SuperElf\Repositories\ChatMessageRepository;
-use SuperElf\Repositories\ChatMessageUnreadRepository;
 use SuperElf\User;
 
 final class ChatMessageAction extends Action

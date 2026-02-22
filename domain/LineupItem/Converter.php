@@ -5,12 +5,11 @@ namespace SuperElf\LineupItem;
 use Sports\Game\Participation;
 use Sports\Game\Participation as GameParticipation;
 use Sports\Game\Place\Against as AgainstGamePlace;
-use Sports\Repositories\TeamPlayerRepository;
 use SuperElf\LineupItem;
 
 final class Converter
 {
-    public function __construct(protected TeamPlayerRepository $teamPlayerRepository)
+    public function __construct()
     {
     }
 

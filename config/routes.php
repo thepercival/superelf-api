@@ -29,6 +29,7 @@ use App\Middleware\PoolMiddleware;
 use App\Middleware\PoolUserMiddleware;
 use App\Middleware\UserMiddleware;
 use App\Middleware\VersionMiddleware;
+use JimTools\JwtAuth\Middleware\JwtAuthentication;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
@@ -283,7 +284,10 @@ return function (App $app): void {
                 },
             );
         }
-    )->add(PoolMiddleware::class)->add(UserMiddleware::class)->add(VersionMiddleware::class);
+    )->add(PoolMiddleware::class)
+        ->add(UserMiddleware::class)
+        ->add(VersionMiddleware::class)
+        ->add(JwtAuthentication::class);
 
     $app->group(
         '/poolusers',

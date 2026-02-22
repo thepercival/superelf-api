@@ -15,7 +15,7 @@ class ErrorResponse extends Response
     {
         // logger->error('HTTPSTATUS: ' . $status . ' => ' . $message);
         $headers = new Headers();
-        $headers->setHeader("Content-type", "application/json");
+        $headers->setHeader("Content-type", "plain/text");
         if ($logger !== null) {
             $logger->error($message);
         }

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use App\Repositories\Sports\CompetitionRepository;
 use App\Response\ErrorResponse;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
 use Selective\Config\Configuration;
-use Sports\Repositories\CompetitionRepository;
 
 final class CompetitionAction extends Action
 {
