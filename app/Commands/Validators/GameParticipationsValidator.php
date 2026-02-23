@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Commands\Validator;
+namespace App\Commands\Validators;
 
 use App\Command;
 use App\Repositories\Sports\AgainstGameRepository;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class GameParticipations extends Command
+final class GameParticipationsValidator extends Command
 {
     protected AgainstGameRepository $againstGameRepos;
     protected TeamPlayerRepository $teamPlayerRepos;

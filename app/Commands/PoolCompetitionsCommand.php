@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use App\Importer;
 use App\QueueService;
 use App\Repositories\CompetitionConfigRepository;
 use App\Repositories\PoolRepository;
@@ -14,7 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Psr\Container\ContainerInterface;
 use Selective\Config\Configuration;
-use SportsImport\Importer;
 use SuperElf\CompetitionConfig as CompetitionConfigBase;
 use SuperElf\Competitor;
 use SuperElf\Formation\Editor as FormationEditor;

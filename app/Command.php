@@ -21,7 +21,7 @@ use Selective\Config\Configuration;
 use Sports\Association;
 use Sports\League;
 use SportsImport\Attachers\AssociationAttacher;
-use SportsImport\Repositories\AttacherRepository;
+use App\Repositories\SportsImport\AttacherRepository;
 use Symfony\Component\Console\Command\Command as SymCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

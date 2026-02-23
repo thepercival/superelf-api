@@ -5682,16 +5682,16 @@
         },
         {
             "name": "thepercival/php-sports-import",
-            "version": "v1.0.43",
+            "version": "v1.0.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thepercival/php-sports-import.git",
-                "reference": "9b0a42a627514234df4bd33fb550dfeaef409158"
+                "reference": "7ac26cab511e1c3661d72fc754473d2601530934"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thepercival/php-sports-import/zipball/9b0a42a627514234df4bd33fb550dfeaef409158",
-                "reference": "9b0a42a627514234df4bd33fb550dfeaef409158",
+                "url": "https://api.github.com/repos/thepercival/php-sports-import/zipball/7ac26cab511e1c3661d72fc754473d2601530934",
+                "reference": "7ac26cab511e1c3661d72fc754473d2601530934",
                 "shasum": ""
             },
             "require": {
@@ -5746,9 +5746,9 @@
             "support": {
                 "email": "cdkdev@pm.me",
                 "issues": "https://github.com/thepercival/php-sports-import/issues",
-                "source": "https://github.com/thepercival/php-sports-import/tree/v1.0.43"
+                "source": "https://github.com/thepercival/php-sports-import/tree/v1.0.45"
             },
-            "time": "2026-02-15T07:15:15+00:00"
+            "time": "2026-02-23T07:36:17+00:00"
         },
         {
             "name": "thepercival/php-sports-planning",
@@ -8904,16 +8904,16 @@
         },
         {
             "name": "netresearch/jsonmapper",
-            "version": "v5.0.0",
+            "version": "v5.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cweiske/jsonmapper.git",
-                "reference": "8c64d8d444a5d764c641ebe97e0e3bc72b25bf6c"
+                "reference": "980674efdda65913492d29a8fd51c82270dd37bb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cweiske/jsonmapper/zipball/8c64d8d444a5d764c641ebe97e0e3bc72b25bf6c",
-                "reference": "8c64d8d444a5d764c641ebe97e0e3bc72b25bf6c",
+                "url": "https://api.github.com/repos/cweiske/jsonmapper/zipball/980674efdda65913492d29a8fd51c82270dd37bb",
+                "reference": "980674efdda65913492d29a8fd51c82270dd37bb",
                 "shasum": ""
             },
             "require": {
@@ -8949,9 +8949,9 @@
             "support": {
                 "email": "cweiske@cweiske.de",
                 "issues": "https://github.com/cweiske/jsonmapper/issues",
-                "source": "https://github.com/cweiske/jsonmapper/tree/v5.0.0"
+                "source": "https://github.com/cweiske/jsonmapper/tree/v5.0.1"
             },
-            "time": "2024-09-08T10:20:00+00:00"
+            "time": "2026-02-22T16:28:03+00:00"
         },
         {
             "name": "nikic/php-parser",

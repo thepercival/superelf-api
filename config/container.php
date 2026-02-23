@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Handlers\JwtAuthBeforeHandler;
 use App\Mailer;
+use App\Repositories\SportsImport\CacheItemDbRepository;
 use Doctrine\DBAL\Connection as DBConnection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
@@ -29,7 +30,6 @@ use Selective\Config\Configuration;
 use Slim\App;
 use Slim\Factory\AppFactory;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
-use SportsImport\Repositories\CacheItemDbRepository;
 use SuperElf\UTCDateTimeType;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 

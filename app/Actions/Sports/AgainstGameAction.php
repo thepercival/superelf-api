@@ -24,7 +24,7 @@ use SportsHelpers\Against\AgainstSide;
 use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\SofaScore;
-use SportsImport\Repositories\AttacherRepository;
+use App\Repositories\SportsImport\AttacherRepository;
 use SuperElf\Game\Against\EventConverter;
 use SuperElf\LineupItem;
 

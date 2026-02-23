@@ -51,7 +51,7 @@ final class SuperCupCreator extends BaseCreator
 
 //    protected function createGames(
 //        Competition $competition,
-//        CompetitionConfig $competitionConfig,
+//        CompetitionConfigValidator $competitionConfig,
 //        Structure $structure,
 //        Structure $sourceStructure
 //    ): void

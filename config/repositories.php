@@ -38,7 +38,7 @@ use Sports\Season;
 use Sports\Sport;
 use Sports\Team\Player as TeamPlayer;
 use SportsImport\CacheItemDb;
-use SportsImport\Repositories\CacheItemDbRepository;
+use App\Repositories\SportsImport\CacheItemDbRepository;
 use SuperElf\Achievement\Badge;
 use SuperElf\Achievement\Trophy;
 use SuperElf\Achievement\Unviewed\Badge as UnviewedBadge;

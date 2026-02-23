@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Commands\Validator;
+namespace App\Commands\Validators;
 
 use App\Command;
 use App\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
 use App\Repositories\Sports\AgainstGameRepository;
+use App\SportsImportHelpers\ExternalSourceGetter;
 use Psr\Container\ContainerInterface;
-use SportsImport\Getter as ImportGetter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class CompetitionConfig extends Command
+final class CompetitionConfigValidator extends Command
 {
-    protected ImportGetter $getter;
+    protected ExternalSourceGetter $getter;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected AgainstGameRepository $againstGameRepos;
 
@@ -21,8 +21,8 @@ final class CompetitionConfig extends Command
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var ImportGetter $getter */
-        $getter = $container->get(ImportGetter::class);
+        /** @var ExternalSourceGetter $getter */
+        $getter = $container->get(ExternalSourceGetter::class);
         $this->getter = $getter;
 
         /** @var CompetitionConfigRepository $competitionConfigRepos */

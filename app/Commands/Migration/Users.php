@@ -43,7 +43,7 @@ class Users extends Command
             ->setHelp('migrates the users');
 
 
-//        $f = CompetitionConfig::DateTimeFormat;
+//        $f = CompetitionConfigValidator::DateTimeFormat;
 //        $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
 //        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
 //        $this->addOption('createAndJoinStart', null, InputOption::VALUE_REQUIRED, $f);

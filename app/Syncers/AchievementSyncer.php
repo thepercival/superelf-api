@@ -205,11 +205,11 @@ final class AchievementSyncer
 
 //
 //    /**
-//     * @param CompetitionConfig $competitionConfig
+//     * @param CompetitionConfigValidator $competitionConfig
 //     * @param int $gameRoundNumber
 //     * @return list<AssemblePeriod|TransferPeriod>
 //     */
-//    protected function getValidEditPeriods(CompetitionConfig $competitionConfig): array
+//    protected function getValidEditPeriods(CompetitionConfigValidator $competitionConfig): array
 //    {
 //        $editPeriods = [];
 //        $assemblePeriod = $competitionConfig->getAssemblePeriod();
@@ -224,7 +224,7 @@ final class AchievementSyncer
 //    }
 //
 //    public function updatePoolCompetitionGames(
-//        CompetitionConfig $competitionConfig,
+//        CompetitionConfigValidator $competitionConfig,
 //        AssemblePeriod|TransferPeriod $editPeriod,
 //        Pool $pool,
 //        Competition $poolCompetition,
@@ -296,7 +296,7 @@ final class AchievementSyncer
 //        TogetherGamePlace $gamePlace,
 //        int $gameRoundNumber,
 //        Formation $formation,
-//        Points $s11Points
+//        PointsValidator $s11Points
 //    ): void {
 //        $viewPeriod = $formation->getViewPeriod();
 //        $gameRound = $viewPeriod->getGameRound($gameRoundNumber);
@@ -361,7 +361,7 @@ final class AchievementSyncer
 //        AssemblePeriod|TransferPeriod $editPeriod,
 //        AgainstGame $game,
 //        StartLocationMap $startLocationMap,
-//        Points $s11Points
+//        PointsValidator $s11Points
 //    ): void {
 //        $homeGamePlaces = $game->getSidePlaces(Side::Home);
 //        $homeGamePlace = array_shift($homeGamePlaces);

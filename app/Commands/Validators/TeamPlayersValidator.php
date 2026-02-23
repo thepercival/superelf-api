@@ -1,27 +1,27 @@
 <?php
 
-namespace App\Commands\Validator;
+namespace App\Commands\Validators;
 
 use App\Command;
 use App\Repositories\Sports\AgainstGameRepository;
 use App\Repositories\Sports\TeamPlayerRepository;
+use App\SportsImportHelpers\ExternalSourceGetter;
 use Psr\Container\ContainerInterface;
 use Sports\Team\Role\Validator as TeamRoleValidator;
-use SportsImport\Getter as ImportGetter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class TeamPlayers extends Command
+final class TeamPlayersValidator extends Command
 {
-    protected ImportGetter $getter;
+    protected ExternalSourceGetter $getter;
     protected AgainstGameRepository $againstGameRepos;
     protected TeamPlayerRepository $teamPlayerRepos;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var ImportGetter $getter */
-        $getter = $container->get(ImportGetter::class);
+        /** @var ExternalSourceGetter $getter */
+        $getter = $container->get(ExternalSourceGetter::class);
         $this->getter = $getter;
 
         /** @var AgainstGameRepository $againstGameRepos */

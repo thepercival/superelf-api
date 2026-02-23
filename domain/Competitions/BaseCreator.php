@@ -90,14 +90,14 @@ abstract class BaseCreator
 
 //    /**
 //     * @param Competition $competition
-//     * @param CompetitionConfig $competitionConfig,
+//     * @param CompetitionConfigValidator $competitionConfig,
 //     * @param Structure $sourceStructure,
 //     * @param list<PoolUser> $validPoolUsers
 //     * @return Structure
 //     */
 //    abstract protected function createStructureAndGames(
 //        Competition $competition,
-//        CompetitionConfig $competitionConfig,
+//        CompetitionConfigValidator $competitionConfig,
 //        Structure $sourceStructure,
 //        array $validPoolUsers
 //    ): Structure;

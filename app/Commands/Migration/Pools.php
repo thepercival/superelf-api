@@ -20,7 +20,7 @@ use SportsImport\Attachers\PersonAttacher;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\SofaScore;
-use SportsImport\Repositories\AttacherRepository;
+use App\Repositories\SportsImport\AttacherRepository;
 use SuperElf\Formation;
 use SuperElf\Formation\Editor as FormationEditor;
 use SuperElf\Pool;
@@ -111,7 +111,7 @@ class Pools extends Command
             ->setHelp('migrates the pools');
 
 
-//        $f = CompetitionConfig::DateTimeFormat;
+//        $f = CompetitionConfigValidator::DateTimeFormat;
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('skip-formations', null, InputOption::VALUE_NONE, 'skip-formations');

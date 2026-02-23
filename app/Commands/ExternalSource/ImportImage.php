@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
+use App\Importer;
 use App\QueueService;
 use Psr\Container\ContainerInterface;
 use Sports\League;
@@ -13,10 +14,9 @@ use Sports\Season;
 use Sports\Team;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\Competitions;
-use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\GamesAndPlayers;
-use SportsImport\Importer;
+use SportsImport\ExternalSource\ExternalSourceGamesAndPlayersInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionsInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionStructureInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -68,9 +68,9 @@ final class ImportImage extends ExternalSourceCommand
         $entity = $this->getEntityFromInput($input);
 
         try {
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof GamesAndPlayers) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
+                $externalSourceImpl instanceof ExternalSourceGamesAndPlayersInterface) {
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
                 if ($entity === Entity::TEAMS) {
@@ -104,7 +104,7 @@ final class ImportImage extends ExternalSourceCommand
     }
 
     protected function importTeamImages(
-        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
         ExternalSource $externalSource,
         League $league,
         Season $season,
@@ -125,7 +125,7 @@ final class ImportImage extends ExternalSourceCommand
     }
 
     protected function importPlayerImages(
-        GamesAndPlayers $externalSourceGamesAndPlayers,
+        ExternalSourceGamesAndPlayersInterface $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         League $league,
         Season $season,

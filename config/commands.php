@@ -17,10 +17,10 @@ use App\Commands\PoolUserCommand;
 use App\Commands\PoolUserCopyCommand;
 use App\Commands\Sync as SyncCommand;
 use App\Commands\Transfer\CreateFormationsCommand;
-use App\Commands\Validator\CompetitionConfig as ValidateCompetitionConfigCommand;
-use App\Commands\Validator\Points as ValidatePointsCommand;
-use App\Commands\Validator\GameParticipations as ValidateGameParticipationsCommand;
-use App\Commands\Validator\TeamPlayers as ValidateTeamPlayersCommand;
+use App\Commands\Validators\CompetitionConfigValidator as ValidateCompetitionConfigCommand;
+use App\Commands\Validators\PointsValidator as ValidatePointsCommand;
+use App\Commands\Validators\GameParticipationsValidator as ValidateGameParticipationsCommand;
+use App\Commands\Validators\TeamPlayersValidator as ValidateTeamPlayersCommand;
 use Psr\Container\ContainerInterface;
 
 $commands = [

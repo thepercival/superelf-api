@@ -11,7 +11,7 @@ use Psr\Container\ContainerInterface;
 use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\ExternalSource\Factory as ExternalSourceFactory;
 use SportsImport\ExternalSource\Implementation as ExternalSourceImplementation;
-use SportsImport\Repositories\AttacherRepository;
+use App\Repositories\SportsImport\AttacherRepository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

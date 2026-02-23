@@ -3,7 +3,7 @@
     <mapped-superclass name="SuperElf\Period">
         <field name="startDateTime" column="startDateTime" type="datetime_immutable" nullable="false" unique="false"/>
         <field name="endDateTime" column="endDateTime" type="datetime_immutable" nullable="false" unique="false"/>
-        <!--        <many-to-one field="competitionConfig" target-entity="SuperElf\CompetitionConfig">-->
+        <!--        <many-to-one field="competitionConfig" target-entity="SuperElf\CompetitionConfigValidator">-->
         <!--            <cascade>-->
         <!--                <cascade-persist/>-->
         <!--            </cascade>-->

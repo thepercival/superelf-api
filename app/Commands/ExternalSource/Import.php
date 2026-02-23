@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
+use App\Importer;
 use App\QueueService;
 use App\Repositories\Sports\AgainstGameRepository;
 use DateTimeImmutable;
@@ -16,11 +17,10 @@ use Sports\Season;
 use Sports\Sport;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\Competitions;
-use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\GamesAndPlayers;
-use SportsImport\ExternalSource\Transfers;
-use SportsImport\Importer;
+use SportsImport\ExternalSource\ExternalSourceGamesAndPlayersInterface;
+use SportsImport\ExternalSource\ExternalSourceTransfersInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionsInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionStructureInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -94,7 +94,7 @@ final class Import extends ExternalSourceCommand
 
             $entity = $this->getEntityFromInput($input);
 
-            if ($externalSourceImpl instanceof Competitions) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface) {
                 switch ($entity) {
                     case Entity::SPORTS:
                         $this->importer->importSports($externalSourceImpl, $externalSourceImpl->getExternalSource());
@@ -134,8 +134,8 @@ final class Import extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -172,9 +172,9 @@ final class Import extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof Transfers) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
+                $externalSourceImpl instanceof ExternalSourceTransfersInterface) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -220,9 +220,9 @@ final class Import extends ExternalSourceCommand
 //                        return 0;
                 }
             }
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof GamesAndPlayers) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
+                $externalSourceImpl instanceof ExternalSourceGamesAndPlayersInterface) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -277,9 +277,9 @@ final class Import extends ExternalSourceCommand
     }
 
     protected function importGame(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
-        GamesAndPlayers $externalSourceGamesAndPlayers,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
+        ExternalSourceGamesAndPlayersInterface $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,

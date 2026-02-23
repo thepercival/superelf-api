@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands\ExternalSource;
 
 use App\Commands\ExternalSource as ExternalSourceCommand;
+use App\SportsImportHelpers\ExternalSourceGetter;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
 use Sports\Competitor\StartLocationMap;
@@ -16,22 +17,21 @@ use Sports\Structure\NameService as StructureNameService;
 use SportsHelpers\SportRange;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
-use SportsImport\ExternalSource\Competitions;
-use SportsImport\ExternalSource\CompetitionStructure;
-use SportsImport\ExternalSource\GamesAndPlayers;
-use SportsImport\Getter as ImportGetter;
+use SportsImport\ExternalSource\ExternalSourceGamesAndPlayersInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionsInterface;
+use SportsImport\ExternalSource\ExternSourceCompetitionStructureInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class Get extends ExternalSourceCommand
 {
-    protected ImportGetter $getter;
+    protected ExternalSourceGetter $getter;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var ImportGetter $getter */
-        $getter = $container->get(ImportGetter::class);
+        /** @var ExternalSourceGetter $getter */
+        $getter = $container->get(ExternalSourceGetter::class);
         $this->getter = $getter;
 
         parent::__construct($container);
@@ -74,7 +74,7 @@ final class Get extends ExternalSourceCommand
         $entity = $this->getEntityFromInput($input);
 
         try {
-            if ($externalSourceImpl instanceof Competitions) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface) {
                 switch ($entity) {
                     case Entity::SPORTS:
                         $this->showSports($externalSourceImpl);
@@ -98,8 +98,8 @@ final class Get extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface) {
                 $sport = $this->inputHelper->getSportFromInput($input);
 //                $association = $this->getAssociationFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
@@ -137,9 +137,9 @@ final class Get extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof Competitions &&
-                $externalSourceImpl instanceof CompetitionStructure &&
-                $externalSourceImpl instanceof GamesAndPlayers) {
+            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
+                $externalSourceImpl instanceof ExternalSourceGamesAndPlayersInterface) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -183,26 +183,26 @@ final class Get extends ExternalSourceCommand
         return 0;
     }
 
-    protected function showSports(Competitions $externalSourceCompetitions): void
+    protected function showSports(ExternSourceCompetitionsInterface $externalSourceCompetitions): void
     {
         $table = new ConsoleTable\Sports();
         $table->display(array_values($externalSourceCompetitions->getSports()));
     }
 
-    protected function showAssociations(Competitions $externalSourceCompetitions, Sport $sport): void
+    protected function showAssociations(ExternSourceCompetitionsInterface $externalSourceCompetitions, Sport $sport): void
     {
         $table = new ConsoleTable\Associations();
         $table->display(array_values($externalSourceCompetitions->getAssociations($sport)));
     }
 
-    protected function showSeasons(Competitions $externalSourceCompetitions): void
+    protected function showSeasons(ExternSourceCompetitionsInterface $externalSourceCompetitions): void
     {
         $table = new ConsoleTable\Seasons();
         $table->display(array_values($externalSourceCompetitions->getSeasons()));
     }
 
     protected function showLeagues(
-        Competitions $externalSourceCompetitions,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
         ExternalSource $externalSource,
         Sport $sport,
         Association $association
@@ -214,7 +214,7 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showCompetitions(
-        Competitions $externalSourceCompetitions,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
         ExternalSource $externalSource,
         Sport $sport,
         League $league
@@ -231,8 +231,8 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showTeams(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
@@ -250,8 +250,8 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showTeamCompetitors(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
@@ -269,8 +269,8 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showStructure(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
@@ -291,9 +291,9 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showAgainstGamesBasics(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
-        GamesAndPlayers $externalSourceGamesAndPlayers,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
+        ExternalSourceGamesAndPlayersInterface $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,
@@ -330,9 +330,9 @@ final class Get extends ExternalSourceCommand
     }
 
     protected function showAgainstGame(
-        Competitions $externalSourceCompetitions,
-        CompetitionStructure $externalSourceCompetitionStructure,
-        GamesAndPlayers $externalSourceGamesAndPlayers,
+        ExternSourceCompetitionsInterface $externalSourceCompetitions,
+        ExternSourceCompetitionStructureInterface $externalSourceCompetitionStructure,
+        ExternalSourceGamesAndPlayersInterface $externalSourceGamesAndPlayers,
         ExternalSource $externalSource,
         Sport $sport,
         League $league,

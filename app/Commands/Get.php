@@ -26,7 +26,7 @@ use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\Entity;
 use SportsImport\ExternalSource;
 use SportsImport\ExternalSource\SofaScore;
-use SportsImport\Repositories\AttacherRepository;
+use App\Repositories\SportsImport\AttacherRepository;
 use stdClass;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

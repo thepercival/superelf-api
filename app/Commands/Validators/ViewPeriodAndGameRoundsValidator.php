@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Commands\Validator;
+namespace App\Commands\Validators;
 
-final class ViewPeriodAndGameRounds
+final class ViewPeriodAndGameRoundsValidator
 {
     // check if the games from each gameround are within the viewperiod of the gameround.
     // check if each gameround has at least one game
