@@ -89,7 +89,7 @@ return [
     'email' => [
         'from' => "info@superelf-eredivisie.nl",
         'fromname' => "SuperElf",
-        'admin' => "coendunnink@gmail.com",
+        'admin' => "cdkdev@pm.me",
         'mailtrap' => [
             'smtp_host' => 'smtp.mailtrap.io',
             'smtp_port' => 2525,
