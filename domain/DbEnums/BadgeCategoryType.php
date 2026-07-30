@@ -20,7 +20,7 @@ final class BadgeCategoryType extends EnumDbType
     #[\Override]
     public function convertToDatabaseValue($value, AbstractPlatform $platform): string|null
     {
-        if( $value instanceof BadgeCategory ) {
+        if ($value instanceof BadgeCategory) {
             return $value->value;
         }
         return null;
