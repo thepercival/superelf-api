@@ -101,6 +101,7 @@ return [
         $proxyDir = $doctrineMetaConfig['proxy_dir'];
         $docConfig->setProxyDir($proxyDir);
         $docConfig->setProxyNamespace($config->getString('namespace'));
+        $docConfig->enableNativeLazyObjects(true);
 
         /** @var list<string> $entityPath */
         $entityPath = $doctrineMetaConfig['entity_path'];
@@ -182,23 +183,23 @@ return [
             $builder->addMetadataDir($ymldir, $ymlnamespace);
         }
         $builder->enableEnumSupport();
-//        $builder->configureHandlers(
-//            function (JMS\Serializer\Handler\HandlerRegistry $registry): void {
-//                $registry->registerSubscribingHandler(new StructureSerializationHandler());
-//                $registry->registerSubscribingHandler(new RoundNumberSerializationHandler());
-//                $registry->registerSubscribingHandler(new RoundSerializationHandler());
+        //        $builder->configureHandlers(
+        //            function (JMS\Serializer\Handler\HandlerRegistry $registry): void {
+        //                $registry->registerSubscribingHandler(new StructureSerializationHandler());
+        //                $registry->registerSubscribingHandler(new RoundNumberSerializationHandler());
+        //                $registry->registerSubscribingHandler(new RoundSerializationHandler());
         ////            $registry->registerSubscribingHandler(new QualifyGroupSerializationHandler());
-//            }
-//        );
-//            $builder->configureListeners(function(JMS\Serializer\EventDispatcher\EventDispatcher $dispatcher) {
-//                /*$dispatcher->addListener('serializer.pre_serialize',
-//                    function(JMS\Serializer\EventDispatcher\PreSerializeEvent $event) {
-//                        // do something
-//                    }
-//                );*/
-//                //$dispatcher->addSubscriber(new RoundNumberEventSubscriber());
-//                $dispatcher->addSubscriber(new RoundNumberEventSubscriber());
-//            });
+        //            }
+        //        );
+        //            $builder->configureListeners(function(JMS\Serializer\EventDispatcher\EventDispatcher $dispatcher) {
+        //                /*$dispatcher->addListener('serializer.pre_serialize',
+        //                    function(JMS\Serializer\EventDispatcher\PreSerializeEvent $event) {
+        //                        // do something
+        //                    }
+        //                );*/
+        //                //$dispatcher->addSubscriber(new RoundNumberEventSubscriber());
+        //                $dispatcher->addSubscriber(new RoundNumberEventSubscriber());
+        //            });
         $builder->addDefaultHandlers();
 
         return $builder->build();
@@ -220,10 +221,15 @@ return [
             new Options(before: new JwtAuthBeforeHandler()),
             $decoder,
             [
-                new RequestMethodRule(), new RequestPathRule(ignore: [
+                new RequestMethodRule(),
+                new RequestPathRule(ignore: [
                     '/public',
                     '/shells',
-                    '/auth/register', '/auth/validate', '/auth/login', '/auth/passwordreset', '/auth/passwordchange'
+                    '/auth/register',
+                    '/auth/validate',
+                    '/auth/login',
+                    '/auth/passwordreset',
+                    '/auth/passwordchange'
                 ])
             ],
         );

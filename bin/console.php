@@ -21,7 +21,7 @@ try {
     $command = (string)$argv[1];
 
     $application = new Application();
-    $application->add($container->get($command));
+    $application->addCommand($container->get($command));
     $application->run();
 } catch (\Exception $e) {
     echo $e->getMessage() . PHP_EOL;

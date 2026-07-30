@@ -31,6 +31,7 @@ $config->setMetadataCache($cache);
 $proxyDir = $settings['meta']['proxy_dir'];
 $config->setProxyDir($proxyDir);
 $config->setProxyNamespace('superelf');
+$config->enableNativeLazyObjects(true);
 
 $connection = DriverManager::getConnection($settings['connection'], $config);
 $em = new Doctrine\ORM\EntityManager($connection, $config);
