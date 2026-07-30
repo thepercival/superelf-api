@@ -20,7 +20,7 @@ final class BadgeCategoryType extends EnumDbType
     #[\Override]
     public function convertToDatabaseValue($value, AbstractPlatform $platform): string|null
     {
-        if( $value instanceof BadgeCategory ) {
+        if ($value instanceof BadgeCategory) {
             return $value->value;
         }
         return null;
@@ -50,6 +50,6 @@ final class BadgeCategoryType extends EnumDbType
     #[\Override]
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return 'varchar(10)';
+        return 'VARCHAR(10)';
     }
 }
