@@ -94,7 +94,7 @@
       "App\\Handlers\\ComposerPostInstall::execute",
       "composer run doctrine-update",
       "composer run doctrine-clearcache",
-      "php vendor/bin/doctrine orm:generate-proxies --quiet"
+      "php bin/doctrine.php orm:generate-proxies --quiet"
     ],
     "cs-fix": "php-cs-fixer fix .",
     "sync": "php bin/console.php app:sync --league=Eredivisie --season=2025/2026 --loglevel=200",
