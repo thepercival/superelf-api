@@ -42,7 +42,7 @@ final class HelpCommand extends Command
     }
 
     #[\Override]
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->initLogger($input, 'command-help');
         $commandFilter = $this->getCommandFilterFromInput($input);
