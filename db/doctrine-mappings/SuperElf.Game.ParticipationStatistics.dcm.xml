@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="SuperElf\Game\ParticipationStatistics" table="gameParticipationStatistics"
+            repository-class="App\Repositories\GameParticipationStatisticsRepository">
+        <field name="categories" column="categories" type="json" nullable="false"/>
+        <field name="manOfTheMatch" column="manOfTheMatch" type="boolean" nullable="false"/>
+        <one-to-one field="gameParticipation" target-entity="Sports\Game\Participation">
+            <join-columns>
+                <join-column name="gameParticipationId" referenced-column-name="id" nullable="false" unique="true" on-delete="CASCADE"/>
+            </join-columns>
+        </one-to-one>
+    </entity>
+</doctrine-mapping>

@@ -39,6 +39,8 @@ use SportsImport\Attachers\AgainstGameAttacher as AgainstGameAttacher;
 use SportsImport\Attachers\PersonAttacher;
 use SportsImport\Attachers\TeamAttacher as TeamAttacher;
 use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\ExternalSourceGameMissingPlayersInterface;
+use SportsImport\ExternalSource\ExternalSourceGameParticipationStatisticsInterface;
 use SportsImport\ExternalSource\ExternSourceCompetitionsInterface;
 use SportsImport\ExternalSource\ExternSourceCompetitionStructureInterface;
 use SportsImport\ExternalSource\ExternalSourceGamesAndPlayersInterface;
@@ -377,7 +379,7 @@ final class Importer
 
         $gameRoundNumbers = $externalSourceGamesAndPlayers->getGameRoundNumbers($externalCompetition);
         if ($gameRoundRange !== null) {
-            $gameRoundNumbers = array_filter($gameRoundNumbers, fn (int $number) => $gameRoundRange->isWithIn($number));
+            $gameRoundNumbers = array_filter($gameRoundNumbers, fn(int $number) => $gameRoundRange->isWithIn($number));
         } else {
             $gameRoundNumbers = $this->getGameRoundNumbersToImport($competition, $nrOfPlaces, $gameRoundNumbers);
         }
@@ -397,7 +399,33 @@ final class Importer
                     $this->personImportService->importByAgainstGame($externalSource, $season, $externalGame);
                 }
             }
-            $this->againstGameImportService->importGames($externalSource, array_values($externalGames), $onlyBasics);
+            $missingPlayers = [];
+            $participationStatistics = [];
+            if (!$onlyBasics && $externalSourceGamesAndPlayers instanceof ExternalSourceGameMissingPlayersInterface) {
+                foreach ($externalGames as $externalGame) {
+                    $externalGameId = $externalGame->getId();
+                    if ($externalGameId !== null) {
+                        $missingPlayers[(string)$externalGameId] = $externalSourceGamesAndPlayers
+                            ->getAgainstGameMissingPlayers($externalGameId);
+                    }
+                }
+            }
+            if (!$onlyBasics && $externalSourceGamesAndPlayers instanceof ExternalSourceGameParticipationStatisticsInterface) {
+                foreach ($externalGames as $externalGame) {
+                    $externalGameId = $externalGame->getId();
+                    if ($externalGameId !== null) {
+                        $participationStatistics[(string)$externalGameId] = $externalSourceGamesAndPlayers
+                            ->getAgainstGameParticipationStatistics($externalGameId);
+                    }
+                }
+            }
+            $this->againstGameImportService->importGames(
+                $externalSource,
+                array_values($externalGames),
+                $onlyBasics,
+                $missingPlayers,
+                $participationStatistics
+            );
         }
     }
 
@@ -429,8 +457,7 @@ final class Importer
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
             $this->logger->warning(
-                "the competition could not be found for league " . $league->getName(
-                ) . " and season " . $season->getName()
+                "the competition could not be found for league " . $league->getName() . " and season " . $season->getName()
             );
             return;
         }
@@ -462,9 +489,17 @@ final class Importer
 
             $this->againstGameImportService->importBasics($externalSource, $externalGame);
 
+            $missingPlayers = $externalSourceCompetitionGames instanceof ExternalSourceGameMissingPlayersInterface
+                ? $externalSourceCompetitionGames->getAgainstGameMissingPlayers($externalGameId)
+                : [];
+            $participationStatistics = $externalSourceCompetitionGames instanceof ExternalSourceGameParticipationStatisticsInterface
+                ? $externalSourceCompetitionGames->getAgainstGameParticipationStatistics($externalGameId)
+                : [];
             $this->againstGameImportService->importScoresLineupsAndEvents(
                 $externalSource,
-                $externalGame
+                $externalGame,
+                $missingPlayers,
+                $participationStatistics
             );
         } catch (\Exception $e) {
             $attacher = $this->againstGameAttacherRepos->findOneByExternalId($externalSource, $externalGameId);
@@ -492,8 +527,8 @@ final class Importer
         if ($competition === null) {
             return;
         }
-//        $nrUpdated = 0;
-//        $maxUpdated = 20;
+        //        $nrUpdated = 0;
+        //        $maxUpdated = 20;
 
         if ($person !== null) {
             $personExternalId = $this->personAttacherRepos->findOneByImportable($externalSource, $person)?->getExternalId();
@@ -540,7 +575,7 @@ final class Importer
 
         $teams = array_map(function (TeamCompetitorBase $teamCompetitor): TeamBase {
             return $teamCompetitor->getTeam();
-        }, $competition->getTeamCompetitors()->toArray() );
+        }, $competition->getTeamCompetitors()->toArray());
         foreach ($teams as $team) {
             if ($teamFilter !== null && $teamFilter !== $team) {
                 continue;
@@ -595,7 +630,7 @@ final class Importer
                 [GameState::Finished],
                 $gameRoundNumber
             );
-            if ($gameRoundGamePlaces >= ($nrOfPlaces-1)) {
+            if ($gameRoundGamePlaces >= ($nrOfPlaces - 1)) {
                 continue;
             }
             $gameRoundNumbersRet[] = $gameRoundNumber;

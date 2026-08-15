@@ -11,13 +11,13 @@ final class ComposerPostInstall
     /** @psalm-suppress UndefinedClass */
     public static function execute(Event $event): int
     {
-//        if ($event->isDevMode()) {
-//            echo "devMode is enabled, no post-install-executed" . PHP_EOL;
-//            return -1;
-//        }
+        //        if ($event->isDevMode()) {
+        //            echo "devMode is enabled, no post-install-executed" . PHP_EOL;
+        //            return -1;
+        //        }
 
         $pathPrefix = realpath(__DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "..");
-        if( $pathPrefix === false ) {
+        if ($pathPrefix === false) {
             throw new \Exception('invalid path prefix');
         }
         $pathPrefix .= DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
@@ -25,13 +25,13 @@ final class ComposerPostInstall
         self::resetRouterCache($pathPrefix);
         self::resetSerializerCache($pathPrefix);
 
-//        $doctrineProxies = $pathPrefix . 'proxies/';
-//        if (is_dir($doctrineProxies)) {
-//            static::rrmdir($doctrineProxies);
-//        }
-//        mkdir($doctrineProxies);
-//        chmod($doctrineProxies, 0775);
-//        chgrp($doctrineProxies, 'www-data');
+        //        $doctrineProxies = $pathPrefix . 'proxies/';
+        //        if (is_dir($doctrineProxies)) {
+        //            static::rrmdir($doctrineProxies);
+        //        }
+        //        mkdir($doctrineProxies);
+        //        chmod($doctrineProxies, 0775);
+        //        chgrp($doctrineProxies, 'www-data');
 
 
         return 0;
@@ -66,17 +66,18 @@ final class ComposerPostInstall
             static::rrmdir($serializer);
         }
 
-        mkdir($serializer);
-        chmod($serializer, 0775);
-        chgrp($serializer, 'www-data');
+        self::createCacheDirectory($serializer);
+        self::createCacheDirectory($serializerMetadata);
+        self::createCacheDirectory($serializerAnnotations);
+    }
 
-        mkdir($serializerMetadata);
-        chmod($serializerMetadata, 0775);
-        chgrp($serializerMetadata, 'www-data');
-
-        mkdir($serializerAnnotations);
-        chmod($serializerAnnotations, 0775);
-        chgrp($serializerAnnotations, 'www-data');
+    private static function createCacheDirectory(string $directory): void
+    {
+        mkdir($directory);
+        chmod($directory, 0775);
+        if (!@chgrp($directory, 'www-data')) {
+            chmod($directory, 0777);
+        }
     }
 
     private static function rrmdir(string $src): void

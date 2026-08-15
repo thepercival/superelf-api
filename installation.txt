@@ -32,7 +32,7 @@ execute : sql-commands in db/update.sql
 # php bin/console.php app:get leagues
 
 -- STEP 8 => MIGRATE USERS (2 USERNAMES MADE SHORTER)
-# php bin/console.php app:migrate-users --loglevel=200
+# php bin/console.php app:migrate-users --loglevel=Info
 $ sql: update users set salt = 'f?????';
 
 ###### PER SEASON (ITERATE) ######################
@@ -94,8 +94,8 @@ $ sql: update users set salt = 'f?????';
 # php bin/console.php app:import sofascore game --league=Eredivisie --season=2026/2027 --sport=football --id=.. 10382036
 
 -- STEP 9 => IMPORT POOLS(USERS + ASSEMBLEFORMATION + TRANSFERFORMATION
-php bin/console.php app:migrate-pools --league=Eredivisie --season=2026/2027 --loglevel=200
-php bin/console.php app:migrate-pools --league=Eredivisie --season=2026/2027 --loglevel=200
+php bin/console.php app:migrate-pools --league=Eredivisie --season=2026/2027 --loglevel=Info
+php bin/console.php app:migrate-pools --league=Eredivisie --season=2026/2027 --loglevel=Info
 
 -- STEP 10 => VALIDATE
 php bin/console.php app:validate-team-players --league=Eredivisie --season=2026/2027
@@ -107,7 +107,7 @@ php bin/console.php app:create-pool-competitions --league=Eredivisie --season=20
 -- STEP 11 => TODO
 ## 1. SHOW IN NEW SUPERELF!!
 ## 2. MAYBE STOP PLAYERPERIODS WHICH HAVE STOPPED, DURING THE SEASON, THIS WAY THE TRANSFERS CAN BE RECALCULATED
-## 2. SOMETHING LIKE : php bin/console.php app:migrate-stopped-players --league=Eredivisie --season=2026/2027 --loglevel=200
+## 2. SOMETHING LIKE : php bin/console.php app:migrate-stopped-players --league=Eredivisie --season=2026/2027 --loglevel=Info
 
 ###### END SEASON ITERATION ######################
 

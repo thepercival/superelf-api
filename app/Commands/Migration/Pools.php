@@ -31,9 +31,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * create competitionSeason
- * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"  --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
+ * php bin/console.php app:competitionconfig create --league=Eredivisie --season=2014/2015 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"  --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=Info
  * migrate competitionConfig
- * php bin/console.php app:migrate-pools --league=eredivisie --season=2015/2016 --loglevel=200
+ * php bin/console.php app:migrate-pools --league=eredivisie --season=2015/2016 --loglevel=Info
  */
 class Pools extends Command
 {
@@ -111,7 +111,7 @@ class Pools extends Command
             ->setHelp('migrates the pools');
 
 
-//        $f = CompetitionConfigValidator::DateTimeFormat;
+        //        $f = CompetitionConfigValidator::DateTimeFormat;
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('skip-formations', null, InputOption::VALUE_NONE, 'skip-formations');
@@ -189,7 +189,7 @@ class Pools extends Command
             }
 
 
-            if( $row['isAdmin'] == 1) {
+            if ($row['isAdmin'] == 1) {
                 $this->getLogger()->info('  pooluser "' . $user->getName() . '" already created');
                 $newPoolUser = $pool->getUser($user);
             } else {
@@ -199,7 +199,7 @@ class Pools extends Command
                 $this->getLogger()->info('  pooluser "' . $newPoolUser->getUser()->getName() . '" created');
             }
 
-            if( $skipFormations === true ) {
+            if ($skipFormations === true) {
                 continue;
             }
             $this->createAssembleFormation($newPoolUser, $row['oldPoolUserId']);
@@ -237,7 +237,7 @@ class Pools extends Command
         $this->entityManager->persist($poolUser);
         $this->entityManager->flush();
         $this->getLogger()->info('      assembleformation "' . $sportsFormation->getName() . '" created');
-        if( $new ) {
+        if ($new) {
             $this->setFormationPlaces($formation, $betRows);
         }
     }
@@ -292,8 +292,7 @@ class Pools extends Command
         string $lastName,
         string|null $externalId,
         string|null $dateOfBirth
-    ): Person
-    {
+    ): Person {
         if ($externalId !== null and strlen($externalId) > 0 && $this->externalSource !== null) {
             $externalIdTmp = substr($externalId, 7);
             $person = $this->personAttacherRepos->findImportable($this->externalSource, $externalIdTmp);
@@ -302,9 +301,9 @@ class Pools extends Command
             }
         }
 
-//        if ($lastName === 'El Ahmadi') {
-//            $er = 23;
-//        }
+        //        if ($lastName === 'El Ahmadi') {
+        //            $er = 23;
+        //        }
         $persons = $this->personRepos->findBy(['firstName' => $firstName, 'lastName' => $lastName]);
         if (count($persons) > 1) {
             throw new \Exception(
@@ -314,8 +313,7 @@ class Pools extends Command
         } elseif (count($persons) === 0) {
             $nameAnalyzer = new ExternalSource\NameAnalyzer($lastName);
             $maybeNameInsertions = explode(' ', $lastName);
-            if (!(count($maybeNameInsertions) === 2 && $nameAnalyzer->getNameInsertions(
-                ) === $maybeNameInsertions[0])) {
+            if (!(count($maybeNameInsertions) === 2 && $nameAnalyzer->getNameInsertions() === $maybeNameInsertions[0])) {
                 throw new \Exception(
                     'no person could be found for firstName "' . $firstName . '" and lastName "' . $lastName . '" (dateOfBirth="' . $dateOfBirth . '")',
                     E_ERROR
@@ -366,7 +364,7 @@ class Pools extends Command
         $this->entityManager->persist($poolUser);
         $this->entityManager->flush();
         $this->getLogger()->info('      transferformation "' . $sportsFormation->getName() . '" created');
-        if( $new ) {
+        if ($new) {
             $this->setFormationPlaces($formation, $betRows);
         }
     }

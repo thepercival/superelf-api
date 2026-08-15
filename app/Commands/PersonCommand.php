@@ -33,11 +33,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * php bin/console.php app:person
- *      fetch                 --league=Eredivisie --season=2022/2023 --firstName=Justin --loglevel=200
- *      createWithS11Players  --league=Eredivisie --season=2022/2023 --firstName="Coen" --lastName="Dunnink" --dateOfBirth="1987-05-20" --loglevel=200
- *      makeTransfer          --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --newTeamAbbr="EMM" --newLine=A --loglevel=200
- *      updateCurrentLine     --league=Eredivisie --season=2022/2023 --id=21 --newLine=A --loglevel=200
- *      stop                  --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --loglevel=200
+ *      fetch                 --league=Eredivisie --season=2022/2023 --firstName=Justin --loglevel=Info
+ *      createWithS11Players  --league=Eredivisie --season=2022/2023 --firstName="Coen" --lastName="Dunnink" --dateOfBirth="1987-05-20" --loglevel=Info
+ *      makeTransfer          --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --newTeamAbbr="EMM" --newLine=A --loglevel=Info
+ *      updateCurrentLine     --league=Eredivisie --season=2022/2023 --id=21 --newLine=A --loglevel=Info
+ *      stop                  --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --loglevel=Info
  */
 final class PersonCommand extends Command
 {
@@ -178,9 +178,9 @@ final class PersonCommand extends Command
         $showPoints = is_bool($showPoints) ? $showPoints : false;
 
         // voor welke viewperiods moet ik de persoon toevoegen??
-//        --createAndJoin
-//        --assemble
-//        --transfer
+        //        --createAndJoin
+        //        --assemble
+        //        --transfer
 
         // $viewPeriods = $competitionConfig->getViewPeriods();
         $filters = [];
@@ -210,8 +210,8 @@ final class PersonCommand extends Command
         Person $person,
         CompetitionConfig $competitionConfig,
         bool $showPoints,
-        Period|null $period = null): void
-    {
+        Period|null $period = null
+    ): void {
         if ($period === null) {
             $period = $competitionConfig->getSeason()->getPeriod();
         }
@@ -240,27 +240,28 @@ final class PersonCommand extends Command
             $msg .= ' => totalpoints: ' . $s11Player->getTotalPoints();
             $this->getLogger()->info($msg);
 
-            if( !$showPoints ) {
+            if (!$showPoints) {
                 continue;
             }
-            $grNrs = array_map(function(GameRound $gameRound): string {
-                return $this->inputHelper->toLength( '' . $gameRound->getNumber(), 2, true );
-            }, $viewPeriod->getGameRounds()->toArray() );
-            $msg = join(' | ', $grNrs );
+            $grNrs = array_map(function (GameRound $gameRound): string {
+                return $this->inputHelper->toLength('' . $gameRound->getNumber(), 2, true);
+            }, $viewPeriod->getGameRounds()->toArray());
+            $msg = join(' | ', $grNrs);
             $this->getLogger()->info($prefix . '    gr: ' . $msg);
 
-            $grPoints = array_map(function(GameRound $gameRound) use ($s11Player, $s11Points): string {
+            $grPoints = array_map(function (GameRound $gameRound) use ($s11Player, $s11Points): string {
                 $player = (new OneTeamSimultaneous())->getPlayer(
                     $s11Player->getPerson(),
-                    $gameRound->getViewPeriod()->getStartDateTime());
-                if( $player === null) {
+                    $gameRound->getViewPeriod()->getStartDateTime()
+                );
+                if ($player === null) {
                     return ' -';
                 }
                 $line = FootballLine::from($player->getLine());
                 $points = $s11Player->getPoints($gameRound, $s11Points, $line, null);
-                return $this->inputHelper->toLength( '' . $points, 2, true );
-            }, $viewPeriod->getGameRounds()->toArray() );
-            $msg = join(' | ', $grPoints );
+                return $this->inputHelper->toLength('' . $points, 2, true);
+            }, $viewPeriod->getGameRounds()->toArray());
+            $msg = join(' | ', $grPoints);
             $this->getLogger()->info($prefix . '    pt: ' . $msg);
         }
     }
@@ -277,11 +278,11 @@ final class PersonCommand extends Command
 
         // $viewPeriods = $competitionConfig->getViewPeriods();
         $existingPerson = $this->personRepos->findOneBy([
-                                                            'firstName' => $firstName,
-                                                            'nameInsertion' => $nameInsertion,
-                                                            'lastName' => $lastName,
-                                                            'dateOfBirth' => $dateOfBirth
-                                                        ]);
+            'firstName' => $firstName,
+            'nameInsertion' => $nameInsertion,
+            'lastName' => $lastName,
+            'dateOfBirth' => $dateOfBirth
+        ]);
         if ($existingPerson !== null) {
             throw new \Exception('implement', E_ERROR);
         };
@@ -352,9 +353,9 @@ final class PersonCommand extends Command
         }
 
         $updateAt = (new \DateTimeImmutable())->setTime(0, 0);
-//        if ($updateAt === false) {
-//            throw new \Exception('could not reset time', E_ERROR);
-//        }
+        //        if ($updateAt === false) {
+        //            throw new \Exception('could not reset time', E_ERROR);
+        //        }
 
         $newLine = $this->getLineFromInput($input);
 
@@ -363,15 +364,16 @@ final class PersonCommand extends Command
         $player = (new OneTeamSimultaneous())->getPlayer($person, $updateAt);
         if ($player === null) {
             throw new \Exception(
-                                            '"' . $person->getName() . '" speelt op "' . $updateAt->format(
-                                                DateTimeInterface::ISO8601
-                ) . '" niet voor een team', E_ERROR
+                '"' . $person->getName() . '" speelt op "' . $updateAt->format(
+                    DateTimeInterface::ISO8601
+                ) . '" niet voor een team',
+                E_ERROR
             );
         }
 
         $player->setLine($newLine->value);
-//        $roleEditor = new RoleEditor();
-//        $roleEditor->update($season, $person, $newAt, $newTeam, $newLine);
+        //        $roleEditor = new RoleEditor();
+        //        $roleEditor->update($season, $person, $newAt, $newTeam, $newLine);
 
         $this->entityManager->persist($person);
         $this->entityManager->flush();
@@ -422,10 +424,10 @@ final class PersonCommand extends Command
         $player->setEndDateTime($stopAt);
         $this->entityManager->persist($player);
         $this->entityManager->flush();
-//        foreach ($viewPeriods as $viewPeriod) {
-//            $s11Player = new S11PlayerBase($viewPeriod, $person);
-//            $this->s11PlayerRepos->save($s11Player);
-//        }
+        //        foreach ($viewPeriods as $viewPeriod) {
+        //            $s11Player = new S11PlayerBase($viewPeriod, $person);
+        //            $this->s11PlayerRepos->save($s11Player);
+        //        }
 
         $this->getLogger()->info('the person is now saved as:');
         $this->logPerson($person, $competitionConfig, false);

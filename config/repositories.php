@@ -9,6 +9,8 @@ use App\Repositories\ChatMessageUnreadRepository;
 use App\Repositories\CompetitionConfigRepository;
 use App\Repositories\FormationLineRepository;
 use App\Repositories\FormationPlaceRepository;
+use App\Repositories\GameMissingPlayerRepository;
+use App\Repositories\GameParticipationStatisticsRepository;
 use App\Repositories\PoolCollectionRepository;
 use App\Repositories\PoolRepository;
 use App\Repositories\S11PlayerRepository;
@@ -48,6 +50,8 @@ use SuperElf\ChatMessages\UnreadChatMessage;
 use SuperElf\CompetitionConfig;
 use SuperElf\Formation\Line as FormationLine;
 use SuperElf\Formation\Place as FormationPlace;
+use SuperElf\Game\MissingPlayer as GameMissingPlayer;
+use SuperElf\Game\ParticipationStatistics as GameParticipationStatistics;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 use SuperElf\Pool;
 use SuperElf\PoolCollection;
@@ -56,6 +60,18 @@ use SuperElf\ScoutedPlayer;
 use SuperElf\Statistics;
 
 return [
+    GameParticipationStatisticsRepository::class => function (ContainerInterface $container): GameParticipationStatisticsRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(GameParticipationStatistics::class);
+        return new GameParticipationStatisticsRepository($entityManager, $metaData);
+    },
+    GameMissingPlayerRepository::class => function (ContainerInterface $container): GameMissingPlayerRepository {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $metaData = $entityManager->getClassMetadata(GameMissingPlayer::class);
+        return new GameMissingPlayerRepository($entityManager, $metaData);
+    },
     ViewPeriodRepository::class => function (ContainerInterface $container): ViewPeriodRepository {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $container->get(EntityManagerInterface::class);

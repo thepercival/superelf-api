@@ -1,9 +1,9 @@
 -- update game
-php bin/console.php app:get games-basics --league=Eredivisie --season=2025/2026 --sport=football --gameRoundRange=23-23
+php bin/console.php app:get games-basics --league=Eredivisie --season=2026/2027 --sport=football --gameRoundRange=23-23
 
-php bin/console.php app:get game --league=Eredivisie --season=2025/2026 --sport=football --id=4098
+php bin/console.php app:get game --league=Eredivisie --season=2026/2027 --sport=football --id=4098
 
-php bin/console.php app:import sofascore game --league=Eredivisie --season=2025/2026 --sport=football --id=14053619
+php bin/console.php app:import sofascore game --league=Eredivisie --season=2026/2027 --sport=football --id=14053619
 
 -- sync
 php bin/console.php app:sync --loglevel=Info

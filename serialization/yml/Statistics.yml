@@ -36,6 +36,18 @@ SuperElf\Statistics:
       type: DateTimeImmutable<'Y-m-d\TH:i:s.u\Z'>
       serialized_name: gameStart
       read_only: true
+    categories:
+      type: array
+      access_type: public_method
+      accessor:
+        getter: getCategories
+      read_only: true
+    manOfTheMatch:
+      type: bool
+      access_type: public_method
+      accessor:
+        getter: isManOfTheMatch
+      read_only: true
   virtual_properties:
     getPerson:
       type: Sports\Person

@@ -1,0 +1,21 @@
+SuperElf\Game\MissingPlayer:
+  exclusion_policy: ALL
+  exclude: false
+  access_type: public_property
+  properties:
+    player:
+      type: Sports\Team\Player
+    type:
+      type: string
+    reason:
+      type: integer
+    description:
+      type: string
+    externalType:
+      type: integer
+    expectedEndDate:
+      type: DateTimeImmutable
+  virtual_properties:
+    getAgainstSide:
+      type: string
+      serialized_name: againstSide

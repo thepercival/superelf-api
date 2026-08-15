@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Command;
+use App\Repositories\GameMissingPlayerRepository;
 use App\Repositories\Sports\AgainstGameRepository;
 use App\Repositories\Sports\CompetitionRepository;
 use App\Repositories\Sports\StructureRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use LucidFrame\Console\ConsoleTable as BaseConsoleTable;
 use Psr\Container\ContainerInterface;
 use Sports\Association;
 use Sports\Competitor\StartLocationMap;
@@ -21,6 +23,7 @@ use Sports\Output\ConsoleTable;
 use Sports\Season;
 use Sports\Structure\NameService as StructureNameService;
 use Sports\Team;
+use SportsHelpers\Against\AgainstSide;
 use SportsHelpers\SportRange;
 use SportsImport\Attachers\AgainstGameAttacher;
 use SportsImport\Entity;
@@ -32,6 +35,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use SuperElf\Game\MissingPlayer;
 
 /**
  * php bin/console.php app:get games-basics --sport=football --league=Eredivisie --season=2022/2023 --gameRoundRange=21-21
@@ -44,6 +48,7 @@ final class Get extends Command
     protected CompetitionRepository $competitionRepos;
     protected StructureRepository $structureRepos;
     protected AgainstGameRepository $againstGameRepos;
+    protected GameMissingPlayerRepository $gameMissingPlayerRepos;
     /** @var AttacherRepository<AgainstGameAttacher>  */
     protected AttacherRepository $againstGameAttacherRepos;
     /** @var EntityRepository<ExternalSource>  */
@@ -64,6 +69,10 @@ final class Get extends Command
         /** @var AgainstGameRepository $againstGameRepos */
         $againstGameRepos = $container->get(AgainstGameRepository::class);
         $this->againstGameRepos = $againstGameRepos;
+
+        /** @var GameMissingPlayerRepository $gameMissingPlayerRepos */
+        $gameMissingPlayerRepos = $container->get(GameMissingPlayerRepository::class);
+        $this->gameMissingPlayerRepos = $gameMissingPlayerRepos;
 
         $metadata = $this->entityManager->getClassMetadata(AgainstGameAttacher::class);
         $this->againstGameAttacherRepos = new AttacherRepository($this->entityManager, $metadata);
@@ -149,12 +158,12 @@ final class Get extends Command
             }
         }
 
-//        if ($input->getOption("structures")) {
-//            $this->importStructures(SofaScore::NAME);
-//        }
-//        if ($input->getOption("games")) {
-//            $this->importGames(SofaScore::NAME);
-//        }
+        //        if ($input->getOption("structures")) {
+        //            $this->importStructures(SofaScore::NAME);
+        //        }
+        //        if ($input->getOption("games")) {
+        //            $this->importGames(SofaScore::NAME);
+        //        }
 
         return 0;
     }
@@ -235,7 +244,7 @@ final class Get extends Command
     {
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
-            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+            throw new \Exception("no competition found for league '" . $league->getName() . "' and season '" . $season->getName() . "'", E_ERROR);
         }
         $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
 
@@ -247,7 +256,7 @@ final class Get extends Command
     {
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
-            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+            throw new \Exception("no competition found for league '" . $league->getName() . "' and season '" . $season->getName() . "'", E_ERROR);
         }
         $structure = $this->structureRepos->getStructure($competition);
         $teamCompetitors = array_values($competition->getTeamCompetitors()->toArray());
@@ -259,7 +268,7 @@ final class Get extends Command
     {
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
-            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+            throw new \Exception("no competition found for league '" . $league->getName() . "' and season '" . $season->getName() . "'", E_ERROR);
         }
         $structure = $this->structureRepos->getStructure($competition);
         $games = $structure->getFirstRoundNumber()->getGames(Game\Order::ByBatch);
@@ -282,14 +291,14 @@ final class Get extends Command
         }
         $competition = $this->competitionRepos->findOneExt($league, $season);
         if ($competition === null) {
-            throw new \Exception("no competition found for league '".$league->getName()."' and season '".$season->getName()."'", E_ERROR);
+            throw new \Exception("no competition found for league '" . $league->getName() . "' and season '" . $season->getName() . "'", E_ERROR);
         }
         $this->structureRepos->getStructure($competition);
         $againstGame = $this->againstGameRepos->find($id);
         if ($againstGame === null) {
             throw new \Exception(
-                "no game found for league '" . $league->getName() . "' and season '" . $season->getName(
-                ) . "' and id " . $id, E_ERROR
+                "no game found for league '" . $league->getName() . "' and season '" . $season->getName() . "' and id " . $id,
+                E_ERROR
             );
         }
 
@@ -297,6 +306,7 @@ final class Get extends Command
         $structureNameService = new StructureNameService(new StartLocationMap($teamCompetitors));
         $table = new ConsoleTable\AgainstGame();
         $table->display($competition, $againstGame, $structureNameService);
+        $this->displayMissingPlayers($againstGame);
 
         $externalSources = $this->externalSourceRepos->findAll();
         foreach ($externalSources as $externalSource) {
@@ -305,5 +315,67 @@ final class Get extends Command
                 $this->getLogger()->info('externalSource "' . $externalSource->getName() . '" => ' . $externalId);
             }
         }
+    }
+
+    protected function displayMissingPlayers(AgainstGame $againstGame): void
+    {
+        $rows = $this->getMissingPlayerRows($againstGame);
+        if (count($rows) === 0) {
+            return;
+        }
+
+        echo PHP_EOL;
+        $table = new BaseConsoleTable();
+        foreach ($rows as $row) {
+            $table->addRow($row);
+        }
+        $table->display();
+    }
+
+    /**
+     * @return list<list<string>>
+     */
+    protected function getMissingPlayerRows(AgainstGame $againstGame): array
+    {
+        $missingPlayers = $this->gameMissingPlayerRepos->findByGame($againstGame);
+        if (count($missingPlayers) === 0) {
+            return [];
+        }
+
+        $homeMissingPlayers = array_values(array_filter(
+            $missingPlayers,
+            fn(MissingPlayer $missingPlayer): bool => $missingPlayer->getAgainstGamePlace()->getSide() === AgainstSide::Home
+        ));
+        $awayMissingPlayers = array_values(array_filter(
+            $missingPlayers,
+            fn(MissingPlayer $missingPlayer): bool => $missingPlayer->getAgainstGamePlace()->getSide() === AgainstSide::Away
+        ));
+
+        $rows = [
+            ['missingPlayers', 'type', 'description / expectedEndDate', '', 'missingPlayers', 'type', 'description / expectedEndDate']
+        ];
+        while (count($homeMissingPlayers) > 0 || count($awayMissingPlayers) > 0) {
+            $rows[] = array_merge(
+                $this->getMissingPlayerValues(array_shift($homeMissingPlayers)),
+                [''],
+                $this->getMissingPlayerValues(array_shift($awayMissingPlayers))
+            );
+        }
+        return $rows;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function getMissingPlayerValues(MissingPlayer|null $missingPlayer): array
+    {
+        if ($missingPlayer === null) {
+            return ['', '', ''];
+        }
+        return [
+            $missingPlayer->getPlayer()->getPerson()->getName(),
+            $missingPlayer->getType(),
+            $missingPlayer->getDescription() . ' / ' . ($missingPlayer->getExpectedEndDate()?->format('Y-m-d') ?? '-')
+        ];
     }
 }

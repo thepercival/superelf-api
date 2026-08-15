@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Sports;
 
 use App\Actions\Action;
+use App\Repositories\GameMissingPlayerRepository;
 use App\Repositories\Sports\AgainstGameRepository;
 use App\Repositories\Sports\CompetitionRepository;
 use App\Repositories\Sports\TeamPlayerRepository;
@@ -40,6 +41,7 @@ final class AgainstGameAction extends Action
         protected AgainstGameRepository $againstGameRepos,
         protected EntityManagerInterface $entityManager,
         protected TeamPlayerRepository $teamPlayerRepository,
+        protected GameMissingPlayerRepository $gameMissingPlayerRepository,
         protected ExternalSourceFactory $externalSourceFactory,
         LoggerInterface $logger,
         SerializerInterface $serializer
@@ -133,6 +135,33 @@ final class AgainstGameAction extends Action
             $events = $this->eventConverter->convert($gamePlace);
 
             $json = $this->serializer->serialize($events, 'json', $this->getSerializationContext(['person']));
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+    /**
+     * @param array<string, int|string> $args
+     */
+    public function fetchMissingPlayers(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $competition = $this->competitionRepos->find((int)$args['competitionId']);
+            if ($competition === null) {
+                throw new \Exception('kan de competitie niet vinden', E_ERROR);
+            }
+            $game = $this->againstGameRepos->find((int)$args['gameId']);
+            if ($game === null) {
+                throw new \Exception('kan de wedstrijd niet vinden', E_ERROR);
+            }
+
+            $missingPlayers = $this->gameMissingPlayerRepository->findByGame($game);
+            $json = $this->serializer->serialize(
+                $missingPlayers,
+                'json',
+                $this->getSerializationContext(['person'])
+            );
             return $this->respondWithJson($response, $json);
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);

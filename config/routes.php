@@ -141,6 +141,13 @@ return function (App $app): void {
                                 },
                             );
                             $group->group(
+                                '/missingplayers',
+                                function (Group $group): void {
+                                    $group->options('', AgainstGameAction::class . ':options');
+                                    $group->get('', AgainstGameAction::class . ':fetchMissingPlayers');
+                                },
+                            );
+                            $group->group(
                                 '/sofascore',
                                 function (Group $group): void {
                                     $group->options('', AgainstGameAction::class . ':options');

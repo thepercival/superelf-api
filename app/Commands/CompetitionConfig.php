@@ -25,26 +25,27 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 
 /**
- * php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2023/2024 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=200
+ * php bin/console.php app:admin-competitionconfigs create --league=Eredivisie --season=2023/2024 --createAndJoinStart="2014-07-23 12:00" --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00" --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00" --loglevel=Info
  *      create                  --league=Eredivisie
  *                              --season=2014/2015
  *                              --createAndJoinStart="2014-07-23 12:00"
  *                              --assemblePeriod="2014-08-23 12:00=>2014-09-23 12:00"
  *                              --transferPeriod="2015-02-01 12:00=>2015-02-03 12:00"
- *                              --loglevel=200
- * php bin/console.php app:admin-competitionconfigs update-assemble-period  --league=Eredivisie --season=2022/2023 --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30" --loglevel=200
+ *                              --loglevel=Info
+ * php bin/console.php app:admin-competitionconfigs update-assemble-period  --league=Eredivisie --season=2022/2023 --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30" --loglevel=Info
  *      update-assemble-period  --league=Eredivisie
  *                              --season=2022/2023
  *                              --assemblePeriod="2022-09-05 11:00=>2022-09-09 17:30"
- *                              --loglevel=200
- * php bin/console.php app:admin-competitionconfigs update-transfer-period  --league=Eredivisie --season=2022/2023 --transferPeriod="2025-02-03 06:00=>2025-02-07 23:00" --loglevel=200
+ *                              --loglevel=Info
+ * php bin/console.php app:admin-competitionconfigs update-transfer-period  --league=Eredivisie --season=2022/2023 --transferPeriod="2025-02-03 06:00=>2025-02-07 23:00" --loglevel=Info
  *      update-transfer-period  --league=Eredivisie
  *                              --season=2022/2023
  *                              --transferPeriod="2023-01-23 15:00=>2023-01-24 18:45"
- *                              --loglevel=200
+ *                              --loglevel=Info
  * php bin/console.php app:admin-competitionconfigs show --league=Eredivisie --season=2023/2024
  *      show                    --league=Eredivisie
  *                              --season=2022/2023
+ *                              --loglevel=Info
  */
 final class CompetitionConfig extends Command
 {
@@ -226,7 +227,8 @@ final class CompetitionConfig extends Command
         return 0;
     }
 
-    private function syncGameRoundNumbers(Competition $competition, CompetitionConfigBase $competitionConfig): void {
+    private function syncGameRoundNumbers(Competition $competition, CompetitionConfigBase $competitionConfig): void
+    {
         $changedGameRoundNumbers = $this->gameRoundSyncer->syncViewPeriodGameRounds($competitionConfig);
         $this->getLogger()->info(count($changedGameRoundNumbers) . ' gameRoundNumbers synced');
 
@@ -265,12 +267,12 @@ final class CompetitionConfig extends Command
 
         $competitionConfigs = $this->competitionConfigRepos->findBy(['sourceCompetition' => $sourceCompetition]);
         $nrOfCompetitionConfigs = count($competitionConfigs);
-        while( $competitionConfig = array_shift($competitionConfigs ) ) {
+        while ($competitionConfig = array_shift($competitionConfigs)) {
             $this->entityManager->remove($competitionConfig);
             $this->entityManager->flush();
         }
 
-        $this->getLogger()->info( $nrOfCompetitionConfigs . ' competitionConfigs removed');
+        $this->getLogger()->info($nrOfCompetitionConfigs . ' competitionConfigs removed');
         // throw new \Exception('implement', E_ERROR);
         return 0;
     }

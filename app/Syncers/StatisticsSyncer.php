@@ -8,6 +8,7 @@ use App\Repositories\CompetitionConfigRepository as CompetitionConfigRepository;
 use App\Repositories\FormationPlaceRepository as FormationPlaceRepository;
 use App\Repositories\S11PlayerRepository as S11PlayerRepository;
 use App\Repositories\StatisticsRepository as StatisticsRepository;
+use App\Repositories\GameParticipationStatisticsRepository;
 use App\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,6 +47,7 @@ final class StatisticsSyncer
         protected FormationPlaceRepository $formationPlaceRepos,
         protected PointsCreator $pointsCreator,
         protected StatisticsRepository $statisticsRepos,
+        protected GameParticipationStatisticsRepository $gameParticipationStatisticsRepos,
         protected Converter $converter,
         protected EntityManagerInterface $entityManager
     ) {
@@ -136,6 +138,12 @@ final class StatisticsSyncer
                 $gamePlace->getGame(),
                 $gameParticipation
             );
+            if ($gameParticipation !== null) {
+                $importedStatistics = $this->gameParticipationStatisticsRepos
+                    ->findOneByParticipation($gameParticipation);
+                $statistics->setCategories($importedStatistics?->getCategories() ?? []);
+                $statistics->setManOfTheMatch($importedStatistics?->isManOfTheMatch() ?? false);
+            }
             $this->entityManager->persist($statistics);
             $this->entityManager->flush();
         }

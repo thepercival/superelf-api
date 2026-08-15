@@ -31,7 +31,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  *                              --season=2022/2023
  *                              --sport=football
  *                              --startDateTime="2022-09-02 20:00"
- *                              --loglevel=200
  */
 final class Import extends ExternalSourceCommand
 {
@@ -134,8 +133,10 @@ final class Import extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
-                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface) {
+            if (
+                $externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+                $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface
+            ) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -172,9 +173,11 @@ final class Import extends ExternalSourceCommand
                         return 0;
                 }
             }
-            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+            if (
+                $externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
                 $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
-                $externalSourceImpl instanceof ExternalSourceTransfersInterface) {
+                $externalSourceImpl instanceof ExternalSourceTransfersInterface
+            ) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -198,31 +201,33 @@ final class Import extends ExternalSourceCommand
                             $team
                         );
                         return 0;
-//                    case Entity::TEAMCOMPETITORS:
-//                        $this->importer->importTeamCompetitors(
-//                            $externalSourceImpl,
-//                            $externalSourceImpl,
-//                            $externalSourceImpl->getExternalSource(),
-//                            $sport,
-//                            $league,
-//                            $season
-//                        );
-//                        return 0;
-//                    case Entity::STRUCTURE:
-//                        $this->importer->importStructure(
-//                            $externalSourceImpl,
-//                            $externalSourceImpl,
-//                            $externalSourceImpl->getExternalSource(),
-//                            $sport,
-//                            $league,
-//                            $season
-//                        );
-//                        return 0;
+                        //                    case Entity::TEAMCOMPETITORS:
+                        //                        $this->importer->importTeamCompetitors(
+                        //                            $externalSourceImpl,
+                        //                            $externalSourceImpl,
+                        //                            $externalSourceImpl->getExternalSource(),
+                        //                            $sport,
+                        //                            $league,
+                        //                            $season
+                        //                        );
+                        //                        return 0;
+                        //                    case Entity::STRUCTURE:
+                        //                        $this->importer->importStructure(
+                        //                            $externalSourceImpl,
+                        //                            $externalSourceImpl,
+                        //                            $externalSourceImpl->getExternalSource(),
+                        //                            $sport,
+                        //                            $league,
+                        //                            $season
+                        //                        );
+                        //                        return 0;
                 }
             }
-            if ($externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
+            if (
+                $externalSourceImpl instanceof ExternSourceCompetitionsInterface &&
                 $externalSourceImpl instanceof ExternSourceCompetitionStructureInterface &&
-                $externalSourceImpl instanceof ExternalSourceGamesAndPlayersInterface) {
+                $externalSourceImpl instanceof ExternalSourceGamesAndPlayersInterface
+            ) {
                 $sport = $this->inputHelper->getSportFromInput($input);
                 $league = $this->inputHelper->getLeagueFromInput($input);
                 $season = $this->inputHelper->getSeasonFromInput($input);
@@ -345,8 +350,8 @@ final class Import extends ExternalSourceCommand
 
             $games = $this->againstGameRepos->getCompetitionGames($competition, null, null, $period);
             $msg = 'for ' . $nrOfMinutesAfterStart . ' minutes after ' . $startDateTime->format(
-                    DATE_ATOM
-                ) . ' there were ' . count($games) . ' games found';
+                DATE_ATOM
+            ) . ' there were ' . count($games) . ' games found';
             $this->getLogger()->info($msg);
             foreach ($games as $game) {
                 $externalGameId = $this->againstGameAttacherRepos->findOneByImportable($externalSource, $game)?->getExternalId();

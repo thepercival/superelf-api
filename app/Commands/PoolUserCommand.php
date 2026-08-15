@@ -25,23 +25,23 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:pooluser --season=2022/2023 --pool='kamp duim' --user='boy' --loglevel=200
+ * php bin/console.php app:pooluser --season=2022/2023 --pool='kamp duim' --user='boy' --loglevel=Info
  */
 final class PoolUserCommand extends Command
 {
     private string $customName = 'pooluser';
 
-//    private FormationValidator $formationValidator;
-//    private bool $dryRun = false;
+    //    private FormationValidator $formationValidator;
+    //    private bool $dryRun = false;
 
-//    protected CompetitionConfigRepository $competitionConfigRepos;
+    //    protected CompetitionConfigRepository $competitionConfigRepos;
     protected PoolRepository $poolRepos;
     protected PoolAdministrator $poolAdministrator;
     protected PoolCollectionRepository $poolCollectionRepos;
     /** @var EntityRepository<User>  */
     protected EntityRepository $userRepos;
-//    protected S11FormationRepository $s11FormationRepos;
-//    protected S11PlayerSyncer $s11PlayerSyncer;
+    //    protected S11FormationRepository $s11FormationRepos;
+    //    protected S11PlayerSyncer $s11PlayerSyncer;
 
     public function __construct(ContainerInterface $container)
     {
@@ -65,18 +65,18 @@ final class PoolUserCommand extends Command
         $this->poolCollectionRepos = $poolCollectionRepository;
 
         $this->userRepos = $entityManager->getRepository(User::class);
-//
-//        /** @var S11FormationRepository $s11FormationRepos */
-//        $s11FormationRepos = $container->get(S11FormationRepository::class);
-//        $this->s11FormationRepos = $s11FormationRepos;
-//
-//        /** @var S11PlayerSyncer $s11PlayerSyncer */
-//        $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
-//        $this->s11PlayerSyncer = $s11PlayerSyncer;
+        //
+        //        /** @var S11FormationRepository $s11FormationRepos */
+        //        $s11FormationRepos = $container->get(S11FormationRepository::class);
+        //        $this->s11FormationRepos = $s11FormationRepos;
+        //
+        //        /** @var S11PlayerSyncer $s11PlayerSyncer */
+        //        $s11PlayerSyncer = $container->get(S11PlayerSyncer::class);
+        //        $this->s11PlayerSyncer = $s11PlayerSyncer;
 
         parent::__construct($container);
 
-//        $this->formationValidator = new FormationValidator($this->config);
+        //        $this->formationValidator = new FormationValidator($this->config);
     }
 
     #[\Override]
@@ -139,7 +139,8 @@ final class PoolUserCommand extends Command
     }
 
 
-    private function show(InputInterface $input): int {
+    private function show(InputInterface $input): int
+    {
         $seasonName = $this->inputHelper->getStringFromInput($input, 'season');
         $poolName = $this->inputHelper->getStringFromInput($input, 'pool');
         $userName = $this->inputHelper->getStringFromInput($input, 'user');
@@ -149,82 +150,90 @@ final class PoolUserCommand extends Command
         $season = $this->seasonRepos->findOneBy(['name' => $seasonName]);
         $association = $this->associationRepos->findOneBy(['name' => $poolName]);
         $user = $this->userRepos->findOneBy(['name' => $userName]);
-        if( $season === null ) {
+        if ($season === null) {
             throw new \Exception('season not found');
         }
-        if( $association === null ) {
+        if ($association === null) {
             throw new \Exception('association not found');
         }
         $poolCollection = $this->poolCollectionRepos->findOneBy(['association' => $association]);
-        if( $poolCollection === null ) {
+        if ($poolCollection === null) {
             throw new \Exception('poolCollection not found');
         }
         $pool = null;
         $pools = $this->poolRepos->findBy(['collection' => $poolCollection]);
-        foreach( $pools as $poolIt ) {
-            if( $poolIt->getCompetitionConfig()->getSeason() === $season) {
+        foreach ($pools as $poolIt) {
+            if ($poolIt->getCompetitionConfig()->getSeason() === $season) {
                 $pool = $poolIt;
                 break;
             }
         }
-        if( $pool === null ) {
+        if ($pool === null) {
             throw new \Exception('pool not found');
         }
-        if( $user === null ) {
+        if ($user === null) {
             throw new \Exception('user not found');
         }
         $poolUser = $pool->getUser($user);
-        if( $poolUser === null ) {
+        if ($poolUser === null) {
             throw new \Exception('poolUser not found');
         }
         $s11Points = $pool->getCompetitionConfig()->getPoints();
         $totalPoints = $poolUser->getTotalPoints($s11Points, $badgeCategory);
-        $this->logFormation('    ', 'assemble (tot: ' . $totalPoints . ')',
+        $this->logFormation(
+            '    ',
+            'assemble (tot: ' . $totalPoints . ')',
             $pool->getCompetitionConfig()->getPoints(),
             $poolUser->getAssembleFormation(),
             $badgeCategory,
-            $this->getLogger() );
-        $this->logFormation('    ', 'transfer',
+            $this->getLogger()
+        );
+        $this->logFormation(
+            '    ',
+            'transfer',
             $pool->getCompetitionConfig()->getPoints(),
             $poolUser->getTransferFormation(),
             $badgeCategory,
-            $this->getLogger() );
+            $this->getLogger()
+        );
         return 0;
     }
 
-    private function copyFormationToOtherPool(InputInterface $input): int {
+    private function copyFormationToOtherPool(InputInterface $input): int
+    {
         $seasonName = $this->inputHelper->getStringFromInput($input, 'season');
         $userName = $this->inputHelper->getStringFromInput($input, 'user');
         $fromPoolName = $this->inputHelper->getStringFromInput($input, 'from-pool');
         $toPoolName = $this->inputHelper->getStringFromInput($input, 'to-pool');
 
         $season = $this->seasonRepos->findOneBy(['name' => $seasonName]);
-        if( $season === null ) {
+        if ($season === null) {
             throw new \Exception('season not found');
         }
         $fromPool = $this->findPoolByNameAndSeason($season, $fromPoolName);
         $toPool = $this->findPoolByNameAndSeason($season, $toPoolName);
         $user = $this->userRepos->findOneBy(['name' => $userName]);
-        if( $user === null ) {
+        if ($user === null) {
             throw new \Exception('user not found');
         }
         $fromPoolUser = $fromPool->getUser($user);
-        if( $fromPoolUser === null ) {
+        if ($fromPoolUser === null) {
             throw new \Exception('from-poolUser not found');
         }
         $toPoolUser = $toPool->getUser($user);
-        if( $toPoolUser === null ) {
+        if ($toPoolUser === null) {
             throw new \Exception('to-poolUser not found');
         }
         // remove to-pool-formation
-        $this->poolAdministrator->copyPoolUserFormationToOtherPool($user, $fromPool, $toPool );
+        $this->poolAdministrator->copyPoolUserFormationToOtherPool($user, $fromPool, $toPool);
         $this->logFormation(
             '    ',
-            'copy for user "' . $user->getName() . '" and season "' . $season->getName() . '" from pool "'.$fromPool->getName().'" to pool "'.$toPool->getName().'"',
+            'copy for user "' . $user->getName() . '" and season "' . $season->getName() . '" from pool "' . $fromPool->getName() . '" to pool "' . $toPool->getName() . '"',
             $fromPool->getCompetitionConfig()->getPoints(),
             $fromPoolUser->getAssembleFormation(),
             null,
-            $this->getLogger() );
+            $this->getLogger()
+        );
         $this->getLogger()->info('COPYING DONE!');
         return 0;
     }
@@ -235,22 +244,24 @@ final class PoolUserCommand extends Command
         Points $points,
         S11Formation|null $formation,
         BadgeCategory|null $badgeCategory,
-        LoggerInterface $logger ): void {
+        LoggerInterface $logger
+    ): void {
         $logger->info($prefix . $header);
         $prefix .= '    ';
         $formationOutput = new FormationOutput($logger);
-        if( $formation === null) {
+        if ($formation === null) {
             $logger->info($prefix . 'no formation');
             return;
         }
         $formationOutput->output($points, $formation, $badgeCategory);
     }
 
-    private function findPoolByNameAndSeason(Season $season, string $poolName): Pool {
+    private function findPoolByNameAndSeason(Season $season, string $poolName): Pool
+    {
         $pools = $this->poolRepos->findByFilter($poolName, $season->getStartDateTime(), $season->getEndDateTime());
         $pool = reset($pools);
-        if ( $pool === false ) {
-            throw new \Exception('pool "' . $poolName .'" not found');
+        if ($pool === false) {
+            throw new \Exception('pool "' . $poolName . '" not found');
         }
         return $pool;
     }

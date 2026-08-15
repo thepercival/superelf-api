@@ -13,6 +13,8 @@
     <field name="directRedCard" column="directRedCard" type="boolean" nullable="false" unique="false"/>
     <field name="gameStartDateTime" column="gameStartDateTime" type="datetime_immutable" nullable="false" unique="false"/>
     <field name="updatedAt" column="updatedAt" type="datetime_immutable" nullable="false" unique="false"/>
+    <field name="categories" column="categories" type="json" nullable="false"/>
+    <field name="manOfTheMatch" column="manOfTheMatch" type="boolean" nullable="false"/>
     <many-to-one field="player" target-entity="SuperElf\S11Player" inversed-by="statistics">
       <join-columns>
         <join-column name="playerId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>

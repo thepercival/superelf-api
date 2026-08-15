@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:migrate-pools --loglevel=200
+ * php bin/console.php app:migrate-pools --loglevel=Info
  */
 class Users extends Command
 {
@@ -43,12 +43,12 @@ class Users extends Command
             ->setHelp('migrates the users');
 
 
-//        $f = CompetitionConfigValidator::DateTimeFormat;
-//        $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
-//        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
-//        $this->addOption('createAndJoinStart', null, InputOption::VALUE_REQUIRED, $f);
-//        $this->addOption('assemblePeriod', null, InputOption::VALUE_REQUIRED, $f . '=>' . $f);
-//        $this->addOption('transferPeriod', null, InputOption::VALUE_REQUIRED, $f . '=> ' . $f);
+        //        $f = CompetitionConfigValidator::DateTimeFormat;
+        //        $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
+        //        $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
+        //        $this->addOption('createAndJoinStart', null, InputOption::VALUE_REQUIRED, $f);
+        //        $this->addOption('assemblePeriod', null, InputOption::VALUE_REQUIRED, $f . '=>' . $f);
+        //        $this->addOption('transferPeriod', null, InputOption::VALUE_REQUIRED, $f . '=> ' . $f);
 
         parent::configure();
     }
@@ -86,23 +86,23 @@ class Users extends Command
 
 
 
-//    protected function create(InputInterface $input): int
-//    {
-//        $competition = $this->getCompetitionFromInput($input);
-//        if ($competition === null) {
-//            throw new \Exception('competition not found', E_ERROR);
-//        }
-//        $admin = $this->getAdministrator($competition);
-//        $competitionConfig = $admin->create(
-//            $competition,
-//            $this->getDateTimeFromInput($input, 'createAndJoinStart'),
-//            $this->getPeriodFromInput($input, 'assemblePeriod'),
-//            $this->getPeriodFromInput($input, 'transferPeriod'),
-//            $this->againstGameRepos->getCompetitionGames($competition)
-//        );
-//        $this->competitionConfigRepos->save($competitionConfig);
-//        $this->getLogger()->info('competitionConfig created and saved');
-//        // throw new \Exception('implement', E_ERROR);
-//        return 0;
-//    }
+    //    protected function create(InputInterface $input): int
+    //    {
+    //        $competition = $this->getCompetitionFromInput($input);
+    //        if ($competition === null) {
+    //            throw new \Exception('competition not found', E_ERROR);
+    //        }
+    //        $admin = $this->getAdministrator($competition);
+    //        $competitionConfig = $admin->create(
+    //            $competition,
+    //            $this->getDateTimeFromInput($input, 'createAndJoinStart'),
+    //            $this->getPeriodFromInput($input, 'assemblePeriod'),
+    //            $this->getPeriodFromInput($input, 'transferPeriod'),
+    //            $this->againstGameRepos->getCompetitionGames($competition)
+    //        );
+    //        $this->competitionConfigRepos->save($competitionConfig);
+    //        $this->getLogger()->info('competitionConfig created and saved');
+    //        // throw new \Exception('implement', E_ERROR);
+    //        return 0;
+    //    }
 }

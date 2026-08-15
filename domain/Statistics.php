@@ -16,6 +16,10 @@ use SuperElf\S11Player as S11Player;
  */
 class Statistics extends Identifiable
 {
+    /** @var list<array{name: string, statistics: list<array{name: string, value: int|float}>}> */
+    protected array $categories = [];
+    protected bool $manOfTheMatch = false;
+
     public function __construct(
         protected S11Player $player,
         protected GameRound $gameRound,
@@ -145,6 +149,35 @@ class Statistics extends Identifiable
     public function directRedCard(): bool
     {
         return $this->directRedCard;
+    }
+
+    /**
+     * @return list<array{name: string, statistics: list<array{name: string, value: int|float}>}>
+        * @psalm-suppress RedundantCondition Doctrine can unset mapped properties on historical ghost objects.
+        * @psalm-suppress TypeDoesNotContainType
+     */
+    public function getCategories(): array
+    {
+        return isset($this->categories) ? $this->categories : [];
+    }
+
+    /**
+     * @param list<array{name: string, statistics: list<array{name: string, value: int|float}>}> $categories
+     */
+    public function setCategories(array $categories): void
+    {
+        $this->categories = $categories;
+    }
+
+    /** @psalm-suppress RedundantCondition Doctrine can unset mapped properties on historical ghost objects. */
+    public function isManOfTheMatch(): bool
+    {
+        return isset($this->manOfTheMatch) && $this->manOfTheMatch;
+    }
+
+    public function setManOfTheMatch(bool $manOfTheMatch): void
+    {
+        $this->manOfTheMatch = $manOfTheMatch;
     }
 
     public function equals(Statistics $compare): bool

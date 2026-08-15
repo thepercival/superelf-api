@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\SportsImportHelpers;
 
+use App\Repositories\GameMissingPlayerRepository;
+use App\Repositories\GameParticipationStatisticsRepository;
 use App\Repositories\Sports\AgainstScoreRepository;
 use App\Repositories\Sports\StructureRepository;
 use DateTimeImmutable;
@@ -32,9 +34,13 @@ use SportsImport\Attachers\PersonAttacher;
 use SportsImport\Attachers\SportAttacher;
 use SportsImport\Attachers\TeamAttacher;
 use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\Game\MissingPlayer as ExternalMissingPlayer;
+use SportsImport\ExternalSource\Game\ParticipationStatistics as ExternalParticipationStatistics;
 use SportsImport\Queue\Game\ImportEvents as ImportGameEvents;
 use App\Repositories\SportsImport\AttacherRepository;
 use App\SportsImportHelpers\PersonImportHelper;
+use SuperElf\Game\MissingPlayer;
+use SuperElf\Game\ParticipationStatistics;
 
 /**
  * @api
@@ -60,6 +66,8 @@ final class AgainstGameImportHelper
         protected PersonImportHelper $personHelper,
 //        protected AgainstGameRepository $againstGameRepos,
         protected AgainstScoreRepository $againstScoreRepos,
+        protected GameMissingPlayerRepository $gameMissingPlayerRepos,
+        protected GameParticipationStatisticsRepository $gameParticipationStatisticsRepos,
         protected StructureRepository $structureRepos,
         protected LoggerInterface $logger,
         protected EntityManagerInterface $entityManager,
@@ -93,9 +101,17 @@ final class AgainstGameImportHelper
      * @param ExternalSource $externalSource
      * @param list<AgainstGame> $externalGames
      * @param bool $onlyBasics
+     * @param array<string, list<ExternalMissingPlayer>> $missingPlayers
+    * @param array<string, list<ExternalParticipationStatistics>> $participationStatistics
      * @throws Exception
      */
-    public function importGames(ExternalSource $externalSource, array $externalGames, bool $onlyBasics): void
+    public function importGames(
+        ExternalSource $externalSource,
+        array $externalGames,
+        bool $onlyBasics,
+        array $missingPlayers = [],
+        array $participationStatistics = []
+    ): void
     {
         foreach ($externalGames as $externalGame) {
             $poule = $this->getPouleFromExternal($externalSource, $externalGame->getPoule());
@@ -137,7 +153,12 @@ final class AgainstGameImportHelper
                     $game->getCompetitionSport()->getCompetition()->getSeason(),
                     $externalGame
                 );
-                $this->importScoresLineupsAndEvents($externalSource, $externalGame);
+                $this->importScoresLineupsAndEvents(
+                    $externalSource,
+                    $externalGame,
+                    $missingPlayers[(string)$externalId] ?? [],
+                    $participationStatistics[(string)$externalId] ?? []
+                );
             }
         }
     }
@@ -204,7 +225,16 @@ final class AgainstGameImportHelper
         $this->outputGame($game, 'updated basics' . $rescheduledDescr . ' => ');
     }
 
-    public function importScoresLineupsAndEvents(ExternalSource $externalSource, AgainstGame $externalGame): void
+    /**
+     * @param list<ExternalMissingPlayer> $missingPlayers
+    * @param list<ExternalParticipationStatistics> $participationStatistics
+     */
+    public function importScoresLineupsAndEvents(
+        ExternalSource $externalSource,
+        AgainstGame $externalGame,
+        array $missingPlayers = [],
+        array $participationStatistics = []
+    ): void
     {
         $game = $this->getGameFromExternal($externalSource, $externalGame);
         if ($game === null) {
@@ -214,6 +244,14 @@ final class AgainstGameImportHelper
         $this->removeScoresLineupsAndEvents($game);
         (new ScoreCreator())->addAgainstScores($game, array_values($externalGame->getScores()->toArray()));
 
+        $statisticsByPersonId = [];
+        foreach ($participationStatistics as $externalParticipationStatistics) {
+            $personId = $externalParticipationStatistics->player->getPerson()->getId();
+            if ($personId !== null) {
+                $statisticsByPersonId[(string)$personId] = $externalParticipationStatistics;
+            }
+        }
+
         // create gameParticipations
         foreach ($externalGame->getPlaces() as $externalGamePlace) {
             foreach ($externalGamePlace->getParticipations() as $externalParticipation) {
@@ -221,12 +259,36 @@ final class AgainstGameImportHelper
                 if ($player === null) {
                     continue;
                 }
-                new Game\Participation(
+                $gameParticipation = new Game\Participation(
                     $this->getGamePlaceFromExternal($game, $externalGamePlace->getPlace()->getPlaceNr()),
                     $player,
                     $externalParticipation->getBeginMinute(),
                     $externalParticipation->getEndMinute()
                 );
+                $externalPersonId = $externalParticipation->getPlayer()->getPerson()->getId();
+                $externalStatistics = $externalPersonId === null
+                    ? null
+                    : ($statisticsByPersonId[(string)$externalPersonId] ?? null);
+                if ($externalStatistics !== null) {
+                    $categories = array_map(
+                        static fn($category): array => [
+                            'name' => $category->name,
+                            'statistics' => array_map(
+                                static fn($statistic): array => [
+                                    'name' => $statistic->name,
+                                    'value' => $statistic->value,
+                                ],
+                                $category->statistics
+                            ),
+                        ],
+                        $externalStatistics->categories
+                    );
+                    $this->entityManager->persist(new ParticipationStatistics(
+                        $gameParticipation,
+                        $categories,
+                        $externalStatistics->manOfTheMatch
+                    ));
+                }
             }
         }
 
@@ -261,6 +323,23 @@ final class AgainstGameImportHelper
                     $goal->setAssistGameParticipation($assistGameParticipation);
                 }
             }
+        }
+        foreach ($missingPlayers as $externalMissingPlayer) {
+            $player = $this->getPlayerFromExternal($game, $externalSource, $externalMissingPlayer->player);
+            if ($player === null) {
+                continue;
+            }
+            $gamePlace = $game->getSingleSidePlace($externalMissingPlayer->againstSide);
+            $missingPlayer = new MissingPlayer(
+                $gamePlace,
+                $player,
+                $externalMissingPlayer->type,
+                $externalMissingPlayer->reason,
+                $externalMissingPlayer->description,
+                $externalMissingPlayer->externalType,
+                $externalMissingPlayer->expectedEndDate
+            );
+            $this->entityManager->persist($missingPlayer);
         }
         $this->entityManager->persist($game);
         $this->entityManager->flush();
@@ -399,6 +478,8 @@ final class AgainstGameImportHelper
 
     protected function removeScoresLineupsAndEvents(AgainstGame $game): void
     {
+        $this->gameMissingPlayerRepos->removeByGame($game);
+        $this->gameParticipationStatisticsRepos->removeByGame($game);
         foreach ($game->getPlaces() as $gamePlace) {
             while ($participation = $gamePlace->getParticipations()->first()) {
                 $gamePlace->getParticipations()->removeElement($participation);

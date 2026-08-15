@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="SuperElf\Game\MissingPlayer" table="gameMissingPlayers"
+            repository-class="App\Repositories\GameMissingPlayerRepository">
+        <field name="type" column="type" type="string" length="32" nullable="false"/>
+        <field name="reason" column="reason" type="smallint" nullable="false"/>
+        <field name="description" column="description" type="string" length="255" nullable="false"/>
+        <field name="externalType" column="externalType" type="smallint" nullable="false"/>
+        <field name="expectedEndDate" column="expectedEndDate" type="datetime_immutable" nullable="true"/>
+        <many-to-one field="againstGamePlace" target-entity="Sports\Game\Place\Against">
+            <join-columns>
+                <join-column name="againstGamePlaceId" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+            </join-columns>
+        </many-to-one>
+        <many-to-one field="player" target-entity="Sports\Team\Player">
+            <join-columns>
+                <join-column name="playerId" referenced-column-name="id" nullable="false" on-delete="RESTRICT"/>
+            </join-columns>
+        </many-to-one>
+        <unique-constraints>
+            <unique-constraint columns="againstGamePlaceId,playerId" name="game_missing_player_u_idx"/>
+        </unique-constraints>
+    </entity>
+</doctrine-mapping>
