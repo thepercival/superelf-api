@@ -64,7 +64,7 @@ final class StatisticsSyncer
 
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
-//
+        //
         $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
             throw new \Exception(
@@ -89,8 +89,8 @@ final class StatisticsSyncer
             );
         }
         // }
-//        $this->s11PlayerRepos->flush();
-//        $this->statisticsRepos->flush();
+        //        $this->s11PlayerRepos->flush();
+        //        $this->statisticsRepos->flush();
     }
 
     protected function syncTeamStatistics(
@@ -115,9 +115,9 @@ final class StatisticsSyncer
         $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team, $gamePlace->getGame());
         foreach ($s11Players as $s11Player) {
             $person = $s11Player->getPerson();
-//            if( $person->getLastName() === 'Dost') {
-//                $er = 12;
-//            }
+            //            if( $person->getLastName() === 'Dost') {
+            //                $er = 12;
+            //            }
             $player = $person->getPlayer($team, $game->getStartDateTime());
             if ($player === null) {
                 $this->logNoS11Player($person, $team, $game->getStartDateTime());
@@ -201,8 +201,7 @@ final class StatisticsSyncer
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod()->toIso80000('Y-m-d');
             $this->logInfo(
-                "       playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine(
-                ) . ") => periode " . $basePeriod
+                "       playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine() . ") => periode " . $basePeriod
             );
         }
     }

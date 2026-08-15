@@ -37,7 +37,7 @@ class Statistics extends Identifiable
         protected \DateTimeImmutable $updatedAt
     ) {
         if (!$this->player->getStatistics()->contains($this)) {
-            $this->player->getStatistics()->add($this) ;
+            $this->player->getStatistics()->add($this);
         }
     }
 
@@ -153,8 +153,8 @@ class Statistics extends Identifiable
 
     /**
      * @return list<array{name: string, statistics: list<array{name: string, value: int|float}>}>
-        * @psalm-suppress RedundantCondition Doctrine can unset mapped properties on historical ghost objects.
-        * @psalm-suppress TypeDoesNotContainType
+     * @psalm-suppress RedundantCondition Doctrine can unset mapped properties on historical ghost objects.
+     * @psalm-suppress TypeDoesNotContainType
      */
     public function getCategories(): array
     {
@@ -210,7 +210,7 @@ class Statistics extends Identifiable
         $sheet = ($this->hasCleanSheet() ? $points->getLineScorePointsAsValue($line, FootballScore::CleanSheet) : 0)
             + ($this->hasSpottySheet() ? $points->getLineScorePointsAsValue($line, FootballScore::SpottySheet) : 0);
         $cards = (int)((($this->directRedCard ? 1 : 0) * $points->getCardRed())
-                + ($this->getNrOfYellowCards()  * $points->getCardYellow()));
+            + ($this->getNrOfYellowCards()  * $points->getCardYellow()));
 
         switch ($badgeCategory) {
             case BadgeCategory::Result:

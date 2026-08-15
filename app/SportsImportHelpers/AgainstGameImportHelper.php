@@ -64,7 +64,7 @@ final class AgainstGameImportHelper
 
     public function __construct(
         protected PersonImportHelper $personHelper,
-//        protected AgainstGameRepository $againstGameRepos,
+        //        protected AgainstGameRepository $againstGameRepos,
         protected AgainstScoreRepository $againstScoreRepos,
         protected GameMissingPlayerRepository $gameMissingPlayerRepos,
         protected GameParticipationStatisticsRepository $gameParticipationStatisticsRepos,
@@ -87,10 +87,10 @@ final class AgainstGameImportHelper
         $metaData = $entityManager->getClassMetadata(TeamAttacher::class);
         $this->teamAttacherRepos = new AttacherRepository($entityManager, $metaData);
     }
-//
-//    protected function getDeadLine(): DateTimeImmutable {
-//        return (new DateTimeImmutable())->modify("-" . static::MAX_DAYS_BACK . " days");
-//    }
+    //
+    //    protected function getDeadLine(): DateTimeImmutable {
+    //        return (new DateTimeImmutable())->modify("-" . static::MAX_DAYS_BACK . " days");
+    //    }
 
     public function setEventSender(ImportGameEvents $importGameEventsSender): void
     {
@@ -102,7 +102,7 @@ final class AgainstGameImportHelper
      * @param list<AgainstGame> $externalGames
      * @param bool $onlyBasics
      * @param array<string, list<ExternalMissingPlayer>> $missingPlayers
-    * @param array<string, list<ExternalParticipationStatistics>> $participationStatistics
+     * @param array<string, list<ExternalParticipationStatistics>> $participationStatistics
      * @throws Exception
      */
     public function importGames(
@@ -111,8 +111,7 @@ final class AgainstGameImportHelper
         bool $onlyBasics,
         array $missingPlayers = [],
         array $participationStatistics = []
-    ): void
-    {
+    ): void {
         foreach ($externalGames as $externalGame) {
             $poule = $this->getPouleFromExternal($externalSource, $externalGame->getPoule());
             if ($poule === null) {
@@ -227,15 +226,14 @@ final class AgainstGameImportHelper
 
     /**
      * @param list<ExternalMissingPlayer> $missingPlayers
-    * @param list<ExternalParticipationStatistics> $participationStatistics
+     * @param list<ExternalParticipationStatistics> $participationStatistics
      */
     public function importScoresLineupsAndEvents(
         ExternalSource $externalSource,
         AgainstGame $externalGame,
         array $missingPlayers = [],
         array $participationStatistics = []
-    ): void
-    {
+    ): void {
         $game = $this->getGameFromExternal($externalSource, $externalGame);
         if ($game === null) {
             return;
@@ -373,8 +371,7 @@ final class AgainstGameImportHelper
             $gameOutput = new AgainstGameOutput(new StartLocationMap($teamCompetitors), $this->logger);
             $gameOutput->output($externalGame, "no game found for external  ");
             $this->logger->warning(
-                "no game found for external gameid " . (string)$externalId . " and external source \"" . $externalSource->getName(
-                ) . "\""
+                "no game found for external gameid " . (string)$externalId . " and external source \"" . $externalSource->getName() . "\""
             );
             return null;
         }
@@ -420,9 +417,9 @@ final class AgainstGameImportHelper
         } catch (Exception $e) {
             return null;
         }
-//        if ($rootRound === false) {
-//            return null;
-//        }
+        //        if ($rootRound === false) {
+        //            return null;
+        //        }
         $firstPoule = $rootRound->getPoules()->first();
         if ($firstPoule === false) {
             return null;

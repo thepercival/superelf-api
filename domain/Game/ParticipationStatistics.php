@@ -16,8 +16,7 @@ final class ParticipationStatistics extends Identifiable
         protected Participation $gameParticipation,
         protected array $categories,
         protected bool $manOfTheMatch
-    ) {
-    }
+    ) {}
 
     public function getGameParticipation(): Participation
     {
