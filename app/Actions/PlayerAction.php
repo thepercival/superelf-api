@@ -72,13 +72,13 @@ final class PlayerAction extends Action
                 throw new \Exception("de periode is niet meegegeven in het filter", E_ERROR);
             }
             $team = $playerFilter->getTeamId() !== null ? $this->teamRepos->find($playerFilter->getTeamId()) : null;
-            $maxResults = null;
-            if ($playerFilter->getLine() === null && $team === null) {
-                $maxResults = 50;
-            }
-
-
-            $players = $this->playerRepos->findByExt($viewPeriod, $team, null, $playerFilter->getLine(), $maxResults);
+            $players = $this->playerRepos->findByExt(
+                $viewPeriod,
+                $team,
+                null,
+                $playerFilter->getLine(),
+                $playerFilter->getMaxResults()
+            );
             // aan de persons moeten punten gekoppeld worden en daarna pas vrijgegeven worden???
 
             $serContext = $this->getSerializationContext(['players']);

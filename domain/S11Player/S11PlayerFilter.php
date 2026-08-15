@@ -14,7 +14,8 @@ class S11PlayerFilter
     public function __construct(
         protected int $viewPeriodId,
         int|string|null $teamId,
-        protected int|null $line = null
+        protected int|null $line = null,
+        protected int|null $maxResults = 50
     ) {
         $this->teamId = $teamId;
     }
@@ -32,5 +33,10 @@ class S11PlayerFilter
     public function getLine(): ?int
     {
         return $this->line;
+    }
+
+    public function getMaxResults(): ?int
+    {
+        return $this->maxResults;
     }
 }

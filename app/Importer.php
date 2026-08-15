@@ -395,9 +395,6 @@ final class Importer
                     $gameRoundNumber,
                     $resetCache
                 );
-                foreach ($externalGames as $externalGame) {
-                    $this->personImportService->importByAgainstGame($externalSource, $season, $externalGame);
-                }
             }
             $missingPlayers = [];
             $participationStatistics = [];
@@ -405,9 +402,21 @@ final class Importer
                 foreach ($externalGames as $externalGame) {
                     $externalGameId = $externalGame->getId();
                     if ($externalGameId !== null) {
-                        $missingPlayers[(string)$externalGameId] = $externalSourceGamesAndPlayers
+                        $gameMissingPlayers = $externalSourceGamesAndPlayers
                             ->getAgainstGameMissingPlayers($externalGameId);
+                        $missingPlayers[(string)$externalGameId] = $gameMissingPlayers;
                     }
+                }
+            }
+            if (!$onlyBasics) {
+                foreach ($externalGames as $externalGame) {
+                    $externalGameId = $externalGame->getId();
+                    $this->personImportService->importByAgainstGame(
+                        $externalSource,
+                        $season,
+                        $externalGame,
+                        $externalGameId === null ? [] : ($missingPlayers[(string)$externalGameId] ?? [])
+                    );
                 }
             }
             if (!$onlyBasics && $externalSourceGamesAndPlayers instanceof ExternalSourceGameParticipationStatisticsInterface) {
@@ -481,17 +490,18 @@ final class Importer
                 $this->logger->info("game " . (string)$externalGame->getId() . " is not finished");
                 return;
             }
+            $missingPlayers = $externalSourceCompetitionGames instanceof ExternalSourceGameMissingPlayersInterface
+                ? $externalSourceCompetitionGames->getAgainstGameMissingPlayers($externalGameId)
+                : [];
             $this->personImportService->importByAgainstGame(
                 $externalSource,
                 $season,
-                $externalGame
+                $externalGame,
+                $missingPlayers
             );
 
             $this->againstGameImportService->importBasics($externalSource, $externalGame);
 
-            $missingPlayers = $externalSourceCompetitionGames instanceof ExternalSourceGameMissingPlayersInterface
-                ? $externalSourceCompetitionGames->getAgainstGameMissingPlayers($externalGameId)
-                : [];
             $participationStatistics = $externalSourceCompetitionGames instanceof ExternalSourceGameParticipationStatisticsInterface
                 ? $externalSourceCompetitionGames->getAgainstGameParticipationStatistics($externalGameId)
                 : [];

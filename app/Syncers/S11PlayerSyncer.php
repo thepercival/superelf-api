@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Syncers;
 
+use App\Repositories\GameMissingPlayerRepository;
 use App\Repositories\S11PlayerRepository as S11PlayerRepository;
 use App\Repositories\ViewPeriodRepository as ViewPeriodRepository;
 use DateTime;
@@ -33,6 +34,7 @@ final class S11PlayerSyncer
     public function __construct(
         protected S11PlayerRepository $s11PlayerRepos,
         protected ViewPeriodRepository $viewPeriodRepos,
+        protected GameMissingPlayerRepository $gameMissingPlayerRepos,
         protected EntityManagerInterface $entityManager
     ) {
         $this->gameRoundRepos = $entityManager->getRepository(GameRound::class);
@@ -48,7 +50,7 @@ final class S11PlayerSyncer
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
         $this->logGame($game, $map);
-//
+        //
         $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
             throw new \Exception(
@@ -67,6 +69,9 @@ final class S11PlayerSyncer
             }
             $this->syncS11PlayersHelper($viewPeriod, $gamePlace);
         }
+        foreach ($this->gameMissingPlayerRepos->findByGame($game) as $missingPlayer) {
+            $this->syncS11Player($viewPeriod, $missingPlayer->getPlayer()->getPerson());
+        }
     }
 
     protected function syncS11PlayersHelper(ViewPeriod $viewPeriod, AgainstGamePlace $gamePlace): void
@@ -83,7 +88,7 @@ final class S11PlayerSyncer
 
     public function syncS11Player(ViewPeriod $viewPeriod, Person $person): S11Player
     {
-        $s11Player = $this->s11PlayerRepos->findOneBy(["viewPeriod" => $viewPeriod, "person" => $person ]);
+        $s11Player = $this->s11PlayerRepos->findOneBy(["viewPeriod" => $viewPeriod, "person" => $person]);
         if ($s11Player !== null) {
             return $s11Player;
         }
@@ -133,7 +138,7 @@ final class S11PlayerSyncer
         $this->logInfo("  voor persoon: " . $person->getName() . " is geen speler gevonden");
         foreach ($person->getPlayers() as $playerIt) {
             $basePeriod = $playerIt->getPeriod();
-            $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (".$playerIt->getLine().") => periode " . $basePeriod->toIso8601());
+            $this->logInfo("      playerinfo: " . $playerIt->getTeam()->getName() . " (" . $playerIt->getLine() . ") => periode " . $basePeriod->toIso8601());
         }
     }
 

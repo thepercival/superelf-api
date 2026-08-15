@@ -10,3 +10,5 @@ SuperElf\S11Player\S11PlayerFilter:
       type: integer
     line:
       type: integer
+    maxResults:
+      type: integer

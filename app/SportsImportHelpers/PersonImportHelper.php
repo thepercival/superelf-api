@@ -15,6 +15,7 @@ use Sports\Team\Role\Editor as RoleEditor;
 use SportsImport\Attachers\PersonAttacher;
 use SportsImport\Attachers\TeamAttacher;
 use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\Game\MissingPlayer as ExternalMissingPlayer;
 use SportsImport\Queue\Person\ImportEvents as ImportPersonEvents;
 use App\Repositories\SportsImport\AttacherRepository;
 
@@ -30,7 +31,7 @@ final class PersonImportHelper
     protected AttacherRepository $teamAttacherRepos;
 
     public function __construct(
-//        protected PersonRepository $personRepos,
+        //        protected PersonRepository $personRepos,
         protected LoggerInterface $logger,
         protected EntityManagerInterface $entityManager,
     ) {
@@ -46,29 +47,51 @@ final class PersonImportHelper
         $this->importPersonEventsSender = $importPersonEventsSender;
     }
 
-    public function importByAgainstGame(ExternalSource $externalSource, Season $season, AgainstGame $externalGame): void
-    {
+    /**
+     * @param list<ExternalMissingPlayer> $missingPlayers
+     */
+    public function importByAgainstGame(
+        ExternalSource $externalSource,
+        Season $season,
+        AgainstGame $externalGame,
+        array $missingPlayers = []
+    ): void {
         foreach ($externalGame->getPlaces() as $externalGamePlace) {
             foreach ($externalGamePlace->getParticipations() as $externalParticipation) {
-                $externalPerson = $externalParticipation->getPlayer()->getPerson();
-
-                $externalId = $externalPerson->getId();
-                if ($externalId === null) {
-                    continue;
-                }
-                $person = $this->importPerson($externalSource, $externalPerson, $season);
-
-                $this->updatePlayerPeriods(
+                $this->importPlayer(
                     $externalSource,
                     $season,
-                    $person,
-                    $externalGame->getStartDateTime(),
-                    $externalParticipation->getPlayer()->getTeam(),
-                    $externalParticipation->getPlayer()->getLine(),
-                    $externalParticipation->getPlayer()->getMarketValue(),
+                    $externalGame,
+                    $externalParticipation->getPlayer()
                 );
             }
         }
+        foreach ($missingPlayers as $missingPlayer) {
+            $this->importPlayer($externalSource, $season, $externalGame, $missingPlayer->player);
+        }
+    }
+
+    protected function importPlayer(
+        ExternalSource $externalSource,
+        Season $season,
+        AgainstGame $externalGame,
+        Team\Player $externalPlayer
+    ): void {
+        $externalPerson = $externalPlayer->getPerson();
+        if ($externalPerson->getId() === null) {
+            return;
+        }
+        $person = $this->importPerson($externalSource, $externalPerson, $season);
+
+        $this->updatePlayerPeriods(
+            $externalSource,
+            $season,
+            $person,
+            $externalGame->getStartDateTime(),
+            $externalPlayer->getTeam(),
+            $externalPlayer->getLine(),
+            $externalPlayer->getMarketValue(),
+        );
     }
 
     public function importPerson(
@@ -132,7 +155,7 @@ final class PersonImportHelper
             $externalTeamId
         );
         if ($teamAttacher === null) {
-            throw new \Exception('no team found for externalsource "'.$externalSource->getName().'" and extern teamid ' . $externalTeamId, E_ERROR);
+            throw new \Exception('no team found for externalsource "' . $externalSource->getName() . '" and extern teamid ' . $externalTeamId, E_ERROR);
         }
         $newTeam = $teamAttacher->getImportable();
         $newLine = FootballLine::from($line);
