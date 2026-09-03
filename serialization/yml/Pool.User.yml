@@ -28,7 +28,7 @@ SuperElf\Pool\User:
       serialized_name: hasAssembleFormation
     getNrOfAssembled:
       type: integer
-      groups: [ admin ]
+      groups: [ admin, assembleProgress ]
       serialized_name: nrOfAssembled
     getNrOfTransfers:
       type: integer

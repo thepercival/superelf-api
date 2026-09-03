@@ -67,7 +67,7 @@ final class TotalsSyncer
         $totalsCalculator = new TotalsCalculator();
         $competitors = array_values($competition->getTeamCompetitors()->toArray());
         $map = new StartLocationMap($competitors);
-//
+        //
         $viewPeriod = $competitionConfig->getViewPeriodByDate($game->getStartDateTime());
         if ($viewPeriod === null) {
             throw new \Exception(
@@ -99,7 +99,7 @@ final class TotalsSyncer
             return;
         }
         $pools = $this->poolRepos->findBy(['competitionConfig' => $competitionConfig]);
-        foreach( $pools as $pool ) {
+        foreach ($pools as $pool) {
             $this->cacheService->resetTotals($pool, $gameRound);
         }
     }
@@ -122,12 +122,9 @@ final class TotalsSyncer
         if ($gameRound === null) {
             return;
         }
-        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team, $gamePlace->getGame());
+        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, [$team], $gamePlace->getGame());
         foreach ($s11Players as $s11Player) {
 
-//            if( $s11Player->getPerson()->getLastName() === 'Lozano') {
-//                $er = 12;
-//            }
 
             $playerStats = array_values($s11Player->getStatistics()->toArray());
             $totalsCalculator->updateTotals($s11Player->getTotals(), $playerStats);
@@ -154,7 +151,8 @@ final class TotalsSyncer
     public function updateFormationPlacesTotals(
         TotalsCalculator $totalsCalculator,
         Points $points,
-        array $formationPlaces): void {
+        array $formationPlaces
+    ): void {
         foreach ($formationPlaces as $formationPlace) {
             $totalsCalculator->updateTotals($formationPlace->getTotals(), $formationPlace->getStatistics());
             $this->entityManager->persist($formationPlace->getTotals());

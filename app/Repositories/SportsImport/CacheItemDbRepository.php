@@ -19,7 +19,8 @@ final class CacheItemDbRepository extends EntityRepository implements CacheItemD
     public function getItem(string $name): string|null
     {
         $cacheItem = $this->findOneBy(["name" => $name]);
-        if ($cacheItem !== null &&
+        if (
+            $cacheItem !== null &&
             ($cacheItem->getExpireDateTime() === null || $cacheItem->getExpireDateTime() > (new \DateTimeImmutable()))
         ) {
             /** @var string|resource $handle */
@@ -51,7 +52,7 @@ final class CacheItemDbRepository extends EntityRepository implements CacheItemD
         $expireDateTime = null;
         if ($nrOfMinutesToExpire !== null) {
             $expireDateTime = new \DateTimeImmutable();
-            $expireDateTime = $expireDateTime->add(new \DateInterval('PT7M'));
+            $expireDateTime = $expireDateTime->add(new \DateInterval('PT' . $nrOfMinutesToExpire . 'M'));
         }
         if ($cacheItem === null) {
             $cacheItem = new CacheItemDb($name, $value, $expireDateTime);

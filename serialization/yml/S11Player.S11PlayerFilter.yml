@@ -6,9 +6,11 @@ SuperElf\S11Player\S11PlayerFilter:
   properties:
     viewPeriodId:
       type: integer
-    teamId:
-      type: integer
+    teamIds:
+      type: array<integer>
     line:
       type: integer
     maxResults:
       type: integer
+    orderByPoints:
+      type: boolean

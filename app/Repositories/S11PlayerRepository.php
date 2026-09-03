@@ -26,8 +26,7 @@ final class S11PlayerRepository extends EntityRepository
             ->distinct()
             ->join("s11pl.person", "p")
             ->join('Sports\Team\Player', 'pl', 'WITH', 'p = pl.person')
-            ->where('s11pl.viewPeriod = :viewPeriod')
-        ;
+            ->where('s11pl.viewPeriod = :viewPeriod');
 
         $qb = $qb->setParameter('viewPeriod', $viewPeriod);
 
@@ -39,36 +38,38 @@ final class S11PlayerRepository extends EntityRepository
 
     /**
      * @param ViewPeriod $viewPeriod
-     * @param Team $team
+    * @param list<Team>|null $teams
      * @param AgainstGame|null $game
      * @param int|null $line
      * @param int|null $maxRows
+    * @param bool $orderByPoints
      * @return list<S11Player>
      */
     public function findByExt(
         ViewPeriod $viewPeriod,
-        Team|null $team,
+        array|null $teams,
         AgainstGame|null $game,
         int|null $line = null,
-        int|null $maxRows = null): array
-    {
+        int|null $maxRows = null,
+        bool $orderByPoints = false
+    ): array {
         $qb = $this->createQueryBuilder('s11pl')
             ->distinct()
             ->join("s11pl.person", "p")
             ->join("s11pl.viewPeriod", "vp")
             ->join('Sports\Team\Player', 'pl', 'WITH', 'p = pl.person')
+            ->join('s11pl.totals', 'plt')
             ->where('pl.startDateTime < vp.endDateTime')
             ->andWhere('pl.endDateTime > vp.startDateTime')
-            ->andWhere('s11pl.viewPeriod = :viewPeriod')
-        ;
+            ->andWhere('s11pl.viewPeriod = :viewPeriod');
         $qb = $qb->setParameter('viewPeriod', $viewPeriod);
 
-        if( $team !== null) {
-            $qb = $qb->andWhere('pl.team = :team');
-            $qb = $qb->setParameter('team', $team);
+        if ($teams !== null) {
+            $qb = $qb->andWhere('pl.team IN (:teams)');
+            $qb = $qb->setParameter('teams', $teams);
         }
 
-        if( $game !== null) {
+        if ($game !== null) {
             $qb = $qb->andWhere('pl.startDateTime <= :dateTime');
             $qb = $qb->andWhere('pl.endDateTime > :dateTime');
             $qb = $qb->setParameter('dateTime', $game->getStartDateTime());
@@ -82,7 +83,13 @@ final class S11PlayerRepository extends EntityRepository
             $qb = $qb->setMaxResults($maxRows);
         }
 
-        $qb = $qb->orderBy('s11pl.totalPoints', 'desc');
+        if ($orderByPoints) {
+            $qb = $qb->orderBy('s11pl.totalPoints', 'desc');
+        } else {
+            $qb = $qb->orderBy('plt.nrOfTimesStarted', 'desc');
+            $qb = $qb->addOrderBy('plt.nrOfTimesSubstituted', 'asc');
+        }
+
         // $sql = $qb->getQuery()->getSQL();
         /** @var list<S11Player> $players */
         $players = $qb->getQuery()->getResult();

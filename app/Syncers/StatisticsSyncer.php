@@ -112,7 +112,7 @@ final class StatisticsSyncer
             return;
         }
         $gameParticipations = array_values($gamePlace->getParticipations()->toArray());
-        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, $team, $gamePlace->getGame());
+        $s11Players = $this->s11PlayerRepos->findByExt($viewPeriod, [$team], $gamePlace->getGame());
         foreach ($s11Players as $s11Player) {
             $person = $s11Player->getPerson();
             //            if( $person->getLastName() === 'Dost') {

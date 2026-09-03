@@ -71,13 +71,16 @@ final class PlayerAction extends Action
             if ($viewPeriod === null) {
                 throw new \Exception("de periode is niet meegegeven in het filter", E_ERROR);
             }
-            $team = $playerFilter->getTeamId() !== null ? $this->teamRepos->find($playerFilter->getTeamId()) : null;
+            $teamIds = $playerFilter->getTeamIds();
+            /** @var list<Team>|null $teams */
+            $teams = $teamIds !== null ? $this->teamRepos->findBy(['id' => $teamIds]) : null;
             $players = $this->playerRepos->findByExt(
                 $viewPeriod,
-                $team,
+                $teams,
                 null,
                 $playerFilter->getLine(),
-                $playerFilter->getMaxResults()
+                $playerFilter->getMaxResults(),
+                $playerFilter->getOrderByPoints()
             );
             // aan de persons moeten punten gekoppeld worden en daarna pas vrijgegeven worden???
 
