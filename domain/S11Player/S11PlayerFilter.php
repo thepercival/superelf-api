@@ -9,25 +9,28 @@ namespace SuperElf\S11Player;
  */
 class S11PlayerFilter
 {
-    protected int|string|null $teamId = null;
-
+    /**
+     * @param list<int|string>|null $teamIds
+     */
     public function __construct(
         protected int $viewPeriodId,
-        int|string|null $teamId,
+        protected array|null $teamIds = null,
         protected int|null $line = null,
-        protected int|null $maxResults = 50
-    ) {
-        $this->teamId = $teamId;
-    }
+        protected int|null $maxResults = 50,
+        protected bool $orderByPoints = false
+    ) {}
 
     public function getViewPeriodId(): int
     {
         return $this->viewPeriodId;
     }
 
-    public function getTeamId(): int|string|null
+    /**
+     * @return list<int|string>|null
+     */
+    public function getTeamIds(): array|null
     {
-        return $this->teamId;
+        return $this->teamIds;
     }
 
     public function getLine(): ?int
@@ -38,5 +41,10 @@ class S11PlayerFilter
     public function getMaxResults(): ?int
     {
         return $this->maxResults;
+    }
+
+    public function getOrderByPoints(): bool
+    {
+        return $this->orderByPoints;
     }
 }

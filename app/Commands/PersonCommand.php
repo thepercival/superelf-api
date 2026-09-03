@@ -33,11 +33,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * php bin/console.php app:person
- *      fetch                 --league=Eredivisie --season=2022/2023 --firstName=Justin --loglevel=Info
- *      createWithS11Players  --league=Eredivisie --season=2022/2023 --firstName="Coen" --lastName="Dunnink" --dateOfBirth="1987-05-20" --loglevel=Info
- *      makeTransfer          --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --newTeamAbbr="EMM" --newLine=A --loglevel=Info
- *      updateCurrentLine     --league=Eredivisie --season=2022/2023 --id=21 --newLine=A --loglevel=Info
- *      stop                  --league=Eredivisie --season=2022/2023 --id=21 --at=2022-08-23 --loglevel=Info
+ *      fetch                 --league=Eredivisie --season=2026/2027 --firstName=Justin --loglevel=Info
+ *      createWithS11Players  --league=Eredivisie --season=2026/2027 --firstName="Coen" --lastName="Dunnink" --dateOfBirth="1987-05-20" --loglevel=Info
+ *      makeTransfer          --league=Eredivisie --season=2026/2027 --id=21 --at=2022-08-23 --newTeamAbbr="EMM" --newLine=A --loglevel=Info
+ *      updateCurrentLine     --league=Eredivisie --season=2026/2027 --id=21 --newLine=A --loglevel=Info
+ *      stop                  --league=Eredivisie --season=2026/2027 --id=21 --at=2022-08-23 --loglevel=Info
  */
 final class PersonCommand extends Command
 {
@@ -170,6 +170,7 @@ final class PersonCommand extends Command
     {
         $competitionConfig = $this->inputHelper->getCompetitionConfigFromInput($input);
 
+        $id = $this->inputHelper->getStringFromInput($input, 'id', '');
         $firstName = $this->inputHelper->getStringFromInput($input, 'firstName', '');
         $lastName = $this->inputHelper->getStringFromInput($input, 'lastName', '');
 
@@ -184,6 +185,9 @@ final class PersonCommand extends Command
 
         // $viewPeriods = $competitionConfig->getViewPeriods();
         $filters = [];
+        if (strlen($id) > 0) {
+            $filters['id'] = $id;
+        }
         if (strlen($firstName) > 0) {
             $filters['firstName'] = $firstName;
         }
