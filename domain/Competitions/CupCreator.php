@@ -114,6 +114,12 @@ final class CupCreator extends BaseCreator
         if ($lastRound === null) {
             return;
         }
+        if ($rounds === [] && count($assembleGameRounds) >= (self::NrOfAgainstGamesPerRound + 1)) {
+            array_shift($assembleGameRounds);
+            $gameRounds = $this->removeGameRoundsAt($assembleGameRounds, true);
+            $this->createRoundGames($lastRound, $assembleViewPeriod, $gameRounds);
+            return;
+        }
         array_pop($transferGameRounds);
         $gameRounds = $this->removeGameRoundsAt($transferGameRounds, false);
         $this->createRoundGames($lastRound, $assembleViewPeriod, $gameRounds);

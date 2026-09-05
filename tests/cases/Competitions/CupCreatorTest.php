@@ -6,12 +6,14 @@ use DateTimeImmutable;
 use League\Period\Period as LeaguePeriod;
 use Sports\Association;
 use Sports\Competition;
+use Sports\Game\Against as AgainstGame;
 use Sports\Output\StructureOutput;
 use Sports\Ranking\PointsCalculation;
 use Sports\Season;
 use Sports\Sport;
 use Sports\Structure;
 use SuperElf\Competitions\CupCreator;
+use SuperElf\GameRound;
 use PHPUnit\Framework\TestCase;
 use SuperElf\League;
 use SuperElf\League as S11League;
@@ -120,7 +122,74 @@ final class CupCreatorTest extends TestCase
         self::assertSame(5, $structure->getLastRoundNumber()->getNumber());
     }
 
+    public function testCreateFiveRoundsWithEighteenAssembleAndTwelveTransferGameRounds(): void
+    {
+        $structure = $this->createFiveRoundCupGames(18, 12);
+
+        $this->assertCupGameRoundNumbers(
+            $structure,
+            [[6, 7, 8], [10, 11, 12], [14, 15, 16], [26, 27, 28], [30, 31, 32]]
+        );
+    }
+
+    public function testCreateFiveRoundsKeepsThirdRoundInTransferWithoutAssembleRoom(): void
+    {
+        $structure = $this->createFiveRoundCupGames(12, 13);
+
+        $this->assertCupGameRoundNumbers(
+            $structure,
+            [[6, 7, 8], [10, 11, 12], [23, 24, 25], [27, 28, 29], [31, 32, 33]]
+        );
+    }
+
+    /**
+     * @param list<list<int>> $expectedGameRoundNumbers
+     */
+    private function assertCupGameRoundNumbers(Structure $structure, array $expectedGameRoundNumbers): void
+    {
+        $round = $structure->getSingleCategory()->getRootRound();
+        foreach ($expectedGameRoundNumbers as $expected) {
+            $actual = [];
+            foreach ($round->getGames() as $game) {
+                if ($game instanceof AgainstGame) {
+                    $actual[] = $game->getGameRoundNumber();
+                }
+            }
+            $actual = array_values(array_unique($actual));
+            self::assertSame($expected, $actual);
+            $children = $round->getChildren();
+            $nextRound = array_shift($children);
+            if ($nextRound === null) {
+                break;
+            }
+            $round = $nextRound;
+        }
+    }
+
+    private function createFiveRoundCupGames(int $nrOfAssembleGameRounds, int $nrOfTransferGameRounds): Structure
+    {
+        [$cupCreator, $pool, $structure] = $this->createCupForNrOfPlaces(31);
+        $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();
+        for ($gameRoundNumber = 1; $gameRoundNumber <= $nrOfAssembleGameRounds; $gameRoundNumber++) {
+            new GameRound($assembleViewPeriod, $gameRoundNumber);
+        }
+        $transferViewPeriod = $pool->getCompetitionConfig()->getTransferPeriod()->getViewPeriod();
+        for ($index = 1; $index <= $nrOfTransferGameRounds; $index++) {
+            new GameRound($transferViewPeriod, 22 + $index);
+        }
+        $cupCreator->createGames($structure, $pool);
+        return $structure;
+    }
+
     public function createCupStructureForNrOfPlaces(int $nrOfQualifiers): Structure
+    {
+        return $this->createCupForNrOfPlaces($nrOfQualifiers)[2];
+    }
+
+    /**
+     * @return array{CupCreator, Pool, Structure}
+     */
+    private function createCupForNrOfPlaces(int $nrOfQualifiers): array
     {
         $cupCreator = new CupCreator();
 
@@ -141,6 +210,6 @@ final class CupCreatorTest extends TestCase
         $sport = $this->createSport(League::Cup);
         $poolCup = $cupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
 
-        return $cupCreator->createStructure($poolCup, $nrOfQualifiers);
+        return [$cupCreator, $pool, $cupCreator->createStructure($poolCup, $nrOfQualifiers)];
     }
 }
