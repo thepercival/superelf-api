@@ -219,6 +219,8 @@ return function (App $app): void {
                 function (Group $group): void {
                     $group->options('achievements', AchievementAction::class . ':options');
                     $group->get('achievements', AchievementAction::class . ':fetchPoolCollection');
+                    $group->options('goat', AchievementAction::class . ':options');
+                    $group->get('goat', AchievementAction::class . ':fetchGoat');
                 },
             );
         }

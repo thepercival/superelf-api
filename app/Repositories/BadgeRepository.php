@@ -15,6 +15,24 @@ use SuperElf\PoolCollection;
 final class BadgeRepository extends EntityRepository
 {
     /**
+     * @return list<array{userId: int|string, achievementCount: int|string}>
+     */
+    public function findCountsByPoolCollection(PoolCollection $poolCollection): array
+    {
+        /** @var list<array{userId: int|string, achievementCount: int|string}> $counts */
+        $counts = $this->createQueryBuilder('b')
+            ->select('IDENTITY(pu.user) AS userId', 'COUNT(b.id) AS achievementCount')
+            ->join('b.poolUser', 'pu')
+            ->join('pu.pool', 'p')
+            ->where('p.collection = :poolCollection')
+            ->setParameter('poolCollection', $poolCollection)
+            ->groupBy('pu.user')
+            ->getQuery()
+            ->getArrayResult();
+        return $counts;
+    }
+
+    /**
      * @param PoolUser $poolUser
      * @return list<Badge>
      */

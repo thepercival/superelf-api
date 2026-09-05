@@ -25,6 +25,11 @@ use SuperElf\User;
 
 final class AchievementAction extends Action
 {
+    private const int CompetitionTrophyPoints = 15;
+    private const int CupTrophyPoints = 8;
+    private const int SuperCupTrophyPoints = 5;
+    private const int BadgePoints = 1;
+
     public function __construct(
         protected EntityManagerInterface   $entityManager,
         protected PoolCollectionRepository $poolCollectionRepos,
@@ -57,10 +62,10 @@ final class AchievementAction extends Action
             $badges = $this->badgeRepos->findByPoolCollection($poolCollection);
             $trophies = $this->trophyRepos->findByPoolCollection($poolCollection);
             if (count($trophies) > 0) {
-                $achievements = array_merge($achievements, $trophies );
+                $achievements = array_merge($achievements, $trophies);
             }
             if (count($badges) > 0) {
-                $achievements = array_merge($achievements, $badges );
+                $achievements = array_merge($achievements, $badges);
             }
 
             $context = $this->getSerializationContext(['noReference']);
@@ -69,6 +74,56 @@ final class AchievementAction extends Action
         } catch (\Exception $e) {
             return new ErrorResponse($e->getMessage(), 422, $this->logger);
         }
+    }
+
+    /**
+     * @param array<string, int|string> $args
+     */
+    public function fetchGoat(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $poolCollection = $this->poolCollectionRepos->find((int)$args['poolCollectionId']);
+            if ($poolCollection === null) {
+                throw new \Exception('kan de poolcollectie met id "' . $args['poolCollectionId'] . '" niet vinden', E_ERROR);
+            }
+
+            /** @var array<int, int> $pointsByUserId */
+            $pointsByUserId = [];
+            foreach ($this->trophyRepos->findCountsByPoolCollection($poolCollection) as $count) {
+                $userId = (int)$count['userId'];
+                $pointsByUserId[$userId] = ($pointsByUserId[$userId] ?? 0)
+                    + ((int)$count['achievementCount'] * $this->getTrophyPoints($count['leagueName']));
+            }
+            foreach ($this->badgeRepos->findCountsByPoolCollection($poolCollection) as $count) {
+                $userId = (int)$count['userId'];
+                $pointsByUserId[$userId] = ($pointsByUserId[$userId] ?? 0)
+                    + ((int)$count['achievementCount'] * self::BadgePoints);
+            }
+
+            $goatUserId = null;
+            $goatPoints = 0;
+            foreach ($pointsByUserId as $userId => $points) {
+                if ($goatUserId === null || $points > $goatPoints || ($points === $goatPoints && $userId < $goatUserId)) {
+                    $goatUserId = $userId;
+                    $goatPoints = $points;
+                }
+            }
+
+            $json = json_encode(['userId' => $goatUserId, 'points' => $goatPoints], JSON_THROW_ON_ERROR);
+            return $this->respondWithJson($response, $json);
+        } catch (\Exception $e) {
+            return new ErrorResponse($e->getMessage(), 422, $this->logger);
+        }
+    }
+
+    private function getTrophyPoints(string $leagueName): int
+    {
+        return match ($leagueName) {
+            'Competition' => self::CompetitionTrophyPoints,
+            'Cup' => self::CupTrophyPoints,
+            'SuperCup' => self::SuperCupTrophyPoints,
+            default => 0,
+        };
     }
 
     /**
@@ -87,20 +142,20 @@ final class AchievementAction extends Action
             $poolUser = $pool->getUser($user);
 
             $achievements = [];
-            if( $poolUser !== null ) {
+            if ($poolUser !== null) {
                 $unviewedTrophies = $this->unviewedTrophyRepos->findByPoolUser($poolUser);
                 if (count($unviewedTrophies) > 0) {
-                    $trophies = array_map(function(UnviewedTrophy $unviewedTrophy): Trophy {
+                    $trophies = array_map(function (UnviewedTrophy $unviewedTrophy): Trophy {
                         return $unviewedTrophy->getTrophy();
-                    }, $unviewedTrophies );
-                    $achievements = array_merge($achievements, $trophies );
+                    }, $unviewedTrophies);
+                    $achievements = array_merge($achievements, $trophies);
                 }
                 $unviewedBadges = $this->unviewedBadgeRepos->findByPoolUser($poolUser);
                 if (count($unviewedBadges) > 0) {
-                    $badges = array_map(function(UnviewedBadge $unviewedBadge): Badge {
+                    $badges = array_map(function (UnviewedBadge $unviewedBadge): Badge {
                         return $unviewedBadge->getBadge();
-                    }, $unviewedBadges );
-                    $achievements = array_merge($achievements, $badges );
+                    }, $unviewedBadges);
+                    $achievements = array_merge($achievements, $badges);
                 }
             }
 
@@ -125,19 +180,19 @@ final class AchievementAction extends Action
             $poolUser = $request->getAttribute("poolUser");
 
             $unviewedTrophies = $this->unviewedTrophyRepos->findByPoolUser($poolUser);
-            foreach( $unviewedTrophies as $unviewedTrophy ) {
-//                if( $unviewedTrophy->getPoolUser()->getPool() !== $poolUser->getPool() ) {
-//                    continue;
-//                }
+            foreach ($unviewedTrophies as $unviewedTrophy) {
+                //                if( $unviewedTrophy->getPoolUser()->getPool() !== $poolUser->getPool() ) {
+                //                    continue;
+                //                }
                 $this->entityManager->remove($unviewedTrophy);
                 $this->entityManager->flush();
             }
 
             $unviewedBadges = $this->unviewedBadgeRepos->findByPoolUser($poolUser);
-            foreach( $unviewedBadges as $unviewedBadge ) {
-//                if( $unviewBadge->getPoolUser()->getPool() !== $poolUser->getPool() ) {
-//                    continue;
-//                }
+            foreach ($unviewedBadges as $unviewedBadge) {
+                //                if( $unviewBadge->getPoolUser()->getPool() !== $poolUser->getPool() ) {
+                //                    continue;
+                //                }
                 $this->entityManager->remove($unviewedBadge);
                 $this->entityManager->flush();
             }
