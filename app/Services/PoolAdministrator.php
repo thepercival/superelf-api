@@ -96,16 +96,16 @@ final class PoolAdministrator
 
     public function createPool(CompetitionConfig $competitionConfig, string $name, User|null $user, bool $worldCup = false): Pool
     {
-        if( $worldCup ) {
+        if ($worldCup) {
             $s11Leagues = [S11League::WorldCup];
         } else {
-            $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup ];
+            $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup];
         }
         $poolCollection = $this->createCollection($name, $s11Leagues);
 
         $pool = new Pool($poolCollection, $competitionConfig);
 
-        if( $user !== null ) {
+        if ($user !== null) {
             $this->addUser($pool, $user, true);
         }
         $this->entityManager->persist($pool);
@@ -139,8 +139,7 @@ final class PoolAdministrator
             $newStructure = $creator->createStructure($competition, count($validPoolUsers));
             $this->logger->info('       ' . count($validPoolUsers) . ' valid poolUsers');
             $this->logger->info(
-                '       ' . $newStructure->getSingleCategory()->getRootRound()->getNrOfPlaces(
-                ) . ' first-round-places created'
+                '       ' . $newStructure->getSingleCategory()->getRootRound()->getNrOfPlaces() . ' first-round-places created'
             );
             $this->structureRepos->add($newStructure);
 
@@ -167,16 +166,17 @@ final class PoolAdministrator
      * @param S11League|null $filterS11League
      * @return list<S11League>
      */
-    private function getS11Leagues(Pool $pool, S11League|null $filterS11League): array {
-        if( $pool->getName() === S11League::WorldCup->name ) {
+    private function getS11Leagues(Pool $pool, S11League|null $filterS11League): array
+    {
+        if ($pool->getName() === S11League::WorldCup->name) {
             $s11Leagues = [S11League::WorldCup];
         } else {
-            $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup ];
+            $s11Leagues = [S11League::Competition, S11League::Cup, S11League::SuperCup];
         }
-        if( $filterS11League === null) {
+        if ($filterS11League === null) {
             return $s11Leagues;
         }
-        return array_values( array_filter($s11Leagues, function(S11League $s11League) use ($filterS11League): bool {
+        return array_values(array_filter($s11Leagues, function (S11League $s11League) use ($filterS11League): bool {
             return $filterS11League === $s11League;
         }));
     }
@@ -197,13 +197,13 @@ final class PoolAdministrator
     protected function checkOnExistingCompetitorsOrStructure(Pool $pool, S11League|null $filterS11League): void
     {
         foreach ($pool->getCompetitions() as $competition) {
-            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+            if ($filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
                 continue;
             }
             if (count($pool->getCompetitors($competition)) > 0) {
                 throw new \Exception(
                     'competition "' . $competition->getName() . '" for pool "' . $pool->getName() .
-                    '"(' . (string)$pool->getId() . ') already has competitors: use "--replace"',
+                        '"(' . (string)$pool->getId() . ') already has competitors: use "--replace"',
                     E_ERROR
                 );
             }
@@ -211,7 +211,7 @@ final class PoolAdministrator
             if ($this->structureRepos->hasStructure($competition)) {
                 throw new \Exception(
                     'competition "' . $competition->getName() . '" for pool "' . $pool->getName() .
-                    '"(' . (string)$pool->getId() . ') already has a structure: use "--replace"',
+                        '"(' . (string)$pool->getId() . ') already has a structure: use "--replace"',
                     E_ERROR
                 );
             }
@@ -221,12 +221,14 @@ final class PoolAdministrator
     public function checkOnStartedGames(Pool $pool, S11League|null $filterS11League): void
     {
         foreach ($pool->getCompetitions() as $competition) {
-            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+            if ($filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
                 continue;
             }
 
-            if ($competition->getSingleSport()->createVariant() instanceof AgainstH2h
-                || $competition->getSingleSport()->createVariant() instanceof AgainstGpp) {
+            if (
+                $competition->getSingleSport()->createVariant() instanceof AgainstH2h
+                || $competition->getSingleSport()->createVariant() instanceof AgainstGpp
+            ) {
                 $hasAgainstGames = $this->againstGameRepos->hasCompetitionGames(
                     $competition,
                     [State::InProgress, State::Finished]
@@ -234,7 +236,7 @@ final class PoolAdministrator
                 if ($hasAgainstGames) {
                     throw new \Exception(
                         'competition "' . $competition->getLeague()->getName() . '" for pool "' . $pool->getName() .
-                        '"(' . (string)$pool->getId() . ') already has against games in progress or finished',
+                            '"(' . (string)$pool->getId() . ') already has against games in progress or finished',
                         E_ERROR
                     );
                 }
@@ -246,7 +248,7 @@ final class PoolAdministrator
                 if ($hasTogetherGames) {
                     throw new \Exception(
                         'competition "' . $competition->getLeague()->getName() . '" for pool "' . $pool->getName() .
-                        '"(' . (string)$pool->getId() . ') already has together games in progress or finished',
+                            '"(' . (string)$pool->getId() . ') already has together games in progress or finished',
                         E_ERROR
                     );
                 }
@@ -256,13 +258,13 @@ final class PoolAdministrator
 
 
 
-//    public function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool): void
-//    {
-//        $this->checkOnStartedGames($worldCupPool);
-//        $this->replaceWorldCupPoolUsers($worldCupPool);
-//        $this->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
-//
-//    }
+    //    public function createPoolUsersCompetitionsCompetitorsStructureAndGames(Pool $worldCupPool): void
+    //    {
+    //        $this->checkOnStartedGames($worldCupPool);
+    //        $this->replaceWorldCupPoolUsers($worldCupPool);
+    //        $this->createCompetitionsCompetitorsStructureAndGames($worldCupPool);
+    //
+    //    }
 
 
     public function replaceCompetitionsCompetitorsStructureAndGames(Pool $pool, S11League|null $filterS11League): void
@@ -272,11 +274,27 @@ final class PoolAdministrator
         $this->createCompetitionsCompetitorsStructureAndGames($pool, $filterS11League);
     }
 
+    public function removePool(Pool $pool): void
+    {
+        $connection = $this->entityManager->getConnection();
+        $connection->beginTransaction();
+        try {
+            $this->removeCompetitionsCompetitorsStructureAndGames($pool, null);
+            $pool->getCollection()->getPools()->removeElement($pool);
+            $this->entityManager->remove($pool);
+            $this->entityManager->flush();
+            $connection->commit();
+        } catch (\Throwable $exception) {
+            $connection->rollBack();
+            throw $exception;
+        }
+    }
+
     public function removeCompetitionsCompetitorsStructureAndGames(Pool $pool, S11League|null $filterS11League): void
     {
         $competitions = $pool->getCompetitions();
         while ($competition = array_pop($competitions)) {
-            if( $filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
+            if ($filterS11League !== null && $competition->getLeague()->getName() !== $filterS11League->name) {
                 continue;
             }
 
@@ -317,16 +335,17 @@ final class PoolAdministrator
      * @return void
      * @throws \Exception
      */
-    private function copyAndSaveWorldCupPoolUsers(Pool $worldCupPool): void {
+    private function copyAndSaveWorldCupPoolUsers(Pool $worldCupPool): void
+    {
         $originalWorldCupPoolUsers = $this->competitionsCreator->getOriginalValidPoolUsers($worldCupPool);
 
         // copy
-        foreach( $originalWorldCupPoolUsers as $originalWorldCupPoolUser ) {
-            $poolUser = new PoolUser( $worldCupPool, $originalWorldCupPoolUser->getUser());
+        foreach ($originalWorldCupPoolUsers as $originalWorldCupPoolUser) {
+            $poolUser = new PoolUser($worldCupPool, $originalWorldCupPoolUser->getUser());
             $this->entityManager->persist($poolUser);
             $this->entityManager->flush();
             $originalWorldCupFormation = $originalWorldCupPoolUser->getAssembleFormation();
-            if( $originalWorldCupFormation !== null ) {
+            if ($originalWorldCupFormation !== null) {
                 $newFormation = $this->formationEditor->copyFormation($originalWorldCupFormation);
                 // $this->poolUserRepos->save($poolUser);
                 $poolUser->setAssembleFormation($newFormation);
@@ -336,18 +355,19 @@ final class PoolAdministrator
         }
     }
 
-    public function copyPoolUserFormationToOtherPool(User $user, Pool $fromPool, Pool $toPool ): void {
+    public function copyPoolUserFormationToOtherPool(User $user, Pool $fromPool, Pool $toPool): void
+    {
         $fromPoolUser = $fromPool->getUser($user);
-        if( $fromPoolUser === null ) {
+        if ($fromPoolUser === null) {
             throw new \Exception('from-poolUser not found');
         }
         $toPoolUser = $toPool->getUser($user);
-        if( $toPoolUser === null ) {
+        if ($toPoolUser === null) {
             throw new \Exception('to-poolUser not found');
         }
         // remove to-pool-formation
         $fromFormation = $fromPoolUser->getFormation($fromPool->getAssemblePeriod());
-        if( $fromFormation === null ) {
+        if ($fromFormation === null) {
             throw new \Exception('from-formation not found');
         }
         $formationEditor = new FormationEditor($this->config, false);
@@ -381,6 +401,4 @@ final class PoolAdministrator
         }
         return $nrOfGames;
     }
-
-
 }

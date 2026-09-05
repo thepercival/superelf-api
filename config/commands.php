@@ -13,6 +13,7 @@ use App\Commands\Migration\Users as MigrateUsersCommand;
 use App\Commands\PersonCommand;
 use App\Commands\PlayerTotals as UpdatePlayerTotalsCommand;
 use App\Commands\PoolCompetitionsCommand;
+use App\Commands\RemovePoolsCommand;
 use App\Commands\PoolUserCommand;
 use App\Commands\PoolUserCopyCommand;
 use App\Commands\Sync as SyncCommand;
@@ -68,6 +69,9 @@ $commands = [
     },
     "app:create-pool-competitions" => function (ContainerInterface $container): PoolCompetitionsCommand {
         return new PoolCompetitionsCommand($container);
+    },
+    "app:remove-pools" => function (ContainerInterface $container): RemovePoolsCommand {
+        return new RemovePoolsCommand($container);
     },
     "app:create-transfer-formations" => function (ContainerInterface $container): CreateFormationsCommand {
         return new CreateFormationsCommand($container);
