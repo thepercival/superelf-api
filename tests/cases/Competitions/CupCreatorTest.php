@@ -4,6 +4,8 @@ namespace SuperElf\Tests\Competitions;
 
 use DateTimeImmutable;
 use League\Period\Period as LeaguePeriod;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 use Sports\Association;
 use Sports\Competition;
 use Sports\Game\Against as AgainstGame;
@@ -19,7 +21,9 @@ use SuperElf\League;
 use SuperElf\League as S11League;
 use SuperElf\PoolCollection;
 use SuperElf\Pool;
+use SuperElf\Pool\User as PoolUser;
 use SuperElf\TestHelpers\Creator;
+use SuperElf\User;
 
 final class CupCreatorTest extends TestCase
 {
@@ -142,6 +146,32 @@ final class CupCreatorTest extends TestCase
         );
     }
 
+    public function testCupCompetitorsArePlacedInRandomOrder(): void
+    {
+        $seed = 12345;
+        $cupCreator = new CupCreator(new Randomizer(new Mt19937($seed)));
+        [$pool, $structure] = $this->createCupForNrOfPlaces(5, $cupCreator);
+        $poolUsers = [];
+        for ($index = 1; $index <= 5; $index++) {
+            $poolUsers[] = new PoolUser(
+                $pool,
+                new User('user' . $index . '@example.com', 'user' . $index, 'salt', 'password')
+            );
+        }
+        $expectedPoolUsers = (new Randomizer(new Mt19937($seed)))->shuffleArray($poolUsers);
+
+        $competitors = $cupCreator->createCompetitors(
+            $structure->getSingleCategory()->getRootRound()->getCompetition(),
+            $poolUsers,
+            $structure
+        );
+
+        self::assertSame(
+            $expectedPoolUsers,
+            array_map(fn($competitor): PoolUser => $competitor->getPoolUser(), $competitors)
+        );
+    }
+
     /**
      * @param list<list<int>> $expectedGameRoundNumbers
      */
@@ -168,7 +198,7 @@ final class CupCreatorTest extends TestCase
 
     private function createFiveRoundCupGames(int $nrOfAssembleGameRounds, int $nrOfTransferGameRounds): Structure
     {
-        [$cupCreator, $pool, $structure] = $this->createCupForNrOfPlaces(31);
+        [$pool, $structure] = $this->createCupForNrOfPlaces(31, $cupCreator = new CupCreator());
         $assembleViewPeriod = $pool->getCompetitionConfig()->getAssemblePeriod()->getViewPeriod();
         for ($gameRoundNumber = 1; $gameRoundNumber <= $nrOfAssembleGameRounds; $gameRoundNumber++) {
             new GameRound($assembleViewPeriod, $gameRoundNumber);
@@ -183,16 +213,14 @@ final class CupCreatorTest extends TestCase
 
     public function createCupStructureForNrOfPlaces(int $nrOfQualifiers): Structure
     {
-        return $this->createCupForNrOfPlaces($nrOfQualifiers)[2];
+        return $this->createCupForNrOfPlaces($nrOfQualifiers, new CupCreator())[1];
     }
 
     /**
-     * @return array{CupCreator, Pool, Structure}
+     * @return array{Pool, Structure}
      */
-    private function createCupForNrOfPlaces(int $nrOfQualifiers): array
+    private function createCupForNrOfPlaces(int $nrOfQualifiers, CupCreator $cupCreator): array
     {
-        $cupCreator = new CupCreator();
-
         $season = new Season(
             "20/21",
             LeaguePeriod::fromDate(new DateTimeImmutable(), (new DateTimeImmutable())->modify("+1 year"))
@@ -210,6 +238,6 @@ final class CupCreatorTest extends TestCase
         $sport = $this->createSport(League::Cup);
         $poolCup = $cupCreator->createCompetition($pool, $sport, PointsCalculation::AgainstGamePoints);
 
-        return [$cupCreator, $pool, $cupCreator->createStructure($poolCup, $nrOfQualifiers)];
+        return [$pool, $cupCreator->createStructure($poolCup, $nrOfQualifiers)];
     }
 }

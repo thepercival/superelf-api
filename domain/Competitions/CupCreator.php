@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SuperElf\Competitions;
 
+use Random\Randomizer;
 use Sports\Competition;
 use Sports\Competition\CompetitionSport;
 use Sports\Game\Against as AgainstGame;
@@ -20,12 +21,27 @@ use SuperElf\GameRound;
 use SuperElf\League as S11League;
 use SuperElf\Periods\ViewPeriod;
 use SuperElf\Pool;
+use SuperElf\Pool\User as PoolUser;
 
 final class CupCreator extends BaseCreator
 {
-    public function __construct()
+    public function __construct(private Randomizer $randomizer = new Randomizer())
     {
         parent::__construct(S11League::Cup);
+    }
+
+    /**
+     * @param list<PoolUser> $validPoolUsers
+     * @return list<\SuperElf\Competitor>
+     */
+    #[\Override]
+    public function createCompetitors(Competition $competition, array $validPoolUsers, Structure $structure): array
+    {
+        return parent::createCompetitors(
+            $competition,
+            $this->randomizer->shuffleArray($validPoolUsers),
+            $structure
+        );
     }
 
     #[\Override]
