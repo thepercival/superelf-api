@@ -43,9 +43,9 @@ final class CupCreator extends BaseCreator
         $structure = $this->structureEditor->create($competition, $firstRoundPouleStructure->toArray());
         $round = $structure->getSingleCategory()->getRootRound();
         $this->updateAgainstQualifyConfig($round, $competition->getSingleSport());
-//        if( $firstRoundPouleStructure->getNrOfPlaces() % 2 === 0) {
-//            $nrOfQualifiers = (int)($nrOfQualifiers / 2);
-//        }
+        //        if( $firstRoundPouleStructure->getNrOfPlaces() % 2 === 0) {
+        //            $nrOfQualifiers = (int)($nrOfQualifiers / 2);
+        //        }
         while ($nrOfQualifiers > 1) {
             $nextNrOfQualifiers = $this->getNrOfQualifiers($nrOfQualifiers);
             $pouleStructure = $this->createPouleStructure($nrOfQualifiers, $nextNrOfQualifiers);
@@ -239,21 +239,21 @@ final class CupCreator extends BaseCreator
         while ($nrOfPlaces > 0) {
             $nrOfPoules++;
             $nrOfPlaces -= $nrOfPlacesPerPoule;
-            if($nrOfPlacesPerPoule > 1 && ($nrOfPlaces + $nrOfPoules) === $nextNrOfPlaces) {
+            if ($nrOfPlacesPerPoule > 1 && ($nrOfPlaces + $nrOfPoules) === $nextNrOfPlaces) {
                 $nrOfPlacesPerPoule--;
             }
         }
         return $nrOfPoules;
     }
 
-//    protected function calculateNrOfRounds(int $nrOfCompetitors): int
-//    {
-//        $nrOfRounds = 0;
-//        $nrOfPlaces = 1;
-//        while ($nrOfPlaces <= $nrOfCompetitors) {
-//            $nrOfRounds++;
-//            $nrOfPlaces = (int)($nrOfPlaces * 2);
-//        }
-//        return $nrOfRounds;
-//    }
+    //    protected function calculateNrOfRounds(int $nrOfCompetitors): int
+    //    {
+    //        $nrOfRounds = 0;
+    //        $nrOfPlaces = 1;
+    //        while ($nrOfPlaces <= $nrOfCompetitors) {
+    //            $nrOfRounds++;
+    //            $nrOfPlaces = (int)($nrOfPlaces * 2);
+    //        }
+    //        return $nrOfRounds;
+    //    }
 }
