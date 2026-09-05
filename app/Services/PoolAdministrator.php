@@ -146,6 +146,7 @@ final class PoolAdministrator
 
             $creator->createGames($newStructure, $pool);
             $this->saveGamesRecursive($newStructure->getSingleCategory()->getRootRound());
+            $this->entityManager->flush();
             $this->logger->info(
                 '       ' . $this->getNrOfGames($newStructure->getSingleCategory()->getRootRound()) . ' games created'
             );
@@ -153,8 +154,8 @@ final class PoolAdministrator
             $poolCompetitors = $creator->createCompetitors($competition, $validPoolUsers, $newStructure);
             foreach ($poolCompetitors as $poolCompetitor) {
                 $this->entityManager->persist($poolCompetitor);
-                $this->entityManager->flush();
             }
+            $this->entityManager->flush();
             $this->logger->info('       ' . count($poolCompetitors) . ' competitors created');
         }
         $this->entityManager->persist($pool);
@@ -362,9 +363,9 @@ final class PoolAdministrator
     {
         foreach ($round->getGames() as $game) {
             if ($game instanceof TogetherGame) {
-                $this->togetherGameRepos->customSave($game, true);
+                $this->togetherGameRepos->customSave($game);
             } else {
-                $this->againstGameRepos->customSave($game, true);
+                $this->againstGameRepos->customSave($game);
             }
         }
         foreach ($round->getChildren() as $childRound) {
