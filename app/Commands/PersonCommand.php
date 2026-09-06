@@ -21,6 +21,10 @@ use Sports\Sport\FootballLine;
 use Sports\Team;
 use Sports\Team\Player;
 use Sports\Team\Role\Editor as RoleEditor;
+use SportsImport\Attachers\PersonAttacher;
+use SportsImport\ExternalSource;
+use SportsImport\ExternalSource\SofaScore;
+use App\Repositories\SportsImport\AttacherRepository;
 use SuperElf\CompetitionConfig;
 use SuperElf\GameRound;
 use SuperElf\OneTeamSimultaneous;
@@ -57,6 +61,11 @@ final class PersonCommand extends Command
     protected PersonRepository $personRepos;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected EntityManagerInterface $entityManager;
+    /** @var AttacherRepository<PersonAttacher>  */
+    protected AttacherRepository $personAttacherRepos;
+    /** @var EntityRepository<ExternalSource>  */
+    protected EntityRepository $externalSourceRepos;
+    private ExternalSource|false|null $sofaScoreExternalSource = null;
 
     public function __construct(ContainerInterface $container)
     {
@@ -86,6 +95,10 @@ final class PersonCommand extends Command
         /** @var PersonRepository $personRepos */
         $personRepos = $container->get(PersonRepository::class);
         $this->personRepos = $personRepos;
+
+        $personAttacherMetaData = $this->entityManager->getClassMetadata(PersonAttacher::class);
+        $this->personAttacherRepos = new AttacherRepository($this->entityManager, $personAttacherMetaData);
+        $this->externalSourceRepos = $this->entityManager->getRepository(ExternalSource::class);
 
         $this->playerRepos = $this->entityManager->getRepository(Player::class);
         $this->totalsRepos = $this->entityManager->getRepository(Totals::class);
@@ -210,6 +223,20 @@ final class PersonCommand extends Command
         return 0;
     }
 
+    private function getSofaScoreExternalId(Person $person): string|null
+    {
+        if ($this->sofaScoreExternalSource === null) {
+            $this->sofaScoreExternalSource = $this->externalSourceRepos->findOneBy(
+                ['name' => SofaScore::NAME]
+            ) ?? false;
+        }
+        if ($this->sofaScoreExternalSource === false) {
+            return null;
+        }
+        $personAttacher = $this->personAttacherRepos->findOneByImportable($this->sofaScoreExternalSource, $person);
+        return $personAttacher?->getExternalId();
+    }
+
     private function logPerson(
         Person $person,
         CompetitionConfig $competitionConfig,
@@ -219,7 +246,12 @@ final class PersonCommand extends Command
         if ($period === null) {
             $period = $competitionConfig->getSeason()->getPeriod();
         }
-        $this->getLogger()->info($person->getName() . '(id:' . (string)$person->getId() . ')');
+        $idDescription = 'id:' . (string)$person->getId();
+        $sofaScoreExternalId = $this->getSofaScoreExternalId($person);
+        if ($sofaScoreExternalId !== null) {
+            $idDescription .= ', sofascore-id:' . $sofaScoreExternalId;
+        }
+        $this->getLogger()->info($person->getName() . '(' . $idDescription . ')');
         $this->getLogger()->info('    teamPlayers');
         foreach ($person->getPlayers(null, $period) as $player) {
             $line = FootballLine::getFirstChar(FootballLine::from($player->getLine()));
