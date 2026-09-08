@@ -10,7 +10,6 @@ use App\Repositories\CompetitionConfigRepository;
 use App\Repositories\S11PlayerRepository;
 use App\Repositories\Sports\AgainstGameRepository;
 use App\Repositories\Sports\PersonRepository;
-use App\Syncers\AchievementSyncer;
 use App\Syncers\S11PlayerSyncer;
 use App\Syncers\StatisticsSyncer;
 use App\Syncers\SubstituteAppearanceSyncer as AppearanceSyncer;
@@ -54,7 +53,6 @@ final class Sync extends Command
     protected AppearanceSyncer $appearanceSyncer;
     protected TotalsSyncer $totalsSyncer;
     protected PoolGameSyncer $poolGameSyncer;
-    protected AchievementSyncer $achievementSyncer;
     protected CompetitionConfigRepository $competitionConfigRepos;
     protected EntityManagerInterface $entityManager;
 
@@ -98,10 +96,6 @@ final class Sync extends Command
         $totalsSyncer = $container->get(TotalsSyncer::class);
         $this->totalsSyncer = $totalsSyncer;
 
-        /** @var AchievementSyncer $achievementSyncer */
-        $achievementSyncer = $container->get(AchievementSyncer::class);
-        $this->achievementSyncer = $achievementSyncer;
-
         /** @var CompetitionConfigRepository $competitionConfigRepos */
         $competitionConfigRepos = $container->get(CompetitionConfigRepository::class);
         $this->competitionConfigRepos = $competitionConfigRepos;
@@ -128,7 +122,6 @@ final class Sync extends Command
         $this->addOption('league', null, InputOption::VALUE_REQUIRED, 'Eredivisie');
         $this->addOption('season', null, InputOption::VALUE_REQUIRED, '2014/2015');
         $this->addOption('gameRoundRange', null, InputOption::VALUE_OPTIONAL, '1-4');
-        $this->addOption('with-achievements', null, InputOption::VALUE_NONE);
 
         parent::configure();
     }
@@ -161,13 +154,9 @@ final class Sync extends Command
             return false;
         }
 
-        /** @var bool|null $withAchievementsTmp */
-        $withAchievementsTmp = $input->getOption('with-achievements');
-        $withAchievements = is_bool($withAchievementsTmp) ? $withAchievementsTmp : false;
-
         $gameRoundNrRange = $this->inputHelper->getGameRoundNrRangeFromInput($input);
         if ($gameRoundNrRange !== null) {
-            $this->syncGameRounds($competitionConfig, $gameRoundNrRange, $withAchievements);
+            $this->syncGameRounds($competitionConfig, $gameRoundNrRange);
             return true;
         }
 
@@ -185,9 +174,6 @@ final class Sync extends Command
             $this->appearanceSyncer->syncSubstituteAppearances($competitionConfig, $game);
             $this->totalsSyncer->syncTotals($competitionConfig, $game);
             // $this->poolGameSyncer->syncPoolCompetitions($competitionConfig, $game->getGameRoundNumber());
-            if( $withAchievements ) {
-                $this->achievementSyncer->syncPoolAchievements($competitionConfig);
-            }
         } else {
             $this->getLogger()->info('game with gameId ' . (string)$gameId . ' not found');
         }
@@ -208,7 +194,6 @@ final class Sync extends Command
         $this->appearanceSyncer->setLogger($logger);
         $this->totalsSyncer->setLogger($logger);
         $this->poolGameSyncer->setLogger($logger);
-        $this->achievementSyncer->setLogger($logger);
         return $logger;
     }
 
@@ -295,9 +280,9 @@ final class Sync extends Command
 
         foreach ($competitionConfigs as $competitionConfig) {
             foreach ($competitionConfig->getViewPeriods() as $viewPeriod) {
-//                if( !$viewPeriod->contains($event->getDateTime())) {
-//                    continue;
-//                }
+                //                if( !$viewPeriod->contains($event->getDateTime())) {
+                //                    continue;
+                //                }
                 $s11Player = $this->s11PlayerSyncer->syncS11Player($viewPeriod, $event->getPerson());
                 $this->entityManager->persist($s11Player);
                 $this->entityManager->flush();
@@ -312,9 +297,11 @@ final class Sync extends Command
         $oldDateTime = $event->getOldDateTime();
         $competitionConfig = $this->getCompetitionConfig($game);
 
-        if ($event->getAction() === GameEventAction::Create
+        if (
+            $event->getAction() === GameEventAction::Create
             || $event->getAction() === GameEventAction::UpdateBasics
-            || $event->getAction() === GameEventAction::Reschedule) {
+            || $event->getAction() === GameEventAction::Reschedule
+        ) {
             $dates = [$game->getStartDateTime()];
 
             if ($oldDateTime !== null) {
@@ -326,7 +313,6 @@ final class Sync extends Command
             $this->appearanceSyncer->syncSubstituteAppearances($competitionConfig, $game);
             $this->totalsSyncer->syncTotals($competitionConfig, $game);
             $this->poolGameSyncer->syncPoolCompetitions($competitionConfig, $game->getGameRoundNumber());
-
         } else { //  if ($event === GameEvent::UpdateScoresLineupsAndEvents) {
             $this->s11PlayerSyncer->syncS11Players($competitionConfig, $game);
             $this->statisticsSyncer->syncStatistics($competitionConfig, $game);
@@ -366,7 +352,7 @@ final class Sync extends Command
         return $game;
     }
 
-    protected function syncGameRounds(CompetitionConfig $competitionConfig, SportRange $gameRoundNrRange, bool $withAchievements): void
+    protected function syncGameRounds(CompetitionConfig $competitionConfig, SportRange $gameRoundNrRange): void
     {
         $games = $this->getGames($competitionConfig->getSourceCompetition(), $gameRoundNrRange);
         foreach ($games as $game) {
@@ -378,9 +364,6 @@ final class Sync extends Command
         }
         for ($nr = $gameRoundNrRange->getMin(); $nr <= $gameRoundNrRange->getMax(); $nr++) {
             $this->poolGameSyncer->syncPoolCompetitions($competitionConfig, $nr);
-        }
-        if ( $withAchievements ) {
-            $this->achievementSyncer->syncPoolAchievements($competitionConfig);
         }
     }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Commands\CompetitionConfig as CompetitionConfigCommand;
+use App\Commands\AchievementCommand;
 use App\Commands\ExternalSource\Get as GetExternalCommand;
 use App\Commands\ExternalSource\Import as ImportCommand;
 use App\Commands\ExternalSource\ImportImage as ImportImageCommand;
@@ -39,6 +40,9 @@ $commands = [
     },
     "app:sync" => function (ContainerInterface $container): SyncCommand {
         return new SyncCommand($container);
+    },
+    "app:achievement" => function (ContainerInterface $container): AchievementCommand {
+        return new AchievementCommand($container);
     },
     "app:update-player-totals" => function (ContainerInterface $container): UpdatePlayerTotalsCommand {
         return new UpdatePlayerTotalsCommand($container);
