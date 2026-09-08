@@ -18,12 +18,14 @@ readonly class GameRoundShell
         public Period $period,
         public int $created,
         public int $inProgress,
-        public int $finished
+        public int $finished,
+        public int $canceled = 0
     ) {
-        $this->totalNrOfGames = $created + $inProgress + $finished;
-        if( $inProgress > 0 || ( $created > 0 && $finished > 0 ) ) {
+        // canceled games count towards the total but never as finished, so progress stays visibly incomplete
+        $this->totalNrOfGames = $created + $inProgress + $finished + $canceled;
+        if ($inProgress > 0 || ($created > 0 && $finished > 0)) {
             $this->state = State::InProgress;
-        } else if( $finished > 0) {
+        } else if ($finished > 0) {
             $this->state = State::Finished;
         } else {
             $this->state = State::Created;

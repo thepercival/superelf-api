@@ -14,7 +14,7 @@ use SuperElf\Period;
 use SuperElf\Periods\ViewPeriod as ViewPeriod;
 
 /**
- * @psalm-type _GameRoundRow = array{gameRoundNumber: int, startDateTime: string, endDateTime: string, created: int, inProgress: int, finished: int}
+ * @psalm-type _GameRoundRow = array{gameRoundNumber: int, startDateTime: string, endDateTime: string, created: int, inProgress: int, finished: int, canceled: int}
  * @template-extends EntityRepository<ViewPeriod>
  */
 final class ViewPeriodRepository extends EntityRepository
@@ -34,8 +34,7 @@ final class ViewPeriodRepository extends EntityRepository
                         ->andWhere('gr.number = :gameRoundNumber')
                         ->getDQL()
                 )
-            )
-        ;
+            );
         $query = $query->setParameter('competition', $competition);
         $query = $query->setParameter('gameRoundNumber', $gameRoundNumber);
         /** @var list<ViewPeriod> $viewPeriods */
@@ -90,8 +89,7 @@ final class ViewPeriodRepository extends EntityRepository
         Competition $sourceCompetition,
         ViewPeriod $viewPeriod,
         bool $orderByDate = false,
-    ): array
-    {
+    ): array {
 
         // Define the ResultSetMapping
         $rsm = new ResultSetMapping();
@@ -101,6 +99,7 @@ final class ViewPeriodRepository extends EntityRepository
         $rsm->addScalarResult('created', 'created');
         $rsm->addScalarResult('inProgress', 'inProgress');
         $rsm->addScalarResult('finished', 'finished');
+        $rsm->addScalarResult('canceled', 'canceled');
 
         // Create the native SQL query
         $sql = "
@@ -110,6 +109,7 @@ final class ViewPeriodRepository extends EntityRepository
         ,			COUNT(CASE WHEN ag.state = 'created' THEN 1 END) AS created
         ,			COUNT(CASE WHEN ag.state = 'inProgress' THEN 1 END) AS inProgress
         ,			COUNT(CASE WHEN ag.state = 'finished' THEN 1 END) AS finished
+        ,			COUNT(CASE WHEN ag.state = 'canceled' THEN 1 END) AS canceled
         from 		againstGames as ag
                     join poules p on p.id = ag.pouleId
     			    join rounds r on r.id = p.roundId
@@ -132,14 +132,15 @@ final class ViewPeriodRepository extends EntityRepository
         $results = $query->getResult();
 
 
-        return array_map(function($row): GameRoundShell {
+        return array_map(function ($row): GameRoundShell {
             return new GameRoundShell(
                 $row['gameRoundNumber'],
                 new Period(LeaguePeriod::fromDate($row['startDateTime'], $row['endDateTime'])),
                 $row['created'],
                 $row['inProgress'],
-                $row['finished']
+                $row['finished'],
+                $row['canceled']
             );
-        }, $results );
+        }, $results);
     }
 }
