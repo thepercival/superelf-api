@@ -248,6 +248,11 @@ return [
         /** @var array<string, string> $proxyConfig */
         $proxyConfig = $config->getArray('proxy');
         $externalSourceFactory->setProxy($proxyConfig);
+        /** @var array{node: string, script: string, enabled: bool} $browserFetchConfig */
+        $browserFetchConfig = $config->getArray('browserfetch');
+        if ($browserFetchConfig['enabled']) {
+            $externalSourceFactory->setBrowserFetchCommand([$browserFetchConfig['node'], $browserFetchConfig['script']]);
+        }
         return $externalSourceFactory;
     }
 

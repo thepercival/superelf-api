@@ -96,6 +96,11 @@ return [
         'username' => $_ENV['EXTERNAL_PROXY_USERNAME'],
         'password' => $_ENV['EXTERNAL_PROXY_PASSWORD'],
     ],
+    'browserfetch' => [
+        'node' => $_ENV['BROWSER_FETCH_NODE'] ?? 'node',
+        'script' => __DIR__ . '/../browser-fetch/fetch.mjs',
+        'enabled' => ($_ENV['BROWSER_FETCH_ENABLED'] ?? 'true') === 'true',
+    ],
     'queue' => [
         'host' => 'localhost',
         'port' => 5672,
