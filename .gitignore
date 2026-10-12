@@ -7,3 +7,4 @@
 .php*
 /tests/.phpunit.result.cache
 /tests/codecoverage/
+/browser-fetch/node_modules/
