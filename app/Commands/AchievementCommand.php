@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * php bin/console.php app:achievement --league=Eredivisie --season=2025/2026 --s11leaguename=Competition --loglevel=Info
+ * php bin/console.php app:achievement --league=Eredivisie --season=2026/2027 --s11leaguename=SuperCup --loglevel=Info
  */
 final class AchievementCommand extends Command
 {
